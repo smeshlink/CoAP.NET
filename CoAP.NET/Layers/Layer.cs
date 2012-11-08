@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2011, Longxiang He <helongxiang@smeshlink.com>,
+ * Copyright (c) 2011-2012, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
  * This program is distributed in the hope that it will be useful,
@@ -20,23 +20,23 @@ namespace CoAP.Layers
     public abstract class Layer : IMessageReceiver
     {
         private List<IMessageReceiver> _receivers;
-        private Int32 _numMessagesSent;
-        private Int32 _numMessagesReceived;
+        private Int32 _messagesSentCount;
+        private Int32 _messagesReceivedCount;
 
         /// <summary>
         /// Gets the total number of sent messages.
         /// </summary>
-        public Int32 NumMessagesSent
+        public Int32 MessagesSentCount
         {
-            get { return _numMessagesSent; }
+            get { return _messagesSentCount; }
         }
 
         /// <summary>
         /// Gets the total number of received messages.
         /// </summary>
-        public Int32 NumMessagesReceived
+        public Int32 MessagesReceivedCount
         {
-            get { return _numMessagesReceived; }
+            get { return _messagesReceivedCount; }
         }
 
         /// <summary>
@@ -47,7 +47,7 @@ namespace CoAP.Layers
         {
             if (msg != null)
             {
-                ++_numMessagesReceived;
+                ++_messagesReceivedCount;
                 DoReceiveMessage(msg);
             }
         }
@@ -61,7 +61,7 @@ namespace CoAP.Layers
             if (msg != null)
             {
                 DoSendMessage(msg);
-                ++_numMessagesSent;
+                ++_messagesSentCount;
             }
         }
 

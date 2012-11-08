@@ -39,20 +39,27 @@
     <Compile Include="CoapConstants.cs" />
     <Compile Include="Code.cs" />
     <Compile Include="Communicator.cs" />
+    <Compile Include="EndpointAddress.cs" />
+    <Compile Include="EndPoint\LocalResource.cs" />
     <Compile Include="EndPoint\RemoteResource.cs" />
     <Compile Include="EndPoint\Resource.cs" />
     <Compile Include="IMessageHandler.cs" />
     <Compile Include="IRequestHandler.cs" />
     <Compile Include="IMessageReceiver.cs" />
     <Compile Include="Layers\Layer.cs" />
+    <Compile Include="Layers\MatchingLayer.cs" />
     <Compile Include="Layers\MessageLayer.cs" />
-    <Compile Include="Layers\TransactionLayer.cs" />
+    <Compile Include="Layers\TokenLayer.cs" />
     <Compile Include="Layers\TransferLayer.cs" />
     <Compile Include="Layers\UDPLayer.cs" />
     <Compile Include="Layers\UpperLayer.cs" />
+    <Compile Include="LinkAttribute.cs" />
     <Compile Include="LinkFormat.cs" />
+    <Compile Include="Log\ILogger.cs" />
+    <Compile Include="Log\LogManager.cs" />
     <Compile Include="MediaType.cs" />
     <Compile Include="Message.cs" />
+    <Compile Include="MessageType.cs" />
     <Compile Include="Option.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Request.cs" />
@@ -62,7 +69,6 @@
     <Compile Include="Util\DatagramReader.cs" />
     <Compile Include="Util\DatagramWriter.cs" />
     <Compile Include="Util\HashMap.cs" />
-    <Compile Include="Util\Log.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="README" />

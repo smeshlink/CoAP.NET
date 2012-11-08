@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2011, Longxiang He <helongxiang@smeshlink.com>,
+ * Copyright (c) 2011-2012, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
  * This program is distributed in the hope that it will be useful,
@@ -11,7 +11,7 @@
 
 using System;
 using System.Collections.Generic;
-using CoAP.Util;
+using CoAP.Log;
 
 namespace CoAP
 {
@@ -28,31 +28,60 @@ namespace CoAP
         /// <summary>
         /// The empty token, used as default value
         /// </summary>
-        public static readonly Option EmptyToken = Option.Create(OptionType.Token, new Byte[0]);
+        public static readonly Byte[] EmptyToken = new Byte[0];
+        private static ILogger log = LogManager.GetLogger(typeof(TokenManager));
+        private static TokenManager instance = new TokenManager();
 
-        private Int32 _nextValue = 0;
-        private List<Option> _acquiredTokens = new List<Option>();
+        private Int64 _currentToken;
+        private List<Byte[]> _acquiredTokens = new List<Byte[]>();
+
+        private TokenManager()
+        {
+            _currentToken = (Int64)(new Random().NextDouble() * 0x1001);
+        }
+
+        public static TokenManager Instance
+        {
+            get { return instance; }
+        }
+
+        private Byte[] NextToken()
+        {
+            _currentToken++;
+
+            Int64 temp = _currentToken;
+            using (System.IO.MemoryStream ms = new System.IO.MemoryStream(CoapConstants.TokenLength))
+            {
+                while (temp > 0 && ms.Length < CoapConstants.TokenLength)
+                {
+                    ms.WriteByte((Byte)(temp & 0xff));
+                    temp >>= 8;
+                }
+                return ms.ToArray();
+            }
+        }
 
         /// <summary>
         /// Returns an unique token.
         /// </summary>
         /// <param name="preferEmptyToken">If set to true, the caller will receive the empty token if it is available. This is useful for reducing datagram sizes in transactions that are expected to complete in short time. On the other hand, empty tokens are not preferred in block-wise transfers, as the empty token is then not available for concurrent transactions.</param>
         /// <returns></returns>
-        public Option AcquireToken(Boolean preferEmptyToken)
+        public Byte[] AcquireToken(Boolean preferEmptyToken)
         {
-            Option token = null;
+            Byte[] token = null;
             if (preferEmptyToken && !IsAcquired(EmptyToken))
-            {
                 token = EmptyToken;
-            }
             else
             {
-                token = Option.Create(OptionType.Token, ++this._nextValue);
+                do 
+                {
+                    token = NextToken();
+                } while (IsAcquired(token));
             }
 
-            if (!AcquireToken(token))
+            lock (this)
             {
-                Log.Warning(this, "Token already acquired: {0}\n", token.ToString());
+                _acquiredTokens.Add(token);
             }
 
             return token;
@@ -62,7 +91,7 @@ namespace CoAP
         /// Returns an unique token.
         /// </summary>
         /// <returns></returns>
-        public Option AcquireToken()
+        public Byte[] AcquireToken()
         {
             return AcquireToken(false);
         }
@@ -72,29 +101,28 @@ namespace CoAP
         /// </summary>
         /// <param name="token">The token to check</param>
         /// <returns>True iff the token is currently in use</returns>
-        public Boolean IsAcquired(Option token)
+        public Boolean IsAcquired(Byte[] token)
         {
-            return this._acquiredTokens.Contains(token);
+            lock (this)
+            {
+                return _acquiredTokens.Contains(token);
+            }
         }
 
         /// <summary>
         /// Releases an acquired token and makes it available for reuse.
         /// </summary>
         /// <param name="token">The token to release</param>
-        public void ReleaseToken(Option token)
+        public void ReleaseToken(Byte[] token)
         {
-            if (!this._acquiredTokens.Remove(token))
+            lock (this)
             {
-                Log.Warning(this, "Token to release is not acquired: {0}\n", token.ToString());
+                if (!_acquiredTokens.Remove(token))
+                {
+                    if (log.IsWarnEnabled)
+                        log.Warn("Token to release is not acquired: " + token.ToString());
+                }
             }
-        }
-
-        private Boolean AcquireToken(Option token)
-        {
-            if (IsAcquired(token))
-                return false;
-            this._acquiredTokens.Add(token);
-            return true;
         }
     }
 }

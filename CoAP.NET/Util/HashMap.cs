@@ -1,15 +1,50 @@
-﻿using System;
+﻿/*
+ * Copyright (c) 2011-2012, Longxiang He <helongxiang@smeshlink.com>,
+ * SmeshLink Technology Co.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY.
+ * 
+ * This file is part of the CoAP.NET, a CoAP framework in C#.
+ * Please see README for more information.
+ */
+
+using System;
 using System.Collections.Generic;
 
 namespace CoAP.Util
 {
     class HashMap<TKey, TValue> : IDictionary<TKey, TValue>
     {
+        private Int32 _size = 0;
         private IDictionary<TKey, TValue> _inner = new Dictionary<TKey, TValue>();
+        private LinkedList<TKey> _keyQueue;
+
+        public HashMap()
+        { }
+
+        public HashMap(Int32 size)
+        {
+            _size = size;
+            if (_size > 0)
+            {
+                _keyQueue = new LinkedList<TKey>();
+            }
+        }
 
         public void Add(TKey key, TValue value)
         {
             _inner.Add(key, value);
+
+            if (_keyQueue != null)
+            {
+                if (_keyQueue.Count == _size)
+                {
+                    _inner.Remove(_keyQueue.First.Value);
+                    _keyQueue.RemoveFirst();
+                }
+                _keyQueue.AddLast(key);
+            }
         }
 
         public Boolean ContainsKey(TKey key)
@@ -24,7 +59,14 @@ namespace CoAP.Util
 
         public Boolean Remove(TKey key)
         {
-            return _inner.ContainsKey(key) ? _inner.Remove(key) : false;
+            if (_inner.Remove(key))
+            {
+                if (_keyQueue != null)
+                    _keyQueue.Remove(key);
+                return true;
+            }
+            else
+                return false;
         }
 
         public Boolean TryGetValue(TKey key, out TValue value)
@@ -48,18 +90,30 @@ namespace CoAP.Util
                 if (_inner.ContainsKey(key))
                     _inner[key] = value;
                 else
-                    _inner.Add(key, value);
+                    Add(key, value);
             }
         }
 
         public void Add(KeyValuePair<TKey, TValue> item)
         {
             _inner.Add(item);
+
+            if (_keyQueue != null)
+            {
+                if (_keyQueue.Count == _size)
+                {
+                    _inner.Remove(_keyQueue.First.Value);
+                    _keyQueue.RemoveFirst();
+                }
+                _keyQueue.AddLast(item.Key);
+            }
         }
 
         public void Clear()
         {
             _inner.Clear();
+            if (_keyQueue != null)
+                _keyQueue.Clear();
         }
 
         public Boolean Contains(KeyValuePair<TKey, TValue> item)
@@ -84,7 +138,14 @@ namespace CoAP.Util
 
         public Boolean Remove(KeyValuePair<TKey, TValue> item)
         {
-            return _inner.Remove(item);
+            if (_inner.Remove(item))
+            {
+                if (_keyQueue != null)
+                    _keyQueue.Remove(item.Key);
+                return true;
+            }
+            else
+                return false;
         }
 
         public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()

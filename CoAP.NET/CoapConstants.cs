@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2011, Longxiang He <helongxiang@smeshlink.com>,
+ * Copyright (c) 2011-2012, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
  * This program is distributed in the hope that it will be useful,
@@ -49,10 +49,13 @@ namespace CoAP
         /// <summary>
         /// Default timeout (ms) of transactions
         /// </summary>
-        public const Int32 DefaultTransactionTimeout = 10000;
+        public const Int32 DefaultTransactionTimeout = 100000;
+        public const Int32 DefaultOverallTimeout = 60000;
         /// <summary>
         /// Default URI for wellknown resource
         /// </summary>
         public const String DefaultWellKnownURI = "/.well-known/core";
+        public const Int32 TokenLength = 8;
+        public const Int32 DefaultMaxAge = 60;
     }
 }

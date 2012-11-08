@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2011, Longxiang He <helongxiang@smeshlink.com>,
+ * Copyright (c) 2011-2012, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
  * This program is distributed in the hope that it will be useful,
@@ -12,6 +12,8 @@
 using System;
 using System.Collections;
 using CoAP.Util;
+using CoAP.Log;
+using CoAP.EndPoint;
 
 namespace CoAP
 {
@@ -23,13 +25,17 @@ namespace CoAP
     /// </summary>
     public class Request : Message
     {
+        private static ILogger log = LogManager.GetLogger(typeof(Request));
+        
         private static Communicator defaultCommunicator;
         private static readonly Response TIMEOUT_RESPONSE = new Response();
         private static readonly Int64 startTime = DateTime.Now.Ticks;
-        private Communicator _communicator;
         // number of responses to this request
         private Int32 _responseCount;
         private Queue _responseQueue;
+        private Boolean _isObserving;
+        private Response _currentResponse;
+        private LocalResource _resource;
 
         /// <summary>
         /// Fired when a response arrives.
@@ -38,24 +44,10 @@ namespace CoAP
         public event EventHandler<ResponseEventArgs> Responding;
 
         /// <summary>
-        /// Gets the default communicator used for outgoing requests.
-        /// </summary>
-        public static Communicator DefaultCommunicator
-        {
-            get
-            {
-                if (null == defaultCommunicator)
-                {
-                    defaultCommunicator = new Communicator();
-                }
-                return defaultCommunicator;
-            }
-        }
-
-        /// <summary>
         /// Initializes a request message.
         /// </summary>
-        public Request()
+        public Request(Int32 method)
+            : this(method, true)
         { }
 
         /// <summary>
@@ -63,18 +55,48 @@ namespace CoAP
         /// </summary>
         /// <param name="code">The method code of the message</param>
         /// <param name="confirmable">True if the request is Confirmable</param>
-        public Request(Int32 code, Boolean confirmable)
-            : base(confirmable ? MessageType.CON : MessageType.NON, code)
+        public Request(Int32 method, Boolean confirmable)
+            : base(confirmable ? MessageType.CON : MessageType.NON, method)
         {
         }
 
         /// <summary>
-        /// Gets or sets the communicator used for this request.
+        /// Gets or sets a value that indicates whether the response queue is enabled or disabled.
         /// </summary>
-        public Communicator Communicator
+        public Boolean ResponseQueueEnabled
         {
-            get { return _communicator; }
-            set { _communicator = value; }
+            get { return _responseQueue != null; }
+            set
+            {
+                if (value != ResponseQueueEnabled)
+                {
+                    _responseQueue = value ? new Queue() : null;
+                }
+            }
+        }
+
+        public Boolean IsObserving
+        {
+            get { return _isObserving; }
+            set { _isObserving = value; }
+        }
+
+        public LocalResource Resource
+        {
+            get { return _resource; }
+            set { _resource = value; }
+        }
+
+        public Response Response
+        {
+            get { return _currentResponse; }
+            set { _currentResponse = value; }
+        }
+
+        public override void Accept()
+        {
+            _responseCount++;
+            base.Accept();
         }
 
         /// <summary>
@@ -82,12 +104,7 @@ namespace CoAP
         /// </summary>
         public void Execute()
         {
-            Communicator comm = _communicator != null ? _communicator
-                  : DefaultCommunicator;
-            if (comm != null)
-            {
-                comm.SendMessage(this);
-            }
+            Send();
         }
 
         /// <summary>
@@ -96,7 +113,7 @@ namespace CoAP
         public void Cancel()
         {
             Canceled = true;
-            HandleTimeout();
+            //HandleTimeout();
         }
 
         /// <summary>
@@ -115,9 +132,11 @@ namespace CoAP
         /// <returns></returns>
         public Response ReceiveResponse(Boolean waiting)
         {
+            // response queue required to perform this operation
             if (!ResponseQueueEnabled)
             {
-                Log.Warning(this, "Missing useResponseQueue(true) call, responses may be lost");
+                if (log.IsWarnEnabled)
+                    log.Warn("Response queue is not enabled, responses may be lost");
                 ResponseQueueEnabled = true;
             }
 
@@ -134,19 +153,81 @@ namespace CoAP
             return response == TIMEOUT_RESPONSE ? null : response;
         }
 
-        /// <summary>
-        /// Gets or sets a value that indicates whether the response queue is enabled or disabled.
-        /// </summary>
-        public Boolean ResponseQueueEnabled
+        public void Respond(Int32 code)
         {
-            get { return _responseQueue != null; }
-            set
+            Respond(code, null);
+        }
+
+        public void Respond(Int32 code, String message)
+        {
+            Response response = new Response(code);
+            if (null != message)
+                response.SetPayload(message);
+            Respond(response);
+        }
+
+        /// <summary>
+        /// Places a new response to this request, e.g. to answer it
+        /// </summary>
+        /// <param name="response"></param>
+        public void Respond(Response response)
+        {
+            response.Request = this;
+
+            response.PeerAddress = this.PeerAddress;
+
+            if (_responseCount == 0 && IsConfirmable)
+                response.ID = this.ID;
+
+            // TODO 枚举不能与null比较
+            //if (null == response.Type)
             {
-                if (value != ResponseQueueEnabled)
+                if (_responseCount == 0 && IsConfirmable)
                 {
-                    _responseQueue = value ? new Queue() : null;
+                    // use piggy-backed response
+                    response.Type = MessageType.ACK;
+                }
+                else
+                {
+                    // use separate response:
+                    // Confirmable response to confirmable request,
+                    // Non-confirmable response to non-confirmable request
+                    response.Type = this.Type;
                 }
             }
+
+            if (response.Code != CoAP.Code.Empty)
+            {
+                response.Token = this.Token;
+                response.RequiresToken = this.RequiresToken;
+
+                // echo block1 option
+                BlockOption block1 = (BlockOption)GetFirstOption(OptionType.Block1);
+                if (null != block1)
+                {
+                    // TODO: block1.setM(false); maybe in TransferLayer
+                    response.AddOption(block1);
+                }
+            }
+
+            // check observe option
+            /*Option observeOpt = GetFirstOption(OptionType.Observe);
+            if (null != observeOpt && !response.HasOption(OptionType.Observe))
+            {
+                // 16-bit second counter
+                Int32 secs = (Int32)((DateTime.Now.Ticks - startTime) / 1000) & 0xFFFF;
+
+                response.SetOption(Option.Create(OptionType.Observe, secs));
+
+                if (response.IsConfirmable)
+                {
+                    response.Type = MessageType.NON;
+                }
+            }*/
+
+            _responseCount++;
+            _currentResponse = response;
+            SendResponse();
         }
 
         /// <summary>
@@ -166,109 +247,25 @@ namespace CoAP
             OnResponse(response);
         }
 
-        /// <summary>
-        /// Places a new response to this request, e.g. to answer it
-        /// </summary>
-        /// <param name="response"></param>
-        public void Respond(Response response)
+        private void SendResponse()
         {
-            response.Request = this;
-
-            response.URI = this.URI;
-            response.SetOption(GetFirstOption(OptionType.Token));
-            response.RequiresToken = this.RequiresToken;
-
-            if (_responseCount == 0 && IsConfirmable)
+            if (_currentResponse != null)
             {
-                response.ID = this.ID;
-            }
-
-            // echo block1 option
-            BlockOption block1 = (BlockOption)GetFirstOption(OptionType.Block1);
-            if (null != block1)
-            {
-                response.AddOption(block1);
-            }
-
-            // TODO 枚举不能与null比较
-            //if (null == response.Type)
-            {
-                if (_responseCount == 0 && IsConfirmable)
+                if (!_isObserving)
                 {
-                    // use piggy-backed response
-                    response.Type = MessageType.ACK;
+                    // TODO check if resource is to be observed
+
+                    if (PeerAddress == null)
+                        // handle locally
+                        HandleResponse(_currentResponse);
+                    else
+                        _currentResponse.Send();
                 }
-                else
-                {
-                    // use separate response:
-                    // Confirmable response to confirmable request,
-                    // Non-confirmable response to non-confirmable request
-                    response.Type = this.Type;
-                }
-            }
-
-            // check observe option
-            Option observeOpt = GetFirstOption(OptionType.Observe);
-            if (null != observeOpt && !response.HasOption(OptionType.Observe))
-            {
-                // 16-bit second counter
-                Int32 secs = (Int32)((DateTime.Now.Ticks - startTime) / 1000) & 0xFFFF;
-
-                response.SetOption(Option.Create(OptionType.Observe, secs));
-
-                if (response.IsConfirmable)
-                {
-                    response.Type = MessageType.NON;
-                }
-            }
-
-            // check if response is of remote origin, i.e.
-            // was received by a communicator
-            if (_communicator != null)
-            {
-                _communicator.SendMessage(response);
             }
             else
             {
-                // handle locally
-                response.Handle();
-            }
-
-            ++_responseCount;
-        }
-
-        public void Respond(Int32 code, String message)
-        {
-            Response response = new Response(code);
-            if (null != message)
-            {
-                response.SetPayload(message);
-            }
-            Respond(response);
-        }
-
-        public void Respond(Int32 code)
-        {
-            Respond(code, null);
-        }
-
-        public void Accept()
-        {
-            if (IsConfirmable)
-            {
-                Response ack = new Response(CoAP.Code.Empty);
-                ack.Type = MessageType.ACK;
-                Respond(ack);
-            }
-        }
-
-        public void Reject()
-        {
-            if (IsConfirmable)
-            {
-                Response rst = new Response(CoAP.Code.Empty);
-                rst.Type = MessageType.RST;
-                Respond(rst);
+                if (log.IsWarnEnabled)
+                    log.Warn(String.Format("Missing response to send: Request {0} for {1}", Key, UriPath));
             }
         }
 
@@ -296,8 +293,8 @@ namespace CoAP
         /// </summary>
         protected virtual void DoDispatch(IRequestHandler handler)
         {
-            if (Log.IsWarningEnabled)
-                Log.Warning(this, "Unable to dispatch request with code '{0}'", CoAP.Code.ToString(Code));
+            if (log.IsWarnEnabled)
+                log.Warn("Unable to dispatch request with code " + CoAP.Code.ToString(Code));
         }
 
         private void OnResponse(Response response)
@@ -308,12 +305,17 @@ namespace CoAP
             }
         }
 
-        public void OnResponding(Response response)
+        private void OnResponding(Response response)
         {
             if (null != Responding)
             {
                 Responding(this, new ResponseEventArgs(response));
             }
+        }
+
+        internal void ResponsePayloadAppended(Response response, Byte[] block)
+        {
+            OnResponding(response);
         }
 
         /// <summary>
@@ -419,5 +421,12 @@ namespace CoAP
         {
             handler.PerformDELETE(this);
         }
+    }
+
+    public class UnsupportedRequest : Request
+    {
+        public UnsupportedRequest(Int32 code)
+            : base(code, true)
+        { }
     }
 }

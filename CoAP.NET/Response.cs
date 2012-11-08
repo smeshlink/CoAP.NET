@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2011, Longxiang He <helongxiang@smeshlink.com>,
+ * Copyright (c) 2011-2012, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
  * This program is distributed in the hope that it will be useful,
@@ -37,14 +37,6 @@ namespace CoAP
             Code = code;
         }
 
-        public void Handle()
-        {
-            if (null != _request)
-            {
-                _request.HandleResponse(this);
-            }
-        }
-
         /// <summary>
         /// Gets or sets the request related to this response.
         /// </summary>
@@ -57,15 +49,15 @@ namespace CoAP
         /// <summary>
         /// Gets the Round-Trip Time of this response.
         /// </summary>
-        public Int32 RTT
+        public Double RTT
         {
             get
             {
                 if (null == _request)
-                    return -1;
+                    return -1D;
                 else
                 {
-                    return (Int32)(new TimeSpan(Timestamp - _request.Timestamp).TotalMilliseconds);
+                    return new TimeSpan(Timestamp - _request.Timestamp).TotalMilliseconds;
                 }
             }
         }
@@ -82,17 +74,6 @@ namespace CoAP
             }
         }
 
-        /// <summary>
-        /// Gets a value that indicates whether this response is a separate one.
-        /// </summary>
-        public Boolean IsEmptyACK
-        {
-            get
-            {
-                return IsAcknowledgement && Code == CoAP.Code.Empty;
-            }
-        }
-
         protected override void DoHandleBy(IMessageHandler handler)
         {
             handler.HandleMessage(this);
@@ -101,9 +82,7 @@ namespace CoAP
         protected override void PayloadAppended(Byte[] block)
         {
             if (null != _request)
-                _request.OnResponding(this);
-
-            base.PayloadAppended(block);
+                _request.ResponsePayloadAppended(this, block);
         }
     }
 }

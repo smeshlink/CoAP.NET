@@ -9,17 +9,15 @@
  * Please see README for more information.
  */
 
-namespace CoAP
+using System;
+
+namespace CoAP.EndPoint
 {
-    /// <summary>
-    /// Interface of message receivers
-    /// </summary>
-    public interface IMessageReceiver
+    public class LocalResource : Resource
     {
-        /// <summary>
-        /// Receives a message.
-        /// </summary>
-        /// <param name="msg"></param>
-        void ReceiveMessage(Message msg);
+        protected override Resource CreateInstance()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

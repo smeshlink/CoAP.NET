@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2011, Longxiang He <helongxiang@smeshlink.com>,
+ * Copyright (c) 2011-2012, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
  * This program is distributed in the hope that it will be useful,
@@ -11,6 +11,7 @@
 
 using System;
 using System.IO;
+using CoAP.Log;
 
 namespace CoAP.Util
 {
@@ -19,6 +20,8 @@ namespace CoAP.Util
     /// </summary>
     public class DatagramWriter
     {
+        private static ILogger log = LogManager.GetLogger(typeof(DatagramWriter));
+
         private MemoryStream _stream;
         private Byte _currentByte;
         private Int32 _currentBitIndex;
@@ -42,7 +45,8 @@ namespace CoAP.Util
         {
             if (numBits < 32 && data >= (1 << numBits))
             {
-                Log.Warning(this, "Truncating value {0} to {1}-bit integer", data, numBits);
+                if (log.IsWarnEnabled)
+                    log.Warn(String.Format("Truncating value {0} to {1}-bit integer", data, numBits));
             }
 
             for (Int32 i = numBits - 1; i >= 0; i--)

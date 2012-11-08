@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2011, Longxiang He <helongxiang@smeshlink.com>,
+ * Copyright (c) 2011-2012, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
  * This program is distributed in the hope that it will be useful,
@@ -12,7 +12,7 @@
 using System;
 using System.Net;
 using System.Net.Sockets;
-using CoAP.Util;
+using CoAP.Log;
 
 namespace CoAP.Layers
 {
@@ -21,6 +21,8 @@ namespace CoAP.Layers
     /// </summary>
     public class UDPLayer : Layer
     {
+        private static ILogger log = LogManager.GetLogger(typeof(UDPLayer));
+        
         private Socket _socket;
         private AsyncCallback _receiveCallback;
         private Byte[] _buffer = new Byte[CoapConstants.ReceiveBufferSize + 1];  // +1 to check for > ReceiveBufferSize
@@ -40,16 +42,16 @@ namespace CoAP.Layers
         {
             IPEndPoint localEP = new IPEndPoint(IPAddress.IPv6Any, port);
             this._socket = new Socket(AddressFamily.InterNetworkV6, SocketType.Dgram, ProtocolType.Udp);
-            // TODO Enable IPv4-mapped to accept both ipv6 and ipv4 connections in a same socket.
             try
             {
+                // Enable IPv4-mapped to accept both ipv6 and ipv4 connections in a same socket.
                 this._socket.SetSocketOption(SocketOptionLevel.IPv6, (SocketOptionName)27, 0);
             }
             catch (Exception ex)
             { 
                 // ignore it
-                if (Log.IsWarningEnabled)
-                    Log.Warning(this, ex.Message);
+                if (log.IsWarnEnabled)
+                    log.Warn("UDPLayer - " + ex.Message);
             }
             this._receiveCallback = new AsyncCallback(SocketReceiveCallback);
             this._socket.Bind(localEP);
@@ -66,14 +68,9 @@ namespace CoAP.Layers
             // set timestamp only once in order
             // to handle retransmissions correctly
             if (msg.Timestamp == 0)
-            {
                 msg.Timestamp = DateTime.Now.Ticks;
-            }
 
-            Int32 port = (null == msg.URI) ? -1 : msg.URI.Port;
-            if (port < 0)
-                port = CoapConstants.DefaultPort;
-            IPEndPoint remoteEP = new IPEndPoint(msg.Address, port);
+            IPEndPoint remoteEP = new IPEndPoint(msg.PeerAddress.Address, msg.PeerAddress.Port);
             Byte[] data = msg.Encode();
             this._socket.SendTo(data, remoteEP);
         }
@@ -104,8 +101,8 @@ namespace CoAP.Layers
             }
             catch (SocketException ex)
             {
-                if (Log.IsErrorEnabled)
-                    Log.Error(this, ex.Message);
+                if (log.IsFatalEnabled)
+                    log.Fatal("UDPLayer - Failed receive datagram", ex);
             }
             if (count > 0)
             {
@@ -118,23 +115,46 @@ namespace CoAP.Layers
 
         private void Handle(Byte[] data, System.Net.EndPoint remoteEP)
         {
-            Int64 timestamp = DateTime.Now.Ticks;
-            Message msg = Message.Decode(data);
-            // remember when this message was received
-            msg.Timestamp = timestamp;
-
-            IPEndPoint ipe = (IPEndPoint)remoteEP;
-            // TODO 检查IP地址是否需要[]
-            msg.URI = new Uri(String.Format("{0}://[{1}]:{2}", CoapConstants.UriSchemeName, ipe.Address, ipe.Port));
-
-            if (data.Length > CoapConstants.ReceiveBufferSize)
+            if (data.Length > 0)
             {
-                if (Log.IsInfoEnabled)
-                    Log.Info(this, "Large datagram received, marking for blockwise transfer | {0}", msg.Key);
-                msg.RequiresBlockwise = true;
-            }
+                Message msg = Message.Decode(data);
 
-            ReceiveMessage(msg);
+                if (msg == null)
+                {
+                    if (log.IsErrorEnabled)
+                        log.Error("UDPLayer - Illeagal datagram received: " + BitConverter.ToString(data));
+                }
+                else
+                {
+                    // remember when this message was received
+                    msg.Timestamp = DateTime.Now.Ticks;
+                    
+                    IPEndPoint ipe = (IPEndPoint)remoteEP;
+                    msg.PeerAddress = new EndpointAddress(ipe.Address, ipe.Port);
+
+                    if (data.Length > CoapConstants.ReceiveBufferSize)
+                    {
+                        if (log.IsInfoEnabled)
+                            log.Info(String.Format("UDPLayer - Marking large datagram for blockwise transfer: {0}", msg.Key));
+                        msg.RequiresBlockwise = true;
+                    }
+
+                    try
+                    {
+                        ReceiveMessage(msg);
+                    }
+                    catch (Exception ex)
+                    {
+                        if (log.IsErrorEnabled)
+                            log.Error("UDPLayer - Crash: " + ex.Message, ex);
+                    }
+                }
+            }
+            else
+            {
+                if (log.IsDebugEnabled)
+                    log.Debug(String.Format("UDPLayer - Dropped empty datagram from: {0}", remoteEP));
+            }
         }
     }
 }

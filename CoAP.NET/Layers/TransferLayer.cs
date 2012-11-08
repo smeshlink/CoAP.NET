@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2011, Longxiang He <helongxiang@smeshlink.com>,
+ * Copyright (c) 2011-2012, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
  * This program is distributed in the hope that it will be useful,
@@ -12,6 +12,7 @@
 using System;
 using System.Collections.Generic;
 using CoAP.Util;
+using CoAP.Log;
 
 namespace CoAP.Layers
 {
@@ -21,7 +22,11 @@ namespace CoAP.Layers
     /// </summary>
     public class TransferLayer : UpperLayer
     {
-        private TokenManager _tokenManager;
+        private static ILogger log = LogManager.GetLogger(typeof(TransferLayer));
+
+        private HashMap<String, TransferContext> _incoming = new HashMap<String, TransferContext>();
+        private HashMap<String, TransferContext> _outgoing = new HashMap<String, TransferContext>();
+        
         private Int32 _defaultSZX;
         private Int32 _defaultBlockSize;
         private IDictionary<String, Message> _incomplete = new HashMap<String, Message>();
@@ -33,31 +38,34 @@ namespace CoAP.Layers
         /// </summary>
         /// <param name="tokenManager"></param>
         /// <param name="defaultBlockSize">The default block size used for block-wise transfers or -1 to disable outgoing block-wise transfers</param>
-        public TransferLayer(TokenManager tokenManager, Int32 defaultBlockSize)
+        public TransferLayer(Int32 defaultBlockSize)
         {
-            this._tokenManager = tokenManager;
+            if (defaultBlockSize == 0)
+                defaultBlockSize = CoapConstants.DefaultBlockSize;
+
             if (defaultBlockSize > 0)
             {
-                this._defaultSZX = BlockOption.EncodeSZX(defaultBlockSize);
-                if (!BlockOption.ValidSZX(this._defaultSZX))
+                _defaultSZX = BlockOption.EncodeSZX(defaultBlockSize);
+                if (!BlockOption.ValidSZX(_defaultSZX))
                 {
-                    if (Log.IsWarningEnabled)
-                        Log.Warning(this, "Unsupported block size {0}, using {1} instead", defaultBlockSize, CoapConstants.DefaultBlockSize);
-                    this._defaultSZX = BlockOption.EncodeSZX(CoapConstants.DefaultBlockSize);
+                    _defaultSZX = defaultBlockSize > 1024 ? 6 : BlockOption.EncodeSZX(defaultBlockSize & 0x07f0);
+                    if (log.IsWarnEnabled)
+                        log.Warn(String.Format("TransferLayer - Unsupported block size {0}, using {1} instead", defaultBlockSize, BlockOption.DecodeSZX(_defaultSZX)));
                 }
-                this._defaultBlockSize = BlockOption.DecodeSZX(this._defaultSZX);
+                _defaultBlockSize = BlockOption.DecodeSZX(_defaultSZX);
             }
             else
             {
-                this._defaultSZX = -1;
+                // disable outgoing blockwise transfers
+                _defaultSZX = -1;
             }
         }
 
         /// <summary>
         /// Initializes a transfer layer.
         /// </summary>
-        public TransferLayer(TokenManager tokenManager)
-            : this(tokenManager, CoapConstants.DefaultBlockSize)
+        public TransferLayer()
+            : this(0)
         { }
 
         /// <summary>
@@ -66,11 +74,11 @@ namespace CoAP.Layers
         /// <param name="msg">The message to be sent</param>
         protected override void DoSendMessage(Message msg)
         {
-            int sendSZX = this._defaultSZX;
+            int sendSZX = _defaultSZX;
             int sendNUM = 0;
 
-            // block size negotiation
-            if (msg.IsResponse && ((Response)msg).Request != null)
+            // block negotiation
+            if ((msg is Response) && ((Response)msg).Request != null)
             {
                 BlockOption buddyBlock = (BlockOption)((Response)msg).Request.GetFirstOption(OptionType.Block2);
                 if (buddyBlock != null)
@@ -81,62 +89,51 @@ namespace CoAP.Layers
                 }
             }
 
-            // check if message needs to be split up
-            if (BlockOption.ValidSZX(sendSZX) && (msg.PayloadSize > BlockOption.DecodeSZX(sendSZX)))
+            // check if transfer needs to be split up
+            if (msg.PayloadSize > BlockOption.DecodeSZX(sendSZX))
             {
                 // split message up using block1 for requests and block2 for responses
-                if (msg.RequiresToken)
+                Message msgBlock = GetBlock(msg, sendNUM, sendSZX);
+
+                if (msgBlock != null)
                 {
-                    msg.Token = this._tokenManager.AcquireToken(false);
-                }
+                    BlockOption block1 = (BlockOption)msgBlock.GetFirstOption(OptionType.Block1);
+                    BlockOption block2 = (BlockOption)msgBlock.GetFirstOption(OptionType.Block2);
 
-                Message block = GetBlock(msg, sendNUM, sendSZX);
-
-                if (block != null)
-                {
-                    // send block and wait for reply
-                    SendMessageOverLowerLayer(block);
-
-                    // store if not complete
-                    BlockOption blockOpt = (BlockOption)block.GetFirstOption(OptionType.Block2);
-                    if (blockOpt.M)
+                    // only cache if blocks remaining for request
+                    if ((block1 != null && block1.M) || (block2 != null && block2.M))
                     {
-                        this._incomplete.Add(msg.TransferID, msg);
-                        //TODO timeout to clean up incomplete Map after a while
-                        if (Log.IsInfoEnabled)
-                            Log.Info(this, "Transfer cached for {0}", msg.TransferID);
+                        msg.SetOption(block1);
+                        msg.SetOption(block2);
+
+                        TransferContext transfer = new TransferContext(msg);
+                        _outgoing[msg.SequenceKey] = transfer;
+
+                        if (log.IsDebugEnabled)
+                            log.Debug(String.Format("TransferLayer - Caching blockwise transfer for NUM {0} : {1}", sendNUM, msg.SequenceKey));
                     }
                     else
                     {
-                        if (Log.IsInfoEnabled)
-                            Log.Info(this, "Blockwise transfer complete | {0}", msg.TransferID);
+                        // must be block2 by client
+                        if (log.IsDebugEnabled)
+                            log.Debug(String.Format("TransferLayer - Answering block request without caching: {0} | {1}", msg.SequenceKey, block2));
                     }
 
-                    // update timestamp
-                    msg.Timestamp = block.Timestamp;
+                    // send block and wait for reply
+                    SendMessageOverLowerLayer(msgBlock);
                 }
                 else
                 {
-                    HandleOutOfScopeError(msg);
+                    // must be block2 by client
+                    if (log.IsInfoEnabled)
+                        log.Info(String.Format("TransferLayer - Rejecting initial out-of-scope request: {0} | NUM: {1}, SZX: {2} ({3} bytes), M: n/a, {4} bytes available",
+                            msg.SequenceKey, sendNUM, sendSZX, BlockOption.DecodeSZX(sendSZX), msg.PayloadSize));
+                    HandleOutOfScopeError(msg.NewReply(true));
                 }
-
-                //this._incomplete.Add(msg.TransferID, msg);
-                //this._sentMessages.Add(msg.TransferID, msg);
-
-                //if (Log.IsInfoEnabled)
-                //    Log.Info(this, "Transfer initiated for {0}", msg.TransferID);
-
-                //// send only first block and wait for reply
-                //SendMessageOverLowerLayer(block);
-
-                //// update timestamp
-                //msg.Timestamp = block.Timestamp;
             }
             else
             {
-                // TODO 消息取消时移除暂存项
-                _sentMessages[msg.TransferID] = msg;
-
+                // send complete message
                 SendMessageOverLowerLayer(msg);
             }
         }
@@ -147,299 +144,265 @@ namespace CoAP.Layers
         /// <param name="msg">The message to be received</param>
         protected override void DoReceiveMessage(Message msg)
         {
-            BlockOption block1 = (BlockOption)msg.GetFirstOption(OptionType.Block1);
-            BlockOption block2 = (BlockOption)msg.GetFirstOption(OptionType.Block2);
+            BlockOption blockIn = null, blockOut = null;
 
-            Message first = _incomplete[msg.TransferID];
-
-            if (null == block1 && null == block2 && !msg.RequiresBlockwise)
+            if (msg is Request)
             {
-                if (first is Request && msg is Response)
-                {
-                    //((Response)msg).Request = (Request)first;
-                    if (((Response)msg).Request == null)
-                    {
-                        if (Log.IsErrorEnabled)
-                            Log.Error(this, "Received unmatched response | {0}", msg.Key);
-                    }
-                }
-                _sentMessages.Remove(msg.TransferID);
-                DeliverMessage(msg);
+                blockIn = (BlockOption)msg.GetFirstOption(OptionType.Block1);
+                blockOut = (BlockOption)msg.GetFirstOption(OptionType.Block2);
             }
-            else if (msg.IsRequest && (block1 != null || msg.RequiresBlockwise))
+            else if (msg is Response)
             {
-                // handle incoming payload using block1
-
-                if (msg.RequiresBlockwise)
-                {
-                    if (Log.IsInfoEnabled)
-                        Log.Info(this, "Requesting blockwise transfer | {0}", msg.Key);
-                    if (first != null)
-                    {
-                        _incomplete.Remove(msg.TransferID);
-                        if (Log.IsErrorEnabled)
-                            Log.Error(this, "Resetting incomplete transfer | {0}", msg.Key);
-                    }
-                    block1 = new BlockOption(msg.IsRequest ? OptionType.Block1 : OptionType.Block2, 0, BlockOption.EncodeSZX(CoapConstants.DefaultBlockSize), true);
-                }
-
-                if (Log.IsInfoEnabled)
-                    Log.Info(this, "Incoming payload, block1");
-
-                HandleIncomingPayload(msg, block1);
+                blockIn = (BlockOption)msg.GetFirstOption(OptionType.Block2);
+                blockOut = (BlockOption)msg.GetFirstOption(OptionType.Block1);
+                if (blockOut != null)
+                    blockOut.NUM++;
             }
-            else if (msg.IsRequest && block2 != null)
+            else if (log.IsWarnEnabled)
+                log.Warn("TransferLayer - Unknown message type received: " + msg.Key);
+
+            if (blockIn == null && msg.RequiresBlockwise)
             {
-                // send blockwise response
-                if (Log.IsInfoEnabled)
-                    Log.Info(this, "Block request received : {0} | {1}", block2, msg.Key);
+                // message did not have Block option, but was marked for blockwise transfer
+                blockIn = new BlockOption(OptionType.Block1, 0, _defaultSZX, true);
+                HandleIncomingPayload(msg, blockIn);
+                return;
+            }
+            else if (blockIn != null)
+            {
+                HandleIncomingPayload(msg, blockIn);
+                return;
+            }
+            else if (blockOut != null)
+            {
+                if (log.IsDebugEnabled)
+                    log.Debug(String.Format("TransferLayer - Received demand for next block: {0} | {1}", msg.SequenceKey, blockOut));
 
-                if (null == first)
+                TransferContext transfer = _outgoing[msg.SequenceKey];
+                if (transfer != null)
                 {
-                    // get current representation
-                    if (Log.IsInfoEnabled)
-                        Log.Info(this, "New blockwise transfer | {0}", msg.TransferID);
-                    DeliverMessage(msg);
-                }
-                else
-                {
-                    // use cached representation
-                    Message resp = GetBlock(first, block2.NUM, block2.SZX);
-                    if (resp != null)
+                    if (msg is Request && !msg.UriPath.Equals(transfer.uriPath))
                     {
-                        resp.ID = msg.ID;
-                        BlockOption respBlock = (BlockOption)resp.GetFirstOption(OptionType.Block2);
-                        try
-                        {
-                            SendMessageOverLowerLayer(resp);
-                            if (Log.IsInfoEnabled)
-                                Log.Info(this, "Block request responded: {0} | {1}", respBlock, resp.Key);
-                        }
-                        catch (Exception ex)
-                        {
-                            if (Log.IsErrorEnabled)
-                                Log.Error(this, "Failed to send block response: {0}", ex.Message);
-                            throw;
-                        }
-
-                        // remove transfer context if completed
-                        if (!respBlock.M)
-                        {
-                            this._incomplete.Remove(msg.TransferID);
-                            if (Log.IsInfoEnabled)
-                                Log.Info(this, "Blockwise transfer complete | {0}", resp.TransferID);
-                        }
+                        _outgoing.Remove(msg.SequenceKey);
+                        if (log.IsDebugEnabled)
+                            log.Debug("TransferLayer - Freed blockwise transfer by client token reuse: " + msg.SequenceKey);
                     }
                     else
                     {
-                        HandleOutOfScopeError(msg.NewReply(true));
-                    }
-                }
-            }
-            else if (msg.IsResponse && block1 != null)
-            {
-                // handle blockwise acknowledgement
-                if (null != first)
-                {
-                    if (!msg.IsReset)
-                    {
-                        // send next block
-                        Message block = GetBlock(first, block1.NUM + 1, block1.SZX);
-                        try
-                        {
-                            SendMessageOverLowerLayer(block);
-                        }
-                        catch (Exception ex)
-                        {
-                            if (Log.IsErrorEnabled)
-                                Log.Error(this, ex.Message);
-                        }
+                        if (msg is Request)
+                            // update MID
+                            transfer.cache.ID = msg.ID;
 
-                        return;
-                    }
-                    else
-                    {
-                        // cancel transfer
-                        if (Log.IsInfoEnabled)
-                            Log.Info(this, "Block-wise transfer cancelled by peer (RST): {0}", msg.TransferID);
-                        this._incomplete.Remove(msg.TransferID);
+                        // use cached representation
+                        Message next = GetBlock(transfer.cache, blockOut.NUM, blockOut.SZX);
+                        if (next != null)
+                        {
+                            try
+                            {
+                                if (log.IsDebugEnabled)
+                                    log.Debug(String.Format("TransferLayer - Sending next block: {0} | {1}", next.SequenceKey, blockOut));
+                                SendMessageOverLowerLayer(next);
+                            }
+                            catch (Exception ex)
+                            {
+                                if (log.IsErrorEnabled)
+                                    log.Error("TransferLayer - Failed to send block response: " + ex.Message);
+                            }
 
-                        DeliverMessage(msg);
+                            BlockOption respBlock = (BlockOption)next.GetFirstOption(blockOut.Type);
+                            // remove transfer context if completed
+                            if (!respBlock.M && msg is Request)
+                            {
+                                _outgoing.Remove(msg.SequenceKey);
+                                if (log.IsDebugEnabled)
+                                    log.Debug("TransferLayer - Freed blockwise download by completion: " + next.SequenceKey);
+                            }
+                            return;
+                        }
+                        else if (msg is Response && !blockOut.M)
+                        {
+                            _outgoing.Remove(msg.SequenceKey);
+                            if (log.IsDebugEnabled)
+                                log.Debug("TransferLayer - Freed blockwise upload by completion: " + next.SequenceKey);
+                            // restore original request with registered handlers
+                            ((Response)msg).Request = (Request)transfer.cache;
+                        }
+                        else
+                        {
+                            if (log.IsWarnEnabled)
+                                log.Warn(String.Format("TransferLayer - Rejecting out-of-scope demand for cached transfer (freed): {0} | {1}, {2} bytes available",
+                                    msg.SequenceKey, blockOut, transfer.cache.PayloadSize));
+                            _outgoing.Remove(msg.SequenceKey);
+                            HandleOutOfScopeError(msg.NewReply(true));
+                            return;
+                        }
                     }
                 }
-                else
+            }
+            else if (msg is Response)
+            {
+                // check for cached transfers
+                TransferContext transfer = _outgoing[msg.SequenceKey];
+                if (transfer != null)
                 {
-                    if (Log.IsWarningEnabled)
-                        Log.Warning(this, "Unexpected reply in blockwise transfer dropped: {0}", msg.Key);
+                    // restore original request with registered handlers
+                    ((Response)msg).Request = (Request)transfer.cache;
+                    _outgoing.Remove(msg.SequenceKey);
+                    if (log.IsDebugEnabled)
+                        log.Debug("TransferLayer - Freed outgoing transfer by client abort: " + msg.SequenceKey);
+                }
+
+                transfer = _incoming[msg.SequenceKey];
+                if (transfer != null)
+                {
+                    // restore original request with registered handlers
+                    ((Response)msg).Request = (Request)transfer.cache;
+                    _incoming.Remove(msg.SequenceKey);
+                    if (log.IsDebugEnabled)
+                        log.Debug("TransferLayer - Freed imcoming transfer by client abort: " + msg.SequenceKey);
                 }
             }
-            else if (msg.IsResponse && block2 != null)
-            {
-                if (Log.IsInfoEnabled)
-                    Log.Info(this, "Incoming payload, block2");
-                // handle incoming payload using block2
-                HandleIncomingPayload(msg, block2);
-            }
+
+            // get current representation/deliver response
+            DeliverMessage(msg);
         }
 
         private void HandleIncomingPayload(Message msg, BlockOption blockOpt)
         {
-            if (msg is Response)
+            TransferContext transfer = _incoming[msg.SequenceKey];
+            
+            if (transfer != null && blockOpt.NUM > 0)
             {
-                Response response = (Response)msg;
-                if (null == response.Request && this._sentMessages.ContainsKey(msg.TransferID))
-                    response.Request = this._sentMessages[msg.TransferID] as Request;
-            }
-
-            Message initial = _incomplete[msg.TransferID];
-
-            if (initial != null)
-            {
-                int awaitNUM = -1;
-                if (_awaiting.ContainsKey(msg.TransferID))
-                    awaitNUM = _awaiting[msg.TransferID];
                 // compare block offsets
-                // FIXME block1 or block2?
-                //if (blockOpt.NUM == awaitNUM)
-                //if (blockOpt.NUM * blockOpt.Size == awaitNUM * ((BlockOption)initial.GetFirstOption(OptionType.Block1)).Size)
-                if (blockOpt.NUM * blockOpt.Size == awaitNUM * ((BlockOption)initial.GetFirstOption(OptionType.Block2)).Size)
+                if (blockOpt.NUM * blockOpt.Size == (transfer.current.NUM + 1) * transfer.current.Size)
                 {
-                    // append received payload to first response
-                    initial.AppendPayload(msg.Payload);
-                    _awaiting[msg.TransferID] = blockOpt.NUM + 1;
-
-                    // update info
-                    initial.ID = msg.ID;
-                    initial.SetOption(blockOpt);
-
-                    if (Log.IsInfoEnabled)
-                        Log.Info(this, "Block received : {0}", blockOpt);
+                    // append received payload to first response and update message ID
+                    transfer.cache.AppendPayload(msg.Payload);
+                    transfer.cache.ID = msg.ID;
+                    if (log.IsDebugEnabled)
+                        log.Debug(String.Format("TransferLayer - Received next block: {0} | {1}", msg.SequenceKey, blockOpt));
                 }
-                else
-                {
-                    if (Log.IsWarningEnabled)
-                        Log.Warning(this, "Wrong block received : {0}", blockOpt);
-                }
+                else if (log.IsDebugEnabled)
+                    log.Debug(String.Format("TransferLayer - Dropping wrong block: {0} | {1}", msg.SequenceKey, blockOpt));
             }
             else if (blockOpt.NUM == 0 && msg.PayloadSize > 0)
             {
-                // calculate next block num from received payload length
-                Int32 size = blockOpt.Size;
-                Int32 num = (msg.PayloadSize / size) - 1;
-                blockOpt.NUM = num;
-                msg.SetOption(blockOpt);
+                // configure messages for blockwise transfer
+                if (msg.PayloadSize > blockOpt.Size)
+                {
+                    Int32 newNum = msg.PayloadSize / blockOpt.Size;
+                    blockOpt.NUM = newNum - 1;
+                    // FIXME should be a bug copying payload here, see commented code below
+                    Byte[] bytes = new Byte[newNum];
+                    Array.Copy(msg.Payload, bytes, newNum);
+                    msg.Payload = bytes;
 
-                // crop payload
-                Byte[] newPayload = new Byte[(num + 1) * size];
-                Array.Copy(msg.Payload, 0, newPayload, 0, newPayload.Length);
-                msg.Payload = newPayload;
+                    //// calculate next block num from received payload length
+                    //Int32 size = blockOpt.Size;
+                    //Int32 num = (msg.PayloadSize / size) - 1;
+                    //blockOpt.NUM = num;
+                    //msg.SetOption(blockOpt);
+
+                    //// crop payload
+                    //Byte[] newPayload = new Byte[(num + 1) * size];
+                    //Array.Copy(msg.Payload, 0, newPayload, 0, newPayload.Length);
+                    //msg.Payload = newPayload;
+                }
 
                 // create new transfer context
-                initial = msg;
-                _incomplete[msg.TransferID] = initial;
-                _awaiting[msg.TransferID] = blockOpt.NUM + 1;
+                transfer = new TransferContext(msg);
+                _incoming[msg.SequenceKey] = transfer;
 
-                if (Log.IsInfoEnabled)
-                    Log.Info(this, "Transfer initiated for {0}", msg.TransferID);
+                if (log.IsDebugEnabled)
+                    log.Debug(String.Format("TransferLayer - Incoming blockwise transfer: {0} | {1}", msg.SequenceKey, blockOpt));
             }
             else
             {
-                if (Log.IsErrorEnabled)
-                    Log.Error(this, "Transfer started out of order: {0}", msg.Key);
+                if (log.IsDebugEnabled)
+                    log.Debug(String.Format("TransferLayer - Rejecting out-of-order block: {0} | {1}", msg.SequenceKey, blockOpt));
                 HandleIncompleteError(msg.NewReply(true));
                 return;
             }
 
-            if (initial is Response && (initial as Response).Request.Canceled)
+            if (transfer.cache is Response && ((Response)transfer.cache).Request.Canceled)
             {
                 // transfer cancelled
-                this._incomplete.Remove(msg.TransferID);
-                this._sentMessages.Remove(msg.TransferID);
+                if (log.IsDebugEnabled)
+                    log.Debug("TransferLayer - Canceling transfer: " + msg.Key);
+                _incoming.Remove(msg.SequenceKey);
                 return;
             }
 
             if (blockOpt.M)
             {
                 Message reply = null;
+
+                Int32 demandSZX = blockOpt.SZX;
+                Int32 demandNUM = blockOpt.NUM;
+
+                // block size negotiation
+                if (demandSZX > _defaultSZX)
+                {
+                    demandNUM = demandSZX / _defaultSZX * demandNUM;
+                    demandSZX = _defaultSZX;
+                }
+
                 if (msg is Response)
                 {
-                    // more data available
-                    // request next block
-                    reply = Split(((Response)msg).Request, blockOpt.NUM + 1, blockOpt.SZX);
+                    reply = new Request(Code.GET, !msg.IsNonConfirmable); // msg could be ACK or CON
+                    reply.URI = new Uri(CoapConstants.UriSchemeName + "://" + msg.PeerAddress.ToString() + transfer.uriPath);
 
-                    //reply = new Request(Code.GET, msg.IsConfirmable);
-                    //reply.URI = msg.URI;
-
-                    //// TODO set Accept
-
-                    //reply.SetOption(msg.GetFirstOption(OptionType.Token));
-                    //reply.RequiresToken = msg.RequiresToken;
-                    ////reply.SetOption(new BlockOption(OptionType.Block2, blockOpt.NUM + 1, blockOpt.SZX, false));
-                    //reply.SetOption(new BlockOption(OptionType.Block2, _awaiting[msg.TransferID], blockOpt.SZX, false));
+                    // get next block
+                    demandNUM++;
                 }
                 else if (msg is Request)
                 {
-                    reply = msg.NewReply(true);
-
-                    // picked arbitrarily, cannot decide if created or changed without putting resource logic here
-                    reply.Code = Code.Created;
-
-                    // echo block option
-                    reply.AddOption(blockOpt);
+                    // picked arbitrary code, cannot decide if created or changed without putting resource logic here
+                    reply = new Response(Code.Valid);
+                    reply.Type = msg.IsConfirmable ? MessageType.ACK : MessageType.NON;
+                    reply.PeerAddress = msg.PeerAddress;
+                    if (msg.IsConfirmable)
+                        reply.ID = msg.ID;
+                    
+                    // increase NUM for next block after ACK
                 }
                 else
                 {
-                    if (Log.IsErrorEnabled)
-                        Log.Error(this, "Unsupported message type: {0}", msg.Key);
+                    if (log.IsErrorEnabled)
+                        log.Error("TransferLayer - Unsupported message type: " + msg.Key);
                     return;
                 }
 
+                // MORE=1 for Block1, as Cf handles transfers atomically
+                BlockOption next = new BlockOption(blockOpt.Type, demandNUM, demandSZX, blockOpt.Type == OptionType.Block1);
+                reply.SetOption(next);
+                // echo options
+                reply.SetOption(msg.GetFirstOption(OptionType.Token));
+
                 try
                 {
+                    if (log.IsDebugEnabled)
+                        log.Debug(String.Format("TransferLayer - Demanding next block: {0} | {1}", reply.SequenceKey, next));
                     SendMessageOverLowerLayer(reply);
-
-                    if (Log.IsInfoEnabled)
-                    {
-                        BlockOption replyBlock = (BlockOption)reply.GetFirstOption(blockOpt.Type);
-                        Log.Info(this, "Block replied: {0}, {1}", reply.Key, replyBlock);
-                    }
                 }
                 catch (Exception ex)
                 {
-                    if (Log.IsErrorEnabled)
-                        Log.Error(this, "Failed to request block: {0}", ex.Message);
+                    if (log.IsErrorEnabled)
+                        log.Error("TransferLayer - Failed to request block: " + ex.Message);
                 }
+
+                // update incoming transfer
+                transfer.current = blockOpt;
             }
             else
             {
-                DeliverMessage(initial);
-                _incomplete.Remove(msg.TransferID);
-                _sentMessages.Remove(msg.TransferID);
-                _awaiting.Remove(msg.TransferID);
-
-                // transfer complete
-                if (Log.IsInfoEnabled)
-                    Log.Info(this, "Transfer completed: {0}", msg.TransferID);
+                // set final block option
+                transfer.cache.SetOption(blockOpt);
+                if (log.IsDebugEnabled)
+                    log.Debug("TransferLayer - Finished blockwise transfer: " + msg.SequenceKey);
+                _incoming.Remove(msg.SequenceKey);
+                DeliverMessage(transfer.cache);
             }
-        }
-
-        private static Message Split(Message msg, Int32 num, Int32 szx)
-        {
-            Message block = null;
-            // TODO 使用更优雅的方式，如msg.New()/Clone()
-            block = (Message)msg.GetType().Assembly.CreateInstance(msg.GetType().FullName);
-
-            block.Type = msg.Type;
-            block.Code = msg.Code;
-            block.URI = msg.URI;
-
-            // TODO set options (Content-Type, Max-Age etc)	
-
-            block.SetOption(msg.GetFirstOption(OptionType.Token));
-            block.RequiresToken = msg.RequiresToken;
-            block.SetOption(new BlockOption(OptionType.Block2, num, szx, false));
-
-            return block;
         }
 
         private void HandleOutOfScopeError(Message resp)
@@ -449,14 +412,11 @@ namespace CoAP.Layers
             try
             {
                 SendMessageOverLowerLayer(resp);
-
-                if (Log.IsInfoEnabled)
-                    Log.Info(this, "Out-of-scope block request rejected | {0}", resp.Key);
             }
             catch (Exception ex)
             {
-                if (Log.IsErrorEnabled)
-                    Log.Error(this, "Failed to send error message: {0}", ex.Message);
+                if (log.IsErrorEnabled)
+                    log.Error("TransferLayer - Failed to send error message: " + ex.Message);
             }
         }
 
@@ -467,14 +427,11 @@ namespace CoAP.Layers
             try
             {
                 SendMessageOverLowerLayer(resp);
-
-                if (Log.IsInfoEnabled)
-                    Log.Info(this, "Incomplete request rejected | {0}", resp.Key);
             }
             catch (Exception ex)
             {
-                if (Log.IsErrorEnabled)
-                    Log.Error(this, "Failed to send error message: {0}", ex.Message);
+                if (log.IsErrorEnabled)
+                    log.Error("TransferLayer - Failed to send error message: " + ex.Message);
             }
         }
 
@@ -487,21 +444,25 @@ namespace CoAP.Layers
             if (payloadLeft > 0)
             {
                 Message block = null;
-                // TODO 使用更优雅的方式，如msg.New()/Clone()
-                block = (Message)msg.GetType().Assembly.CreateInstance(msg.GetType().FullName);
+                if (msg is Request)
+                    block = new Request(msg.Code, msg.IsConfirmable);
+                else
+                {
+                    block = new Response(msg.Code);
+                    if (num == 0 && msg.Type == MessageType.CON)
+                        block.Type = MessageType.CON;
+                    else
+                        block.Type = msg.IsNonConfirmable ? MessageType.NON : MessageType.ACK;
+                    block.ID = msg.ID;
+                }
 
-                block.ID = msg.ID;
-                block.Type = msg.Type;
-                block.Code = msg.Code;
+                block.PeerAddress = msg.PeerAddress;
 
                 // use same options
-                foreach (Option opt in msg.GetOptionList())
+                foreach (Option opt in msg.GetOptions())
                 {
                     block.AddOption(opt);
                 }
-
-                block.URI = msg.URI;
-                block.RequiresToken = msg.RequiresToken;
 
                 // calculate 'more' bit 
                 Boolean m = blockSize < payloadLeft;
@@ -517,14 +478,10 @@ namespace CoAP.Layers
                 block.Payload = blockPayload;
 
                 Option blockOpt = null;
-                if (msg.IsRequest)
-                {
+                if (msg is Request)
                     blockOpt = new BlockOption(OptionType.Block1, num, szx, m);
-                }
                 else
-                {
                     blockOpt = new BlockOption(OptionType.Block2, num, szx, m);
-                }
                 block.SetOption(blockOpt);
 
                 return block;
@@ -532,6 +489,33 @@ namespace CoAP.Layers
             else
             {
                 return null;
+            }
+        }
+
+        class TransferContext
+        {
+            public Message cache;
+            public String uriPath;
+            public BlockOption current;
+
+            public TransferContext(Message msg)
+            {
+                if (msg is Request)
+                {
+                    cache = msg;
+                    uriPath = msg.UriPath;
+                    current = (BlockOption)msg.GetFirstOption(OptionType.Block1);
+                }
+                else if (msg is Response)
+                {
+                    msg.RequiresToken = false;
+                    cache = msg;
+                    uriPath = ((Response)msg).Request.UriPath;
+                    current = (BlockOption)msg.GetFirstOption(OptionType.Block2);
+                }
+
+                if (log.IsDebugEnabled)
+                    log.Debug("TransferLayer - Created new transfer context for " + msg.SequenceKey);
             }
         }
     }

@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2011, Longxiang He <helongxiang@smeshlink.com>,
+ * Copyright (c) 2011-2012, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
  * This program is distributed in the hope that it will be useful,
@@ -13,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Text;
+using CoAP.Log;
 using CoAP.Util;
 
 namespace CoAP
@@ -22,6 +23,7 @@ namespace CoAP
     /// </summary>
     public class Message
     {
+        const Int32 SupportedVersion = 1;
         const Int32 VersionBits = 2;
         const Int32 TypeBits = 2;
         const Int32 OptionCountBits = 4;
@@ -35,7 +37,9 @@ namespace CoAP
         public const Int32 MaxID = (1 << IDBits) - 1;
         public const Int32 InvalidID = -1;
 
-        private Int32 _version = 1;
+        private static ILogger log = LogManager.GetLogger(typeof(Message));
+       
+        private Int32 _version = SupportedVersion;
         private MessageType _type;
         private Int32 _code;
         private Int32 _id = InvalidID;
@@ -43,11 +47,12 @@ namespace CoAP
         private Message _buddy;
         protected Boolean _requiresToken = true;
         protected Boolean _requiresBlockwise = false;
-        private IDictionary<OptionType, IList<Option>> _optionMap = new SortedDictionary<OptionType, IList<Option>>();
+        private SortedDictionary<OptionType, IList<Option>> _optionMap = new SortedDictionary<OptionType, IList<Option>>();
         private Int64 _timestamp;
         private Uri _uri;
         private Boolean _cancelled = false;
         private Boolean _complete = false;
+        private Communicator _communicator = Communicator.Instance;
 
         /// <summary>
         /// Initializes a message.
@@ -111,6 +116,40 @@ namespace CoAP
             return reply;
         }
 
+        public Message NewAccept()
+        {
+            Message ack = new Message(MessageType.ACK, CoAP.Code.Empty);
+            ack.PeerAddress = this.PeerAddress;
+            ack.ID = this.ID;
+            return ack;
+        }
+
+        public Message NewReject()
+        {
+            Message rst = new Message(MessageType.RST, CoAP.Code.Empty);
+            rst.PeerAddress = this.PeerAddress;
+            rst.ID = this.ID;
+            return rst;
+        }
+
+        public virtual void Accept()
+        {
+            if (IsConfirmable)
+            {
+                NewAccept().Send();
+            }
+        }
+
+        public void Reject()
+        {
+            NewReject().Send();
+        }
+
+        public void Send()
+        {
+            _communicator.SendMessage(this);
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -151,7 +190,7 @@ namespace CoAP
                 }
                 System.Threading.Monitor.PulseAll(this);
                 // TODO add event
-                //PayloadAppended(block);
+                PayloadAppended(block);
                 System.Threading.Monitor.Exit(this);
             }
         }
@@ -162,7 +201,6 @@ namespace CoAP
         /// <param name="payload">The string representation of the payload</param>
         public void SetPayload(String payload)
         {
-            //SetPayload(payload, MediaType.TextPlain);
             SetPayload(payload, MediaType.Undefined);
         }
 
@@ -175,7 +213,6 @@ namespace CoAP
         {
             if (!String.IsNullOrEmpty(payload))
             {
-                // TODO UTF8?
                 Payload = System.Text.Encoding.UTF8.GetBytes(payload);
                 if (mediaType != MediaType.Undefined)
                     SetOption(Option.Create(OptionType.ContentType, mediaType));
@@ -192,7 +229,7 @@ namespace CoAP
             DatagramWriter optWriter = new DatagramWriter();
             Int32 optionCount = 0;
             Int32 lastOptionNumber = 0;
-            foreach (Option opt in GetOptionList())
+            foreach (Option opt in GetOptions())
             {
                 if (opt.IsDefault)
                     continue;
@@ -212,13 +249,13 @@ namespace CoAP
                     int fencepostDelta = fencepostNumber - lastOptionNumber;
                     if (fencepostDelta <= 0)
                     {
-                        if (Log.IsWarningEnabled)
-                            Log.Warning(this, "Fencepost liveness violated: delta = {0}\n", fencepostDelta);
+                        if (log.IsWarnEnabled)
+                            log.Warn("Fencepost liveness violated: delta = " + fencepostDelta);
                     }
                     if (fencepostDelta > MaxOptionDelta)
                     {
-                        if (Log.IsWarningEnabled)
-                            Log.Warning(this, "Fencepost safety violated: delta = {0}\n", fencepostDelta);
+                        if (log.IsWarnEnabled)
+                            log.Warn("Fencepost safety violated: delta = " + fencepostDelta);
                     }
 
                     // write fencepost option delta
@@ -285,6 +322,7 @@ namespace CoAP
         /// <returns></returns>
         public override String ToString()
         {
+#if DEBUG
             StringBuilder builder = new StringBuilder();
             String kind = "MESSAGE";
             if (this.IsRequest)
@@ -293,23 +331,30 @@ namespace CoAP
                 kind = "RESPONSE";
             builder.AppendFormat("==[ COAP {0} ]============================================\n", kind);
 
-            IList<Option> options = GetOptionList();
-            builder.AppendFormat("URI    :  {0}\n", null == this._uri ? "NULL" : this._uri.ToString());
-            builder.AppendFormat("ID     :  {0}\n", this._id);
-            builder.AppendFormat("Type   :  {0}\n", this.Type);
-            builder.AppendFormat("Code   :  {0}\n", CoAP.Code.ToString(this._code));
+            IList<Option> options = GetOptions();
+            builder.AppendFormat("Address:  {0}\n", PeerAddress == null ? "local" : PeerAddress.ToString());
+            builder.AppendFormat("ID     :  {0}\n", _id);
+            builder.AppendFormat("Type   :  {0}\n", Type);
+            builder.AppendFormat("Code   :  {0}\n", CoAP.Code.ToString(_code));
             builder.AppendFormat("Options:  {0}\n", options.Count);
             foreach (Option opt in options)
             {
                 builder.AppendFormat("  * {0}: {1} ({2} Bytes)\n", opt.Name, opt, opt.Length);
             }
             builder.AppendFormat("Payload: {0} Bytes\n", this.PayloadSize);
-            builder.AppendLine("---------------------------------------------------------------");
             if (this.PayloadSize > 0)
+            {
+                builder.AppendLine("---------------------------------------------------------------");
                 builder.AppendLine(this.PayloadString);
+            }
             builder.AppendLine("===============================================================");
 
             return builder.ToString();
+#else
+            return String.Format("{0}: [{1}] {2} '{3}'({4})",
+                Key, Type, CoAP.Code.ToString(_code),
+                PayloadString, PayloadSize);
+#endif
         }
 
         #region Option operations
@@ -317,73 +362,89 @@ namespace CoAP
         /// <summary>
         /// Adds an option to the list of options of this CoAP message.
         /// </summary>
-        /// <param name="opt">The option to be added</param>
-        public void AddOption(Option opt)
+        /// <param name="option">the option to add</param>
+        public void AddOption(Option option)
         {
-            IList<Option> list = GetOptions(opt.Type);
-            if (null == list)
-            {
-                SetOption(opt);
-            }
+            if (option == null)
+                throw new ArgumentNullException("opt");
+
+            IList<Option> list = null;
+            if (_optionMap.ContainsKey(option.Type))
+                list = _optionMap[option.Type];
             else
             {
-                list.Add(opt);
+                list = new List<Option>();
+                _optionMap[option.Type] = list;
+            }
+
+            list.Add(option);
+
+            if (option.Type == OptionType.Token)
+                _requiresToken = false;
+        }
+
+        /// <summary>
+        /// Adds all option to the list of options of this CoAP message.
+        /// </summary>
+        /// <param name="options">the options to add</param>
+        public void AddOptions(IEnumerable<Option> options)
+        {
+            foreach (Option opt in options)
+            {
+                AddOption(opt);
             }
         }
 
         /// <summary>
         /// Removes all options of the given type from this CoAP message.
         /// </summary>
-        /// <param name="optionType">The type of option to be removed</param>
-        public void RemoveOption(OptionType optionType)
+        /// <param name="optionType">the type of option to remove</param>
+        public void RemoveOptions(OptionType optionType)
         {
-            this._optionMap.Remove(optionType);
+            _optionMap.Remove(optionType);
         }
 
         /// <summary>
         /// Gets all options of the given type.
         /// </summary>
-        /// <param name="optionType">The option type</param>
+        /// <param name="optionType">the option type</param>
         /// <returns></returns>
-        public IList<Option> GetOptions(OptionType optionType)
+        public IEnumerable<Option> GetOptions(OptionType optionType)
         {
-            return this._optionMap.ContainsKey(optionType) ? this._optionMap[optionType] : null;
-        }
-
-        /// <summary>
-        /// Sets all options with the specified option type.
-        /// </summary>
-        /// <param name="optionType">The option type</param>
-        /// <param name="opts">The list of options</param>
-        public void SetOptions(OptionType optionType, IList<Option> opts)
-        {
-            // TODO Check if all options are consistent with optionNumber
-            this._optionMap[optionType] = opts;
-            if (optionType == OptionType.Token)
-            {
-                this._requiresToken = false;
-            }
+            return _optionMap.ContainsKey(optionType) ? _optionMap[optionType] : null;
         }
 
         /// <summary>
         /// Sets an option.
         /// </summary>
-        /// <param name="opt">The option to be set</param>
+        /// <param name="opt">the option to set</param>
         public void SetOption(Option opt)
         {
             if (null != opt)
             {
-                IList<Option> opts = new List<Option>();
-                opts.Add(opt);
-                SetOptions(opt.Type, opts);
+                RemoveOptions(opt.Type);
+                AddOption(opt);
             }
+        }
+
+        /// <summary>
+        /// Sets all options with the specified option type.
+        /// </summary>
+        /// <param name="options">the options to set</param>
+        public void SetOptions(IEnumerable<Option> options)
+        {
+            foreach (Option opt in options)
+            {
+                RemoveOptions(opt.Type);
+            }
+            AddOptions(options);
         }
 
         /// <summary>
         /// Checks if this CoAP message has options of the specified option type.
         /// </summary>
-        /// <param name="type">The option type</param>
-        /// <returns>True iff options of the specified type exist</returns>
+        /// <param name="type">the option type</param>
+        /// <returns>rrue if options of the specified type exist</returns>
         public Boolean HasOption(OptionType type)
         {
             return GetFirstOption(type) != null;
@@ -392,11 +453,11 @@ namespace CoAP
         /// <summary>
         /// Gets the first option of the specified option type.
         /// </summary>
-        /// <param name="optionType">The option type</param>
-        /// <returns>The first option of the specified type, or null</returns>
+        /// <param name="optionType">the option type</param>
+        /// <returns>the first option of the specified type, or null</returns>
         public Option GetFirstOption(OptionType optionType)
         {
-            IList<Option> list = GetOptions(optionType);
+            IList<Option> list = _optionMap.ContainsKey(optionType) ? _optionMap[optionType] : null;
             return (null != list && list.Count > 0) ? list[0] : null;
         }
 
@@ -404,7 +465,7 @@ namespace CoAP
         /// Gets a sorted list of all options.
         /// </summary>
         /// <returns></returns>
-        public IList<Option> GetOptionList()
+        public IList<Option> GetOptions()
         {
             List<Option> list = new List<Option>();
             foreach (IList<Option> opts in this._optionMap.Values)
@@ -421,12 +482,18 @@ namespace CoAP
         /// <returns></returns>
         public Int32 GetOptionCount()
         {
-            return GetOptionList().Count;
+            return GetOptions().Count;
         }
 
         #endregion
 
         #region Properties
+
+        public Communicator Communicator
+        {
+            get { return _communicator; }
+            set { _communicator = value; }
+        }
 
         /// <summary>
         /// Gets the size of the payload of this CoAP message.
@@ -488,39 +555,63 @@ namespace CoAP
             {
                 if (null != value)
                 {
+                    // TODO Uri-Host option
+
+                    // Uri-Path option
                     String path = value.AbsolutePath;
                     if (!String.IsNullOrEmpty(path))
                     {
-                        IList<Option> uriPaths = Option.Split(OptionType.UriPath, path, "/");
-                        SetOptions(OptionType.UriPath, uriPaths);
+                        IEnumerable<Option> uriPaths = Option.Split(OptionType.UriPath, path, "/");
+                        SetOptions(uriPaths);
                     }
 
+                    // Uri-Query option
                     String query = value.Query;
                     if (!String.IsNullOrEmpty(query))
                     {
-                        IList<Option> uriQuery = Option.Split(OptionType.UriQuery, query, "&");
-                        SetOptions(OptionType.UriQuery, uriQuery);
+                        if (query.StartsWith("?"))
+                            query = query.Substring(1);
+                        IEnumerable<Option> uriQuery = Option.Split(OptionType.UriQuery, query, "&");
+                        SetOptions(uriQuery);
                     }
                 }
                 this._uri = value;
+                PeerAddress = new EndpointAddress(value);
             }
         }
 
-        /// <summary>
-        /// Gets or sets the token option of this CoAP message.
-        /// </summary>
-        public Option Token
+        public String UriPath
+        {
+            get { return Option.Join(GetOptions(OptionType.UriPath), "/"); }
+        }
+
+        public String Query
+        {
+            get { return Option.Join(GetOptions(OptionType.UriQuery), "&"); }
+        }
+
+        public Byte[] Token
         {
             get
             {
                 Option opt = GetFirstOption(OptionType.Token);
-                // TODO 应该如实返回吧？
-                //return (null == opt) ? TokenManager.EmptyToken : opt;
-                return opt;
+                return opt == null ? TokenManager.EmptyToken : opt.RawValue;
             }
             set
             {
-                SetOption(value);
+                SetOption(Option.Create(OptionType.Token, value));
+            }
+        }
+
+        public String TokenString
+        {
+            get
+            {
+                Byte[] token = Token;
+                if (token == null || token.Length == 0)
+                    return "--";
+                else
+                    return BitConverter.ToString(token);
             }
         }
 
@@ -538,7 +629,7 @@ namespace CoAP
             {
                 if (value == MediaType.Undefined)
                 {
-                    SetOptions(OptionType.ContentType, null);
+                    RemoveOptions(OptionType.ContentType);
                 }
                 else
                 {
@@ -558,7 +649,7 @@ namespace CoAP
             }
             set
             {
-                SetOptions(OptionType.LocationPath, Option.Split(OptionType.LocationPath, value, "/"));
+                SetOptions(Option.Split(OptionType.LocationPath, value, "/"));
             }
         }
 
@@ -671,6 +762,14 @@ namespace CoAP
         }
 
         /// <summary>
+        /// Gets a value that indicates whether this response is a separate one.
+        /// </summary>
+        public Boolean IsEmptyACK
+        {
+            get { return IsAcknowledgement && Code == CoAP.Code.Empty; }
+        }
+
+        /// <summary>
         /// Gets a string that is assumed to uniquely identify a message,
         /// since messages from different remote endpoints might have a same message ID.
         /// </summary>
@@ -678,7 +777,23 @@ namespace CoAP
         {
             get
             {
-                return String.Format("{0}|{1}#{2}", EndPointID, Type, _id);
+                return String.Format("{0}|{1}|{2}", PeerAddress == null ? "local" : PeerAddress.ToString(), _id, Type);
+            }
+        }
+
+        public String TransactionKey
+        {
+            get
+            {
+                return String.Format("{0}|{1}", PeerAddress == null ? "local" : PeerAddress.ToString(), _id);
+            }
+        }
+
+        public String SequenceKey
+        {
+            get
+            {
+                return String.Format("{0}#{1}", PeerAddress == null ? "local" : PeerAddress.ToString(), TokenString);
             }
         }
 
@@ -704,6 +819,10 @@ namespace CoAP
             }
         }
 
+        public EndpointAddress PeerAddress { get; set; }
+
+        public Int32 Retransmissioned { get; set; }
+
         /// <summary>
         /// Gets the endpoint ID of this CoAP message, including ip address and port.
         /// </summary>
@@ -715,19 +834,6 @@ namespace CoAP
 
                 // TODO 检查IP地址是否需要[]
                 return String.Format("[{0}]:{1}", addr, Port);
-            }
-        }
-
-        /// <summary>
-        /// Gets the transfer ID of this CoAP message.
-        /// </summary>
-        public String TransferID
-        {
-            get
-            {
-                Option tokenOpt = GetFirstOption(OptionType.Token);
-                String token = (null == tokenOpt) ? String.Empty : tokenOpt.ToString();
-                return String.Format("{0}[{1}]", EndPointID, token);
             }
         }
 
@@ -768,27 +874,23 @@ namespace CoAP
                     case CoAP.Code.DELETE:
                         return new DELETERequest();
                     default:
-                        return new Request();
+                        return new UnsupportedRequest(code);
                 }
             }
             else if (CoAP.Code.IsResponse(code))
             {
-                return new Response();
+                return new Response(code);
             }
             else if (code == CoAP.Code.Empty)
             {
                 // empty messages are handled as responses
                 // in order to handle ACK/RST messages consistent
                 // with actual responses
-                return new Response();
-            }
-            else if (CoAP.Code.IsValid(code))
-            {
-                return new Message();
+                return new Response(code);
             }
             else
             {
-                return null;
+                return new Message(MessageType.CON, code);
             }
         }
 
@@ -803,24 +905,17 @@ namespace CoAP
 
             // read headers
             Int32 version = datagram.Read(VersionBits);
+            if (version != SupportedVersion)
+                return null;
+
             MessageType type = (MessageType)datagram.Read(TypeBits);
             Int32 optionCount = datagram.Read(OptionCountBits);
             Int32 code = datagram.Read(CodeBits);
 
-            if (!CoAP.Code.IsValid(code))
-            {
-                if (Log.IsErrorEnabled)
-                    Log.Error(null, "Invalid message code: {0}", code);
-                return null;
-            }
-
             // create new message with subtype according to code number
             Message msg = Create(code);
 
-            msg._version = version;
             msg._type = type;
-            msg._code = code;
-
             msg._id = datagram.Read(IDBits);
 
             // read options
@@ -891,28 +986,5 @@ namespace CoAP
 
         protected virtual void PayloadAppended(Byte[] block)
         { }
-    }
-
-    /// <summary>
-    /// Types of CoAP messages
-    /// </summary>
-    public enum MessageType
-    {
-        /// <summary>
-        /// Confirmable messages require an acknowledgement.
-        /// </summary>
-        CON = 0,
-        /// <summary>
-        /// Non-Confirmable messages do not require an acknowledgement.
-        /// </summary>
-        NON,
-        /// <summary>
-        /// Acknowledgement messages acknowledge a specific confirmable message.
-        /// </summary>
-        ACK,
-        /// <summary>
-        /// Reset messages indicate that a specific confirmable message was received, but some context is missing to properly process it.
-        /// </summary>
-        RST
     }
 }

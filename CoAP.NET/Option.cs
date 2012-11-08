@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2011, Longxiang He <helongxiang@smeshlink.com>,
+ * Copyright (c) 2011-2012, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
  * This program is distributed in the hope that it will be useful,
@@ -22,6 +22,7 @@ namespace CoAP
     {
         private static readonly IConvertor int32Convertor = new Int32Convertor();
         private static readonly IConvertor stringConvertor = new StringConvertor();
+
         private OptionType _type;
         /// <summary>
         /// NOTE: value bytes in network byte order (big-endian)
@@ -124,7 +125,7 @@ namespace CoAP
                 switch (this._type)
                 {
                     case OptionType.MaxAge:
-                        return IntValue == 60;
+                        return IntValue == CoapConstants.DefaultMaxAge;
                     case OptionType.Token:
                         return Length == 0;
                     default:
@@ -262,7 +263,7 @@ namespace CoAP
         /// <param name="s">The string to be splited</param>
         /// <param name="delimiter">The seperator string</param>
         /// <returns><see cref="System.Collections.Generic.IList"/> of options</returns>
-        public static IList<Option> Split(OptionType type, String s, String delimiter)
+        public static IEnumerable<Option> Split(OptionType type, String s, String delimiter)
         {
             List<Option> opts = new List<Option>();
             if (!String.IsNullOrEmpty(s))
@@ -284,7 +285,7 @@ namespace CoAP
         /// <param name="options">The list of options to be joined</param>
         /// <param name="delimiter">The seperator string</param>
         /// <returns>The joined string</returns>
-        public static String Join(IList<Option> options, String delimiter)
+        public static String Join(IEnumerable<Option> options, String delimiter)
         {
             if (null == options)
             {
@@ -396,7 +397,7 @@ namespace CoAP
         private static String Hex(Byte[] data)
         {
             const String digits = "0123456789ABCDEF";
-            if (data != null)
+            if (data != null && data.Length > 0)
             {
                 StringBuilder builder = new StringBuilder(data.Length * 3);
                 for (int i = 0; i < data.Length; i++)
@@ -404,15 +405,13 @@ namespace CoAP
                     builder.Append(digits[(data[i] >> 4) & 0xF]);
                     builder.Append(digits[data[i] & 0xF]);
                     if (i < data.Length - 1)
-                    {
                         builder.Append(' ');
-                    }
                 }
                 return builder.ToString();
             }
             else
             {
-                return null;
+                return "--";
             }
         }
 
@@ -584,7 +583,7 @@ namespace CoAP
 
         /// <summary>
         /// E, Duration, 1 B, 0
-        /// <remarks>option types from draft-hartke-coap-observe-01</remarks>
+        /// <remarks>option types from draft-ietf-core-observe</remarks>
         /// </summary>
         Observe = 10,
 

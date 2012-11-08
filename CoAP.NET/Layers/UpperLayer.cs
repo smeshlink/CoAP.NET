@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2011, Longxiang He <helongxiang@smeshlink.com>,
+ * Copyright (c) 2011-2012, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
  * This program is distributed in the hope that it will be useful,
@@ -9,8 +9,7 @@
  * Please see README for more information.
  */
 
-using System;
-using CoAP.Util;
+using CoAP.Log;
 
 namespace CoAP.Layers
 {
@@ -19,6 +18,7 @@ namespace CoAP.Layers
     /// </summary>
     public abstract class UpperLayer : Layer
     {
+        private static ILogger log = LogManager.GetLogger(typeof(UpperLayer));
         private Layer _lowerLayer;
 
         /// <summary>
@@ -49,8 +49,8 @@ namespace CoAP.Layers
         {
             if (null == _lowerLayer)
             {
-                if (Log.IsWarningEnabled)
-                    Log.Warning(this, "No lower layer present");
+                if (log.IsWarnEnabled)
+                    log.Warn(this.GetType().Name + ": No lower layer present");
             }
             else
             {

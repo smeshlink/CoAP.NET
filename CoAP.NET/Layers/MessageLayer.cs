@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2011, Longxiang He <helongxiang@smeshlink.com>,
+ * Copyright (c) 2011-2012, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
  * This program is distributed in the hope that it will be useful,
@@ -12,6 +12,7 @@
 using System;
 using System.Collections.Generic;
 using System.Timers;
+using CoAP.Log;
 using CoAP.Util;
 
 namespace CoAP.Layers
@@ -25,20 +26,20 @@ namespace CoAP.Layers
     /// </summary>
     public class MessageLayer : UpperLayer
     {
+        private static ILogger log = LogManager.GetLogger(typeof(MessageLayer));
+        private static Int32 currentMessageID = (Int32)((new Random()).NextDouble() * 0x10000);
+        
         private Boolean _retransmitEnabled = true;
         private Int32 _messageId;
-        private IDictionary<Int32, TransmissionContext> _txTable = new HashMap<Int32, TransmissionContext>();
-        // TODO cache需要使用能够自动移除旧entry的数据结构，减少资源使用
-        private IDictionary<String, Message> _dupCache = new HashMap<String, Message>();
-        private IDictionary<String, Message> _replyCache = new HashMap<String, Message>();
+        private IDictionary<String, TransmissionContext> _transactionTable = new HashMap<String, TransmissionContext>();
+        private HashMap<String, Message> _dupCache = new HashMap<String, Message>();
+        private HashMap<String, Message> _replyCache = new HashMap<String, Message>();
         private Object _syncRoot = new Byte[0];
 
-        /// <summary>
-        /// Initializes a message layer.
-        /// </summary>
-        public MessageLayer()
+        public static Int32 NextMessageID()
         {
-            this._messageId = (int)((new Random()).NextDouble() * 0x10000);
+            currentMessageID = ++currentMessageID % 0x10000;
+            return currentMessageID;
         }
 
         /// <summary>
@@ -59,9 +60,6 @@ namespace CoAP.Layers
                 // create new transmission context
                 // to keep track of the Confirmable
                 TransmissionContext ctx = AddTransmission(msg);
-
-                // schedule first retransmission
-                ScheduleRetransmission(ctx);
             }
             else if (msg.IsReply)
             {
@@ -77,12 +75,50 @@ namespace CoAP.Layers
         /// <param name="msg">The message to be received</param>
         protected override void DoReceiveMessage(Message msg)
         {
+            // check for support
+            if (msg is UnsupportedRequest)
+            {
+                Message reply = msg.NewReply(msg.IsConfirmable);
+                reply.Code = Code.MethodNotAllowed;
+                reply.SetPayload(String.Format("MessageLayer - Method code {0} not supported", msg.Code));
+
+                try
+                {
+                    SendMessageOverLowerLayer(reply);
+                    if (log.IsDebugEnabled)
+                        log.Debug(String.Format("MessageLayer - Replied to unsupported request code {0}: {1}", msg.Code, msg.Key));
+                }
+                catch (Exception ex)
+                {
+                    if (log.IsErrorEnabled)
+                        log.Error("MessageLayer - Replying to unsupported request code failed: " + ex.Message);
+                }
+
+                return;
+            }
+
             // check for duplicate
             if (_dupCache.ContainsKey(msg.Key))
             {
                 // check for retransmitted Confirmable
                 if (msg.IsConfirmable)
                 {
+                    if (msg is Response)
+                    {
+                        try
+                        {
+                            if (log.IsDebugEnabled)
+                                log.Debug("MessageLayer - Re-acknowledging duplicate response: " + msg.Key);
+                            msg.Accept();
+                        }
+                        catch (Exception ex)
+                        {
+                            if (log.IsErrorEnabled)
+                                log.Error("MessageLayer - Re-acknowledging duplicate response failed: " + ex.Message);
+                        }
+                        return;
+                    }
+
                     // retrieve cached reply
                     Message reply = _replyCache[msg.Key];
                     if (reply != null)
@@ -91,51 +127,84 @@ namespace CoAP.Layers
                         try
                         {
                             SendMessageOverLowerLayer(reply);
+                            if (log.IsDebugEnabled)
+                                log.Debug("MessageLayer - Replied duplicate confirmable: " + msg.Key);
                         }
                         catch (Exception ex)
                         {
-                            if (Log.IsErrorEnabled)
-                                Log.Error(this, ex.Message);
+                            if (log.IsErrorEnabled)
+                                log.Error("MessageLayer - Replying to duplicate confirmable failed: " + ex.Message);
                         }
-
-                        if (Log.IsInfoEnabled)
-                            Log.Info(this, "Replied to duplicate Confirmable: {0}", msg.Key);
-
-                        // ignore duplicate
-                        return;
                     }
+                    else
+                    {
+                        if (log.IsDebugEnabled)
+                            log.Debug("MessageLayer - Dropped duplicate confirmable without cached reply: " + msg.Key);
+                    }
+
+                    // drop duplicate anyway
+                    return;
                 }
                 else
                 {
                     // ignore duplicate
-                    if (Log.IsInfoEnabled)
-                        Log.Info(this, "Duplicate dropped: {0}", msg.Key);
+                    if (log.IsDebugEnabled)
+                        log.Debug("MessageLayer - Dropped duplicate : " + msg.Key);
                     return;
                 }
             }
-            else
+            else // !_dupCache.ContainsKey(msg.Key)
             {
                 _dupCache[msg.Key] = msg;
             }
-
+            
             if (msg.IsReply)
             {
                 // retrieve context to the incoming message
                 TransmissionContext ctx = GetTransmission(msg);
                 if (ctx != null)
                 {
-                    // match reply to corresponding Confirmable
-                    Message.MatchBuddies(ctx.msg, msg);
-
                     // transmission completed
                     RemoveTransmission(ctx);
+
+                    if (msg.IsEmptyACK)
+                    {
+                        // transaction is complete, no information for higher layers
+                        return;
+                    }
+                    else if (msg.Type == MessageType.RST)
+                    {
+                        HandleIncomingReset(msg);
+                        return;
+                    }
+                }
+                else if (msg.Type == MessageType.RST)
+                {
+                    HandleIncomingReset(msg);
+                    return;
                 }
                 else
                 {
                     // ignore unexpected reply
-                    if (Log.IsWarningEnabled)
-                        Log.Warning(this, "Unexpected reply dropped: {0}", msg.Key);
+                    if (log.IsWarnEnabled)
+                        log.Warn("MessageLayer - Dropped unexpected reply: " + msg.Key);
                     return;
+                }
+            }
+
+            // Only accept Responses here, Requests must be handled at application level
+            if (msg is Response && msg.IsConfirmable)
+            {
+                try
+                {
+                    if (log.IsDebugEnabled)
+                        log.Debug("MessageLayer - Accepted confirmable response: " + msg.Key);
+                    SendMessageOverLowerLayer(msg.NewAccept());
+                }
+                catch (Exception ex)
+                {
+                    if (log.IsErrorEnabled)
+                        log.Error("MessageLayer - Accepted confirmable response failed: " + ex.Message);
                 }
             }
 
@@ -143,15 +212,9 @@ namespace CoAP.Layers
             DeliverMessage(msg);
         }
 
-        private Int32 NextMessageID()
-        {
-            Int32 id = _messageId;
-            ++_messageId;
-            if (_messageId > Message.MaxID)
-            {
-                _messageId = 1;
-            }
-            return id;
+        private void HandleIncomingReset(Message msg)
+        { 
+            // TODO remove possible observers
         }
 
         private TransmissionContext AddTransmission(Message msg)
@@ -162,7 +225,14 @@ namespace CoAP.Layers
                 ctx.msg = msg;
                 ctx.numRetransmit = 0;
                 ctx.timeoutHandler = HandleResponseTimeout;
-                _txTable[msg.ID] = ctx;
+                _transactionTable[msg.TransactionKey] = ctx;
+
+                // schedule first retransmission
+                ScheduleRetransmission(ctx);
+
+                if (log.IsDebugEnabled)
+                    log.Debug("MessageLayer - Stored new transaction for " + msg.Key);
+
                 return ctx;
             }
         }
@@ -171,7 +241,7 @@ namespace CoAP.Layers
         {
             lock (this._syncRoot)
             {
-                return _txTable[msg.ID];
+                return _transactionTable[msg.TransactionKey];
             }
         }
 
@@ -180,7 +250,10 @@ namespace CoAP.Layers
             lock (this._syncRoot)
             {
                 ctx.CancelRetransmission();
-                _txTable.Remove(ctx.msg.ID);
+                _transactionTable.Remove(ctx.msg.TransactionKey);
+
+                if (log.IsDebugEnabled)
+                    log.Debug("MessageLayer - Cleared new transaction for " + ctx.msg.Key);
             }
         }
 
@@ -193,10 +266,10 @@ namespace CoAP.Layers
         {
             if (this._retransmitEnabled && ctx.numRetransmit < CoapConstants.MaxRetransmit)
             {
-                ++ctx.numRetransmit;
+                ctx.msg.Retransmissioned = ++ctx.numRetransmit;
 
-                if (Log.IsInfoEnabled)
-                    Log.Info(this, "Retransmitting {0} ({1} of {2})", ctx.msg.Key, ctx.numRetransmit, CoapConstants.MaxRetransmit);
+                if (log.IsInfoEnabled)
+                    log.Info(String.Format("MessageLayer - Retransmitting {0} ({1} of {2})", ctx.msg.Key, ctx.numRetransmit, CoapConstants.MaxRetransmit));
 
                 try
                 {
@@ -204,8 +277,8 @@ namespace CoAP.Layers
                 }
                 catch (Exception ex)
                 {
-                    if (Log.IsErrorEnabled)
-                        Log.Error(this, "Retransmission failed: {0}", ex.Message);
+                    if (log.IsErrorEnabled)
+                        log.Error("MessageLayer - Retransmission failed: " + ex.Message, ex);
                     RemoveTransmission(ctx);
                     return;
                 }
@@ -214,20 +287,25 @@ namespace CoAP.Layers
             }
             else
             {
+                // cancel transmission
                 RemoveTransmission(ctx);
-                if (Log.IsWarningEnabled)
-                    Log.Warning(this, "Transmission of {0} cancelled", ctx.msg.Key);
+                
+                // TODO cancel observations
+
+                if (log.IsDebugEnabled)
+                    log.Debug(String.Format("MessageLayer - Transmission of {0} cancelled", ctx.msg.Key));
+
                 ctx.msg.HandleTimeout();
             }
         }
 
         private class TransmissionContext
         {
-            private Int32 timeout;
-            private Timer timer;
             public Message msg;
             public Int32 numRetransmit;
             public Action<TransmissionContext> timeoutHandler;
+            private Int32 timeout;
+            private Timer timer;
 
             public TransmissionContext()
             {
@@ -255,7 +333,7 @@ namespace CoAP.Layers
                     timer.Stop();
             }
 
-            void timer_Elapsed(object sender, ElapsedEventArgs e)
+            void timer_Elapsed(Object sender, ElapsedEventArgs e)
             {
                 if (null != timeoutHandler)
                     timeoutHandler(this);
@@ -264,16 +342,11 @@ namespace CoAP.Layers
 
         private static Random _rand = new Random();
 
-        private static Int32 Rnd(Int32 min, Int32 max)
-        {
-            return min + (Int32)(_rand.NextDouble() * (max - min + 1));
-        }
-
         private static Int32 InitialTimeout()
         {
             Int32 min = CoapConstants.ResponseTimeout;
             Double f = CoapConstants.ResponseRandomFactor;
-            return Rnd(min, (Int32)(min * f));
+            return (Int32)(min + min * (f - 1D) * _rand.NextDouble());
         }
     }
 }

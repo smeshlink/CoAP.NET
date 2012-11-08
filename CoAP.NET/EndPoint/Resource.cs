@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2011, Longxiang He <helongxiang@smeshlink.com>,
+ * Copyright (c) 2011-2012, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
  * This program is distributed in the hope that it will be useful,
@@ -26,7 +26,7 @@ namespace CoAP.EndPoint
         /// <summary>
         /// Contains the resource's attributes as specified by CoRE Link Format
         /// </summary>
-        protected IDictionary<String, LinkFormat.Attribute> _attributes;
+        protected IDictionary<String, LinkAttribute> _attributes;
         /// <summary>
         /// The current resource's parent
         /// </summary>
@@ -60,7 +60,7 @@ namespace CoAP.EndPoint
         {
             this._resourceIdentifier = resourceIdentifier;
             this._hidden = hidden;
-            this._attributes = new HashMap<String, LinkFormat.Attribute>();
+            this._attributes = new HashMap<String, LinkAttribute>();
         }
 
         /// <summary>
@@ -190,7 +190,7 @@ namespace CoAP.EndPoint
         /// <param name="value">The value of the attribute</param>
         public void SetAttributeValue(String name, Object value)
         {
-            LinkFormat.Attribute attr = new LinkFormat.Attribute(name, value);
+            LinkAttribute attr = new LinkAttribute(name, value);
             _attributes[name] = attr;
         }
 
@@ -201,7 +201,7 @@ namespace CoAP.EndPoint
         /// <returns>The value of the attribute if exists, otherwise null</returns>
         public Object GetAttributeValue(String name)
         {
-            LinkFormat.Attribute attr = _attributes[name];
+            LinkAttribute attr = _attributes[name];
             return null == attr ? null : attr.Value;
         }
 
@@ -346,7 +346,7 @@ namespace CoAP.EndPoint
             foreach (String s in entries)
             {
                 String entry = s.Trim();
-                LinkFormat.Attribute attr = LinkFormat.Attribute.Parse(entry);
+                LinkAttribute attr = LinkAttribute.Parse(entry);
                 if (attr != null)
                     this._attributes[attr.Name] = attr;
             }

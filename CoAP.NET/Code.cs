@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2011, Longxiang He <helongxiang@smeshlink.com>,
+ * Copyright (c) 2011-2012, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
  * This program is distributed in the hope that it will be useful,
@@ -93,7 +93,7 @@ namespace CoAP
         /// </summary>
         public const Int32 NotAcceptable = 134;
         /// <summary>
-        /// 4.08 Request Entity Incomplete (draft-ietf-core-block-03)
+        /// 4.08 Request Entity Incomplete (draft-ietf-core-block)
         /// </summary>
         public const Int32 RequestEntityIncomplete = 136;
         /// <summary>
@@ -152,9 +152,7 @@ namespace CoAP
         /// <returns>True iff the code indicates a response</returns>
         public static Boolean IsResponse(Int32 code)
         {
-            // return (code >= 64) && (code <= 191);
-            // use extended range for backward compatibility with draft 3
-            return (code >= 40) && (code <= 242);
+            return (code >= 64) && (code <= 191);
         }
 
         /// <summary>
@@ -164,6 +162,7 @@ namespace CoAP
         /// <returns>True iff the code is valid</returns>
         public static Boolean IsValid(Int32 code)
         {
+            // allow unknown custom codes
             return (code >= 0) && (code <= 255);
         }
 
@@ -179,13 +178,13 @@ namespace CoAP
                 case Empty:
                     return "Empty Message";
                 case GET:
-                    return "GET Request";
+                    return "GET";
                 case POST:
-                    return "POST Request";
+                    return "POST";
                 case PUT:
-                    return "PUT Request";
+                    return "PUT";
                 case DELETE:
-                    return "DELETE Request";
+                    return "DELETE";
                 case Created:
                     return "2.01 Created";
                 case Deleted:

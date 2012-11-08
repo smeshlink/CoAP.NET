@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2011, Longxiang He <helongxiang@smeshlink.com>,
+ * Copyright (c) 2011-2012, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
  * This program is distributed in the hope that it will be useful,
@@ -88,7 +88,7 @@ namespace CoAP
         /// <returns></returns>
         public override String ToString()
         {
-            return String.Format("{0}{1} ({2} bytes [{3}])", NUM, M ? "+" : String.Empty, Size, SZX);
+            return String.Format("{0}{1} ({2}B/block [{3}])", NUM, M ? "+" : String.Empty, Size, SZX);
         }
 
         /// <summary>
@@ -118,7 +118,7 @@ namespace CoAP
         /// <returns></returns>
         public static Boolean ValidSZX(Int32 szx)
         {
-            return (szx >= 0 && szx <= 7);
+            return (szx >= 0 && szx <= 6);
         }
 
         private static Int32 Encode(Int32 num, Int32 szx, Boolean m)
