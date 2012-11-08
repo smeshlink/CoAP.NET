@@ -1,69 +1,73 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using CoAP;
+using System.Reflection;
 
 namespace CoAP.Test
 {
     class Program
     {
-        static void Main(string[] args)
+        static Type[] testTypes = new Type[] { 
+            typeof(DatagramReadWriteTest),
+            typeof(MessageTest),
+            typeof(OptionTest)
+        };
+
+        static void Main()
         {
-            Uri uri = new Uri("coap://[::1]:5683/image?size=2");
-            String payload = "";
-            Boolean loop = true;
-
-            Request request = Request.Create(Request.Method.GET);
-            request.URI = uri;
-            request.SetPayload(payload);
-            request.SetOption(Option.Create(OptionType.Observe, 60));
-            request.SetOption(Option.Create(OptionType.Token, 0xCAFE));
-            request.Responded += new EventHandler<ResponseEventArgs>(request_OnResponse);
-            request.Responding += new EventHandler<ResponseEventArgs>(request_Responding);
-            request.ResponseQueueEnabled = true;
-            request.Execute();
-            //do
-            //{
-            //    Console.WriteLine("Receiving response...");
-
-            //    Response response = null;
-            //    response = request.ReceiveResponse();
-
-            //    if (response != null && response.IsEmptyACK)
-            //    {
-            //        Console.WriteLine(response.ToString());
-            //        Console.WriteLine("Request acknowledged, waiting for separate response...");
-            //        response = request.ReceiveResponse();
-            //    }
-
-            //    if (null != response)
-            //    {
-            //        Console.WriteLine(response.ToString());
-            //        Console.WriteLine("Round Trip Time (ms): " + response.RTT);
-            //    }
-            //    else
-            //    {
-            //        // no response received
-            //        // calculate time elapsed
-            //        long elapsed = DateTime.Now.Ticks - request.Timestamp;
-            //        TimeSpan span = new TimeSpan(elapsed);
-            //        Console.WriteLine("Request timed out (ms): " + span.TotalMilliseconds);
-            //        break;
-            //    }
-            //} while (loop);
-
-            Console.ReadLine();
+            RunTests();
+            Console.WriteLine("(end of tests; press any key)");
+            Console.ReadKey();
         }
 
-        static void request_Responding(object sender, ResponseEventArgs e)
+        private static void RunTests()
         {
-            Console.WriteLine(e.Response.PayloadSize);
-        }
+            int total = 0;
+            int fail = 0;
+            Dictionary<Object, MethodInfo[]> tests = new Dictionary<Object, MethodInfo[]>();
+            foreach (var type in testTypes)
+            {
+                MethodInfo[] methods = type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+                var activeTests = Array.FindAll(methods, delegate(MethodInfo m) { return Attribute.IsDefined(m, typeof(ActiveTestAttribute)); });
+                if (activeTests.Length != 0)
+                    methods = activeTests;
+                tests.Add(Activator.CreateInstance(type), methods);
+                total += methods.Length;
+            }
 
-        static void request_OnResponse(object sender, ResponseEventArgs e)
-        {
-            Console.WriteLine(DateTime.Now);
-            //Console.WriteLine(e.Response.ToString());
+            foreach (KeyValuePair<Object, MethodInfo[]> pair in tests)
+            {
+                foreach (var method in pair.Value)
+                {
+                    Console.Write("Running " + method.Name);
+                    try
+                    {
+                        method.Invoke(pair.Key, null);
+                        Console.WriteLine(" - OK!");
+                    }
+                    catch (Exception ex)
+                    {
+                        fail++;
+                        if (ex.InnerException == null)
+                            Console.WriteLine(" - " + ex.Message);
+                        else if (ex.InnerException.InnerException == null)
+                            Console.WriteLine(" - " + ex.InnerException.Message);
+                        else
+                            Console.WriteLine(" - " + ex.InnerException.InnerException.Message);
+                    }
+                }
+            }
+            Console.WriteLine();
+            if (fail == 0)
+            {
+                Console.WriteLine("(all tests successful)");
+            }
+            else
+            {
+                Console.WriteLine("#### FAILED: {0} / {1}", fail, total);
+            }
         }
     }
+
+    [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
+    sealed class ActiveTestAttribute : Attribute { }
 }

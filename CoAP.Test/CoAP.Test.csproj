@@ -38,17 +38,19 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assert.cs" />
+    <Compile Include="DatagramReadWriteTest.cs" />
+    <Compile Include="MessageTest.cs" />
+    <Compile Include="OptionTest.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CoAP.NET\CoAP.NET.csproj">
       <Project>{45DB1E45-4831-4E4A-BB1E-AE92EEA182E3}</Project>
-      <Name>Californium.NET</Name>
+      <Name>CoAP.NET</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
