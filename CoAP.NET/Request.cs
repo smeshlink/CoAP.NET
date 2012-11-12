@@ -301,7 +301,7 @@ namespace CoAP
         {
             if (null != Responded)
             {
-                Responded(this, new ResponseEventArgs(response));
+                Responded(this, new ResponseEventArgs(response == TIMEOUT_RESPONSE ? null : response));
             }
         }
 
