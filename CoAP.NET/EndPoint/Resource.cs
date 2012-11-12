@@ -13,37 +13,24 @@ using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using CoAP.Util;
+using System.Text;
+using CoAP.Log;
 
 namespace CoAP.EndPoint
 {
     /// <summary>
     /// This class describes the functionality of a CoAP resource.
     /// </summary>
-    public abstract class Resource
+    public abstract class Resource : IComparable<Resource>
     {
+        private static ILogger log = LogManager.GetLogger(typeof(Resource));
+
         private Int32 _totalSubResourceCount;
         private String _resourceIdentifier;
-        /// <summary>
-        /// Contains the resource's attributes as specified by CoRE Link Format
-        /// </summary>
-        protected IDictionary<String, LinkAttribute> _attributes;
-        /// <summary>
-        /// The current resource's parent
-        /// </summary>
-        protected Resource _parent;
-        /// <summary>
-        /// The current resource's sub-resources
-        /// </summary>
-        protected IDictionary<String, Resource> _subResources;
-        /// <summary>
-        /// Determines whether the resource is hidden from a resource discovery
-        /// </summary>
-        protected Boolean _hidden;
-
-        /// <summary>
-        /// Initialize a resource.
-        /// </summary>
-        public Resource() : this(null) { }
+        private HashSet<LinkAttribute> _attributes;
+        private Resource _parent;
+        private SortedDictionary<String, Resource> _subResources;
+        private Boolean _hidden;
 
         /// <summary>
         /// Initialize a resource.
@@ -60,157 +47,7 @@ namespace CoAP.EndPoint
         {
             this._resourceIdentifier = resourceIdentifier;
             this._hidden = hidden;
-            this._attributes = new HashMap<String, LinkAttribute>();
-        }
-
-        /// <summary>
-        /// Adds sub-resources to this resource from a link format string.
-        /// </summary>
-        /// <param name="linkFormat">The link format representation of the resources</param>
-        public void AddLinkFormat(String linkFormat)
-        {
-            String[] resources = linkFormat.Split(new String[] { LinkFormat.Delimiter }, StringSplitOptions.RemoveEmptyEntries);
-
-            List<String> reses = new List<String>(resources.Length);
-            foreach (String s in resources)
-            {
-                if (s.StartsWith("</"))
-                    reses.Add(s);
-                else
-                    reses[reses.Count - 1] += s;
-            }
-
-            foreach (String s in reses)
-            {
-                String res = s.Trim();
-                String[] entries = res.Split(new String[] { LinkFormat.Separator }, 2, StringSplitOptions.RemoveEmptyEntries);
-                if (entries.Length > 0)
-                {
-                    Match match = LinkFormat.AttributeNameRegex.Match(entries[0]);
-                    if (null != match)
-                    {
-                        // trim </...>
-                        String identifier = match.Value;
-                        identifier = identifier.Substring(2, identifier.Length - 3);
-                        // Retrieve specified resource, create if necessary
-                        Resource resource = SubResource(identifier, true);
-                        // Read link format attributes
-                        if (entries.Length > 1)
-                            resource.ReadAttribute(entries[1]);
-                    }
-                }
-            }
-        }
-        
-        /// <summary>
-        /// Gets sub-resources of this resource.
-        /// </summary>
-        /// <returns></returns>
-        public Resource[] GetSubResources()
-        {
-            if (null == this._subResources)
-                return new Resource[0];
-
-            Resource[] resources = new Resource[this._subResources.Count];
-            this._subResources.Values.CopyTo(resources, 0);
-            return resources;
-        }
-
-        /// <summary>
-        /// Adds a resource as a sub-resource of this resource.
-        /// </summary>
-        /// <param name="resource">The sub-resource to be added</param>
-        public void AddSubResource(Resource resource)
-        {
-            if (null == resource)
-                return;
-
-            if (null == this._subResources)
-                this._subResources = new HashMap<String, Resource>();
-
-            _subResources[resource.Identifier] = resource;
-
-            resource._parent = this;
-
-            // update number of sub-resources in the tree
-            Resource p = resource._parent;
-            while (p != null)
-            {
-                ++p._totalSubResourceCount;
-                p = p._parent;
-            }
-        }
-
-        /// <summary>
-        /// Removes a sub-resource from this resource by its identifier.
-        /// </summary>
-        /// <param name="identifier">The identifier of the sub-resource</param>
-        public void RemoveSubResource(String identifier)
-        {
-            RemoveSubResource(SubResource(identifier));
-        }
-
-        /// <summary>
-        /// Removes a sub-resource from this resource.
-        /// </summary>
-        /// <param name="resource">The sub-resource to be removed</param>
-        public void RemoveSubResource(Resource resource)
-        {
-            if (null == resource)
-                return;
-
-            if (_subResources.Remove(resource.Identifier))
-            {
-                Resource p = resource._parent;
-                while (p != null)
-                {
-                    --p._totalSubResourceCount;
-                    p = p._parent;
-                }
-
-                resource._parent = null;
-            }
-        }
-
-        /// <summary>
-        /// Removes this resource from its parent.
-        /// </summary>
-        public void Remove()
-        {
-            if (this._parent != null)
-            {
-                this._parent.RemoveSubResource(this);
-            }
-        }
-
-        /// <summary>
-        /// Sets an attribute to this resource.
-        /// </summary>
-        /// <param name="name">The name of the attribute</param>
-        /// <param name="value">The value of the attribute</param>
-        public void SetAttributeValue(String name, Object value)
-        {
-            LinkAttribute attr = new LinkAttribute(name, value);
-            _attributes[name] = attr;
-        }
-
-        /// <summary>
-        /// Gets the attribute's value by its name.
-        /// </summary>
-        /// <param name="name">The name of the attribute</param>
-        /// <returns>The value of the attribute if exists, otherwise null</returns>
-        public Object GetAttributeValue(String name)
-        {
-            LinkAttribute attr = _attributes[name];
-            return null == attr ? null : attr.Value;
-        }
-
-        /// <summary>
-        /// Gets the identifier (relative URI to its parent) of this resource.
-        /// </summary>
-        public String Identifier
-        {
-            get { return GetIdentifier(false); }
+            this._attributes = new HashSet<LinkAttribute>();
         }
 
         /// <summary>
@@ -218,22 +55,91 @@ namespace CoAP.EndPoint
         /// </summary>
         public String Path
         {
-            get { return GetIdentifier(true); }
+            get
+            {
+                StringBuilder sb = new StringBuilder();
+                sb.Append(Name);
+                if (_parent == null)
+                    sb.Append("/");
+                else
+                {
+                    Resource res = _parent;
+                    while (res != null)
+                    {
+                        sb.Insert(0, "/");
+                        sb.Insert(0, res.Name);
+                        res = res._parent;
+                    }
+                }
+                return sb.ToString();
+            }
+        }
+
+        public String Name
+        {
+            get { return _resourceIdentifier; }
+            set { _resourceIdentifier = value; }
+        }
+
+        public ICollection<LinkAttribute> Attributes
+        {
+            get { return _attributes; }
+        }
+
+        public IList<LinkAttribute> GetAttributes(String name)
+        {
+            List<LinkAttribute> list = new List<LinkAttribute>();
+            foreach (LinkAttribute attr in Attributes)
+            {
+                if (attr.Name.Equals(name))
+                    list.Add(attr);
+            }
+            return list.AsReadOnly();
+        }
+
+        public Boolean SetAttribute(LinkAttribute attr)
+        {
+            // Adds depending on the Link Format rules
+            return LinkFormat.AddAttribute(Attributes, attr);
+        }
+
+        public Boolean ClearAttribute(String name)
+        {
+            Boolean cleared = false;
+            foreach (LinkAttribute attr in GetAttributes(name))
+            {
+                cleared |= _attributes.Remove(attr);
+            }
+            return cleared;
+        }
+
+        public Boolean Hidden
+        {
+            get { return _hidden; }
+            set { _hidden = value; }
+        }
+
+        public IList<String> ResourceTypes
+        {
+            get
+            {
+                return GetStringValues(GetAttributes(LinkFormat.ResourceType));
+            }
         }
 
         /// <summary>
         /// Gets or sets the type attribute of this resource.
         /// </summary>
-        public String Type
+        public String ResourceType
         {
             get
             {
-                Object val = GetAttributeValue(LinkFormat.ResourceType);
-                return null == val ? null : val.ToString();
+                IList<LinkAttribute> attrs = GetAttributes(LinkFormat.ResourceType);
+                return attrs.Count == 0 ? null : attrs[0].StringValue;
             }
             set
             {
-                SetAttributeValue(LinkFormat.ResourceType, value);
+                SetAttribute(new LinkAttribute(LinkFormat.ResourceType, value));
             }
         }
 
@@ -244,12 +150,21 @@ namespace CoAP.EndPoint
         {
             get
             {
-                Object val = GetAttributeValue(LinkFormat.Title);
-                return null == val ? null : val.ToString();
+                IList<LinkAttribute> attrs = GetAttributes(LinkFormat.Title);
+                return attrs.Count == 0 ? null : attrs[0].StringValue;
             }
             set
             {
-                SetAttributeValue(LinkFormat.Title, value);
+                ClearAttribute(LinkFormat.Title);
+                SetAttribute(new LinkAttribute(LinkFormat.Title, value));
+            }
+        }
+
+        public IList<String> InterfaceDescriptions
+        {
+            get
+            {
+                return GetStringValues(GetAttributes(LinkFormat.InterfaceDescription));
             }
         }
 
@@ -260,12 +175,20 @@ namespace CoAP.EndPoint
         {
             get
             {
-                Object val = GetAttributeValue(LinkFormat.InterfaceDescription);
-                return null == val ? null : val.ToString();
+                IList<LinkAttribute> attrs = GetAttributes(LinkFormat.InterfaceDescription);
+                return attrs.Count == 0 ? null : attrs[0].StringValue;
             }
             set
             {
-                SetAttributeValue(LinkFormat.InterfaceDescription, value);
+                SetAttribute(new LinkAttribute(LinkFormat.InterfaceDescription, value));
+            }
+        }
+
+        public IList<Int32> GetContentTypeCodes
+        {
+            get
+            {
+                return GetIntValues(GetAttributes(LinkFormat.ContentType));
             }
         }
 
@@ -276,12 +199,12 @@ namespace CoAP.EndPoint
         {
             get
             {
-                Object val = GetAttributeValue(LinkFormat.ContentType);
-                return val is Int32 ? (Int32)val : 0;
+                IList<LinkAttribute> attrs = GetAttributes(LinkFormat.ContentType);
+                return attrs.Count == 0 ? 0 : attrs[0].IntValue;
             }
             set
             {
-                SetAttributeValue(LinkFormat.ContentType, value);
+                SetAttribute(new LinkAttribute(LinkFormat.ContentType, value));
             }
         }
 
@@ -292,12 +215,12 @@ namespace CoAP.EndPoint
         {
             get
             {
-                Object val = GetAttributeValue(LinkFormat.MaxSizeEstimate);
-                return val is Int32 ? (Int32)val : 0;
+                IList<LinkAttribute> attrs = GetAttributes(LinkFormat.MaxSizeEstimate);
+                return attrs.Count == 0 ? -1 : attrs[0].IntValue;
             }
             set
             {
-                SetAttributeValue(LinkFormat.MaxSizeEstimate, value);
+                SetAttribute(new LinkAttribute(LinkFormat.MaxSizeEstimate, value));
             }
         }
 
@@ -308,12 +231,14 @@ namespace CoAP.EndPoint
         {
             get
             {
-                Object val = GetAttributeValue(LinkFormat.Observable);
-                return val is Boolean ? (Boolean)val : false;
+                return GetAttributes(LinkFormat.Observable).Count > 0;
             }
             set
             {
-                SetAttributeValue(LinkFormat.Observable, value);
+                if (value)
+                    SetAttribute(new LinkAttribute(LinkFormat.Observable, value));
+                else
+                    ClearAttribute(LinkFormat.Observable);
             }
         }
 
@@ -322,7 +247,7 @@ namespace CoAP.EndPoint
         /// </summary>
         public Int32 TotalSubResourceCount
         {
-            get { return this._totalSubResourceCount; }
+            get { return _totalSubResourceCount; }
         }
 
         /// <summary>
@@ -330,76 +255,255 @@ namespace CoAP.EndPoint
         /// </summary>
         public Int32 SubResourceCount
         {
-            get { return null == this._subResources ? 0 : this._subResources.Count; }
+            get { return null == _subResources ? 0 : _subResources.Count; }
+        }
+
+        /// <summary>
+        /// Removes this resource from its parent.
+        /// </summary>
+        public void Remove()
+        {
+            if (_parent != null)
+                _parent.RemoveSubResource(this);
+        }
+
+        /// <summary>
+        /// Gets sub-resources of this resource.
+        /// </summary>
+        /// <returns></returns>
+        public Resource[] GetSubResources()
+        {
+            if (null == _subResources)
+                return new Resource[0];
+
+            Resource[] resources = new Resource[_subResources.Count];
+            this._subResources.Values.CopyTo(resources, 0);
+            return resources;
+        }
+
+        public Resource GetResource(String path)
+        {
+            return GetResource(path, false);
+        }
+
+        public Resource GetResource(String path, Boolean last)
+        {
+            if (path == null)
+                return this;
+
+            // find root for absolute path
+            if (path.StartsWith("/"))
+            {
+                Resource root = this;
+                while (root._parent != null)
+                    root = root._parent;
+                path = path.Equals("/") ? null : path.Substring(1);
+                return root.GetResource(path);
+            }
+
+            Int32 pos = path.IndexOf('/');
+            String head = null, tail = null;
+
+            // note: "some/resource/" addresses a resource "" under "resource"
+            if (pos == -1)
+            {
+                head = path;
+            }
+            else
+            {
+                head = path.Substring(0, pos);
+                tail = path.Substring(pos + 1);
+            }
+
+            if (SubResources.ContainsKey(head))
+                return SubResources[head].GetResource(tail, last);
+            else if (last)
+                return this;
+            else
+                return null;
+        }
+
+        private SortedDictionary<String, Resource> SubResources
+        {
+            get
+            {
+                if (_subResources == null)
+                    _subResources = new SortedDictionary<String, Resource>();
+                return _subResources;
+            }
+        }
+
+        /// <summary>
+        /// Adds a resource as a sub-resource of this resource.
+        /// </summary>
+        /// <param name="resource">The sub-resource to be added</param>
+        public void AddSubResource(Resource resource)
+        {
+            if (null == resource)
+                throw new ArgumentNullException("resource");
+
+            // no absolute paths allowed, use root directly
+            while (resource.Name.StartsWith("/"))
+            {
+                if (_parent != null)
+                {
+                    if (log.IsWarnEnabled)
+                        log.Warn("Adding absolute path only allowed for root: made relative " + resource.Name);
+                }
+                resource.Name = resource.Name.Substring(1);
+            }
+
+            // get last existing resource along path
+            Resource baseRes = GetResource(resource.Name, true);
+
+            String path = this.Path;
+            if (!path.EndsWith("/"))
+                path += "/";
+            path += resource.Name;
+
+            path = path.Substring(baseRes.Path.Length);
+            if (path.StartsWith("/"))
+                path = path.Substring(1);
+
+            if (path.Length == 0)
+            {
+                // resource replaces base
+                if (log.IsInfoEnabled)
+                    log.Info("Replacing resource " + baseRes.Path);
+                foreach (Resource sub in baseRes.GetSubResources())
+                {
+                    sub._parent = resource;
+                    resource.SubResources[sub.Name] = sub;
+                }
+                resource._parent = baseRes._parent;
+                baseRes._parent.SubResources[baseRes.Name] = resource;
+            }
+            else
+            {
+                // resource is added to base
+                String[] segments = path.Split('/');
+
+                resource.Name = segments[segments.Length - 1];
+
+                // insert middle segments
+                Resource sub = null;
+                for (Int32 i = 0; i < segments.Length - 1; i++)
+                {
+                    sub = baseRes.CreateInstance(segments[i]);
+                    sub.Hidden = true;
+                    baseRes.AddSubResource(sub);
+                    baseRes = sub;
+                }
+
+                resource._parent = baseRes;
+                baseRes.SubResources[resource.Name] = resource;
+            }
+
+            // update number of sub-resources in the tree
+            Resource p = resource._parent;
+            while (p != null)
+            {
+                p._totalSubResourceCount++;
+                p = p._parent;
+            }
+        }
+
+        /// <summary>
+        /// Removes a sub-resource from this resource by its identifier.
+        /// </summary>
+        /// <param name="resourcePath">the path of the sub-resource to remove</param>
+        public void RemoveSubResource(String resourcePath)
+        {
+            RemoveSubResource(GetResource(resourcePath));
+        }
+
+        /// <summary>
+        /// Removes a sub-resource from this resource.
+        /// </summary>
+        /// <param name="resource">the sub-resource to remove</param>
+        public void RemoveSubResource(Resource resource)
+        {
+            if (null == resource)
+                return;
+
+            if (SubResources.Remove(resource._resourceIdentifier))
+            {
+                Resource p = resource._parent;
+                while (p != null)
+                {
+                    p._totalSubResourceCount--;
+                    p = p._parent;
+                }
+
+                resource._parent = null;
+            }
+        }
+
+        public Int32 CompareTo(Resource other)
+        {
+            return Path.CompareTo(other.Path);
+        }
+
+        public override String ToString()
+        {
+            StringBuilder sb = new StringBuilder();
+            Print(sb, 0);
+            return sb.ToString();
+        }
+
+        private void Print(StringBuilder sb, Int32 indent)
+        {
+            for (Int32 i = 0; i < indent; i++)
+                sb.Append(" ");
+            sb.AppendFormat("+[{0}]",_resourceIdentifier);
+            
+            String title = Title;
+            if (title != null)
+                sb.AppendFormat(" {0}", title);
+            sb.AppendLine();
+
+            foreach (LinkAttribute attr in Attributes)
+            {
+                if (attr.Name.Equals(LinkFormat.Title))
+                    continue;
+                for (Int32 i = 0; i < indent + 3; i++)
+                    sb.Append(" ");
+                sb.AppendFormat("- ");
+                attr.Serialize(sb);
+                sb.AppendLine();
+            }
+
+            if (_subResources != null)
+                foreach (Resource sub in _subResources.Values)
+                {
+                    sub.Print(sb, indent + 2);
+                }
         }
 
         /// <summary>
         /// Creates a resouce instance with proper subtype.
         /// </summary>
         /// <returns></returns>
-        protected abstract Resource CreateInstance();
+        protected abstract Resource CreateInstance(String name);
 
-        private void ReadAttribute(String attrString)
+        private static IList<String> GetStringValues(IEnumerable<LinkAttribute> attributes)
         {
-            this._attributes.Clear();
-            String[] entries = attrString.Split(new String[] { LinkFormat.Separator }, StringSplitOptions.RemoveEmptyEntries);
-            foreach (String s in entries)
+            List<String> list = new List<String>();
+            foreach (LinkAttribute attr in attributes)
             {
-                String entry = s.Trim();
-                LinkAttribute attr = LinkAttribute.Parse(entry);
-                if (attr != null)
-                    this._attributes[attr.Name] = attr;
+                list.Add(attr.StringValue);
             }
+            return list;
         }
 
-        private Resource SubResource(String identifier)
+        private static IList<Int32> GetIntValues(IEnumerable<LinkAttribute> attributes)
         {
-            return SubResource(identifier, false);
-        }
-
-        private Resource SubResource(String identifier, Boolean create)
-        {
-            Int32 pos = identifier.IndexOf('/');
-            String head, tail;
-
-            if (pos >= 0 && pos < identifier.Length - 1)
+            List<Int32> list = new List<Int32>();
+            foreach (LinkAttribute attr in attributes)
             {
-                head = identifier.Substring(0, pos);
-                tail = identifier.Substring(pos + 1);
+                list.Add(attr.IntValue);
             }
-            else
-            {
-                head = identifier;
-                tail = null;
-            }
-
-            Resource resource = null;
-            if (null != this._subResources && this._subResources.ContainsKey(head))
-                resource = this._subResources[head];
-
-            if (resource == null && create)
-            {
-                resource = CreateInstance();
-                resource._resourceIdentifier = head;
-                AddSubResource(resource);
-            }
-
-            if (resource != null && tail != null)
-                return resource.SubResource(tail, create);
-            else
-                return resource;
-        }
-
-        private String GetIdentifier(Boolean absolute)
-        {
-            if (absolute && null != this._parent)
-            {
-                return this._parent.GetIdentifier(absolute) + "/" + this._resourceIdentifier;
-            }
-            else
-            {
-                return this._resourceIdentifier;
-            }
+            return list;
         }
     }
 }

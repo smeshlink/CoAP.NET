@@ -69,6 +69,8 @@
     <Compile Include="Util\DatagramReader.cs" />
     <Compile Include="Util\DatagramWriter.cs" />
     <Compile Include="Util\HashMap.cs" />
+    <Compile Include="Util\HashSet.cs" />
+    <Compile Include="Util\Scanner.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="README" />

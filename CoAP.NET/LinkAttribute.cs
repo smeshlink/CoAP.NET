@@ -1,5 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
+﻿/*
+ * Copyright (c) 2011-2012, Longxiang He <helongxiang@smeshlink.com>,
+ * SmeshLink Technology Co.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY.
+ * 
+ * This file is part of the CoAP.NET, a CoAP framework in C#.
+ * Please see README for more information.
+ */
+
+using System;
 using System.Text;
 using CoAP.Log;
 
@@ -13,55 +23,6 @@ namespace CoAP
         private static ILogger log = LogManager.GetLogger(typeof(LinkAttribute));
         private String _name;
         private Object _value;
-
-        /// <summary>
-        /// Parses an attribute from a string.
-        /// </summary>
-        /// <param name="str">The string representation of an attribute</param>
-        /// <returns></returns>
-        public static LinkAttribute Parse(String str)
-        {
-            if (String.IsNullOrEmpty(str))
-                return null;
-
-            String[] tmp = str.Split('=');
-            String name = tmp.Length > 0 ? tmp[0].Trim() : null;
-            String value = tmp.Length > 1 ? tmp[1].Trim() : null;
-
-            LinkAttribute attr = null;
-            if (!String.IsNullOrEmpty(name))
-            {
-                Int32 val;
-                attr = new LinkAttribute();
-                attr._name = name;
-                if (null == value)
-                {
-                    // flag attribute
-                    attr._value = true;
-                }
-                else if (value.StartsWith("\"") && value.EndsWith("\""))
-                {
-                    // trim " "
-                    attr._value = value.Substring(1, value.Length - 2);
-                }
-                else if (Int32.TryParse(value, out val))
-                {
-                    attr._value = val;
-                }
-                else
-                {
-                    attr._value = value;
-                }
-            }
-
-            return attr;
-        }
-
-        /// <summary>
-        /// Initialize an attribute.
-        /// </summary>
-        public LinkAttribute()
-        { }
 
         /// <summary>
         /// Initialize an attribute.

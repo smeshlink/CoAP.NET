@@ -15,9 +15,17 @@ namespace CoAP.EndPoint
 {
     public class LocalResource : Resource
     {
-        protected override Resource CreateInstance()
+        public LocalResource(String resourceIdentifier)
+            : base(resourceIdentifier)
+        { }
+
+        /// <summary>
+        /// Creates a resouce instance with proper subtype.
+        /// </summary>
+        /// <returns></returns>
+        protected override Resource CreateInstance(String name)
         {
-            throw new NotImplementedException();
+            return new LocalResource(name);
         }
     }
 }

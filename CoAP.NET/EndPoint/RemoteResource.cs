@@ -15,22 +15,22 @@ namespace CoAP.EndPoint
 {
     public class RemoteResource : Resource
     {
+        public RemoteResource(String resourceIdentifier)
+            : base(resourceIdentifier)
+        { }
+
         public static RemoteResource NewRoot(String linkFormat)
         {
-            RemoteResource resource = new RemoteResource();
-            resource.Type = "root";
-            resource.Title = "Root";
-            resource.AddLinkFormat(linkFormat);
-            return resource;
+            return LinkFormat.Deserialize(linkFormat);
         }
 
         /// <summary>
         /// Creates a resouce instance with proper subtype.
         /// </summary>
         /// <returns></returns>
-        protected override Resource CreateInstance()
+        protected override Resource CreateInstance(String name)
         {
-            return new RemoteResource();
+            return new RemoteResource(name);
         }
     }
 }
