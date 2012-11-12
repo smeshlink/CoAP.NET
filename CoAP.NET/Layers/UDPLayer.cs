@@ -99,10 +99,11 @@ namespace CoAP.Layers
             {
                 count = this._socket.EndReceiveFrom(ar, ref remoteEP);
             }
-            catch (SocketException ex)
+            catch (SocketException)
             {
-                if (log.IsFatalEnabled)
-                    log.Fatal("UDPLayer - Failed receive datagram", ex);
+                // ignore it
+                //if (log.IsFatalEnabled)
+                //    log.Fatal("UDPLayer - Failed receive datagram", ex);
             }
             if (count > 0)
             {

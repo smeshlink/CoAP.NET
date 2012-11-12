@@ -269,7 +269,8 @@ namespace CoAP.Layers
                 ctx.msg.Retransmissioned = ++ctx.numRetransmit;
 
                 if (log.IsInfoEnabled)
-                    log.Info(String.Format("MessageLayer - Retransmitting {0} ({1} of {2})", ctx.msg.Key, ctx.numRetransmit, CoapConstants.MaxRetransmit));
+                    log.Info(String.Format("MessageLayer - Retransmitting {0} ({1} of {2}), timeout {3}ms",
+                        ctx.msg.Key, ctx.numRetransmit, CoapConstants.MaxRetransmit, ctx.timeout * 2));
 
                 try
                 {
@@ -304,7 +305,7 @@ namespace CoAP.Layers
             public Message msg;
             public Int32 numRetransmit;
             public Action<TransmissionContext> timeoutHandler;
-            private Int32 timeout;
+            public Int32 timeout;
             private Timer timer;
 
             public TransmissionContext()
