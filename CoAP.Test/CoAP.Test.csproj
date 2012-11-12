@@ -46,6 +46,7 @@
     <Compile Include="OptionTest.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ResourceTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CoAP.NET\CoAP.NET.csproj">

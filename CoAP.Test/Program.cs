@@ -9,7 +9,8 @@ namespace CoAP.Test
         static Type[] testTypes = new Type[] { 
             typeof(DatagramReadWriteTest),
             typeof(MessageTest),
-            typeof(OptionTest)
+            typeof(OptionTest),
+            typeof(ResourceTest)
         };
 
         static void Main()
