@@ -20,21 +20,21 @@ namespace CoAP
         /// Handles GET request.
         /// </summary>
         /// <param name="request"></param>
-        void PerformGET(GETRequest request);
+        void DoGet(Request request);
         /// <summary>
         /// Handles POST request.
         /// </summary>
         /// <param name="request"></param>
-        void PerformPOST(POSTRequest request);
+        void DoPost(Request request);
         /// <summary>
         /// Handles PUT request.
         /// </summary>
         /// <param name="request"></param>
-        void PerformPUT(PUTRequest request);
+        void DoPut(Request request);
         /// <summary>
         /// Handles DELETE request.
         /// </summary>
         /// <param name="request"></param>
-        void PerformDELETE(DELETERequest request);
+        void DoDelete(Request request);
     }
 }

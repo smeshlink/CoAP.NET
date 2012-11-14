@@ -13,10 +13,14 @@ using System;
 
 namespace CoAP.EndPoint
 {
-    public class LocalResource : Resource
+    public class LocalResource : Resource, IRequestHandler
     {
         public LocalResource(String resourceIdentifier)
             : base(resourceIdentifier)
+        { }
+
+        public LocalResource(String resourceIdentifier, Boolean hidden)
+            : base(resourceIdentifier, hidden)
         { }
 
         /// <summary>
@@ -26,6 +30,31 @@ namespace CoAP.EndPoint
         protected override Resource CreateInstance(String name)
         {
             return new LocalResource(name);
+        }
+
+        public virtual void DoGet(Request request)
+        {
+            request.Respond(Code.MethodNotAllowed);
+        }
+
+        public virtual void DoPost(Request request)
+        {
+            request.Respond(Code.MethodNotAllowed);
+        }
+
+        public virtual void DoPut(Request request)
+        {
+            request.Respond(Code.MethodNotAllowed);
+        }
+
+        public virtual void DoDelete(Request request)
+        {
+            request.Respond(Code.MethodNotAllowed);
+        }
+
+        protected void Changed()
+        {
+            ObservingManager.Instance.NotifyObservers(this);
         }
     }
 }
