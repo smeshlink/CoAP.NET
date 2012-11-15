@@ -21,6 +21,10 @@ namespace CoAP
     {
         public const Int32 Empty = 0;
 
+        public const Int32 SuccessCode = 2;
+        public const Int32 ClientErrorCode = 4;
+        public const Int32 ServerErrorCode = 5;
+
         #region Method Codes
 
         /// <summary>
@@ -134,6 +138,11 @@ namespace CoAP
         public const Int32 ProxyingNotSupported = 165;
 
         #endregion
+
+        public static Int32 GetResponseClass(Int32 code)
+        {
+            return (code >> 5) & 0x7;
+        }
 
         /// <summary>
         /// Checks whether a code indicates a request

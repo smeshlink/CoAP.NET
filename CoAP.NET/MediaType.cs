@@ -129,5 +129,23 @@ namespace CoAP
                 return "unknown";
             }
         }
+
+        public static Int32 NegotiationContent(Int32 defaultContentType, IEnumerable<Int32> supported, IEnumerable<Option> accepted)
+        {
+            if (accepted == null)
+                return defaultContentType;
+
+            Boolean hasAccept = false;
+            foreach (Option accept in accepted)
+            {
+                foreach (Int32 ct in supported)
+                {
+                    if (ct == accept.IntValue)
+                        return ct;
+                }
+                hasAccept = true;
+            }
+            return hasAccept ? Undefined : defaultContentType;
+        }
     }
 }

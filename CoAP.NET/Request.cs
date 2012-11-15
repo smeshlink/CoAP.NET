@@ -36,6 +36,7 @@ namespace CoAP
         private Boolean _isObserving;
         private Response _currentResponse;
         private LocalResource _resource;
+        private readonly DateTime _startTime = DateTime.Now;
 
         /// <summary>
         /// Fired when a response arrives.
@@ -91,6 +92,11 @@ namespace CoAP
         {
             get { return _currentResponse; }
             set { _currentResponse = value; }
+        }
+
+        public DateTime StartTime
+        {
+            get { return _startTime; }
         }
 
         public override void Accept()
@@ -163,6 +169,14 @@ namespace CoAP
             Response response = new Response(code);
             if (null != message)
                 response.SetPayload(message);
+            Respond(response);
+        }
+
+        public void Respond(Int32 code, String message, Int32 mediaType)
+        {
+            Response response = new Response(code);
+            if (null != message)
+                response.SetPayload(message, mediaType);
             Respond(response);
         }
 
@@ -253,7 +267,22 @@ namespace CoAP
             {
                 if (!_isObserving)
                 {
-                    // TODO check if resource is to be observed
+                    // check if resource is to be observed
+                    if (_resource != null && _resource.Observable
+                        && Code == CoAP.Code.GET
+                        && CoAP.Code.GetResponseClass(Response.Code) == CoAP.Code.SuccessCode)
+                    {
+                        if (HasOption(OptionType.Observe))
+                        {
+                            // establish new observation relationship
+                            ObservingManager.Instance.AddObserver(this, _resource);
+                        }
+                        else if (ObservingManager.Instance.IsObserved(PeerAddress.ToString(), _resource))
+                        {
+                            // terminate observation relationship on that resource
+                            ObservingManager.Instance.RemoveObserver(PeerAddress.ToString(), _resource);
+                        }
+                    }
 
                     if (PeerAddress == null)
                         // handle locally
@@ -374,7 +403,7 @@ namespace CoAP
 
         protected override void DoDispatch(IRequestHandler handler)
         {
-            handler.PerformGET(this);
+            handler.DoGet(this);
         }
     }
 
@@ -389,7 +418,7 @@ namespace CoAP
 
         protected override void DoDispatch(IRequestHandler handler)
         {
-            handler.PerformPOST(this);
+            handler.DoPost(this);
         }
     }
 
@@ -404,7 +433,7 @@ namespace CoAP
 
         protected override void DoDispatch(IRequestHandler handler)
         {
-            handler.PerformPUT(this);
+            handler.DoPut(this);
         }
     }
 
@@ -419,7 +448,7 @@ namespace CoAP
 
         protected override void DoDispatch(IRequestHandler handler)
         {
-            handler.PerformDELETE(this);
+            handler.DoDelete(this);
         }
     }
 

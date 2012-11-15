@@ -57,5 +57,9 @@ namespace CoAP
         public const String DefaultWellKnownURI = "/.well-known/core";
         public const Int32 TokenLength = 8;
         public const Int32 DefaultMaxAge = 60;
+        /// <summary>
+        /// The number of notifications until a CON notification will be used.
+        /// </summary>
+        public const Int32 ObservingRefreshInterval = 10;
     }
 }

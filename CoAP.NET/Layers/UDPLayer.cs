@@ -157,5 +157,10 @@ namespace CoAP.Layers
                     log.Debug(String.Format("UDPLayer - Dropped empty datagram from: {0}", remoteEP));
             }
         }
+
+        public Int32 Port
+        {
+            get { return ((IPEndPoint)_socket.LocalEndPoint).Port; }
+        }
     }
 }

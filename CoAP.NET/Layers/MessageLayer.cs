@@ -214,7 +214,8 @@ namespace CoAP.Layers
 
         private void HandleIncomingReset(Message msg)
         { 
-            // TODO remove possible observers
+            // remove possible observers
+            ObservingManager.Instance.RemoveObserver(msg.PeerAddress.ToString(), msg.ID);
         }
 
         private TransmissionContext AddTransmission(Message msg)
@@ -291,7 +292,8 @@ namespace CoAP.Layers
                 // cancel transmission
                 RemoveTransmission(ctx);
                 
-                // TODO cancel observations
+                // cancel observations
+                ObservingManager.Instance.RemoveObserver(ctx.msg.PeerAddress.ToString());
 
                 if (log.IsDebugEnabled)
                     log.Debug(String.Format("MessageLayer - Transmission of {0} cancelled", ctx.msg.Key));
