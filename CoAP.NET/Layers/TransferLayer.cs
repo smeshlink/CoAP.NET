@@ -190,8 +190,7 @@ namespace CoAP.Layers
                     else
                     {
                         if (msg is Request)
-                            // update MID
-                            transfer.cache.ID = msg.ID;
+                            UpdateCache(transfer, msg);
 
                         // use cached representation
                         Message next = GetBlock(transfer.cache, blockOut.NUM, blockOut.SZX);
@@ -267,6 +266,13 @@ namespace CoAP.Layers
             DeliverMessage(msg);
         }
 
+        private void UpdateCache(TransferContext transfer, Message msg)
+        {
+            transfer.cache.ID = msg.ID;
+            transfer.cache.SetOptions(msg.GetOptions(OptionType.Block1));
+            transfer.cache.SetOptions(msg.GetOptions(OptionType.Block2));
+        }
+
         private void HandleIncomingPayload(Message msg, BlockOption blockOpt)
         {
             TransferContext transfer = _incoming[msg.SequenceKey];
@@ -278,7 +284,7 @@ namespace CoAP.Layers
                 {
                     // append received payload to first response and update message ID
                     transfer.cache.AppendPayload(msg.Payload);
-                    transfer.cache.ID = msg.ID;
+                    UpdateCache(transfer, msg);
                     if (log.IsDebugEnabled)
                         log.Debug(String.Format("TransferLayer - Received next block: {0} | {1}", msg.SequenceKey, blockOpt));
                 }

@@ -433,6 +433,8 @@ namespace CoAP
         /// <param name="options">the options to set</param>
         public void SetOptions(IEnumerable<Option> options)
         {
+            if (options == null)
+                return;
             foreach (Option opt in options)
             {
                 RemoveOptions(opt.Type);
@@ -574,9 +576,9 @@ namespace CoAP
                         IEnumerable<Option> uriQuery = Option.Split(OptionType.UriQuery, query, "&");
                         SetOptions(uriQuery);
                     }
+                    PeerAddress = new EndpointAddress(value);
                 }
                 this._uri = value;
-                PeerAddress = new EndpointAddress(value);
             }
         }
 
