@@ -85,7 +85,10 @@ namespace CoAP.Layers
             if (log.IsDebugEnabled)
                 log.Debug("MatchingLayer - Storing open request: " + pair.key);
 
-            _pairs[pair.key] = pair;
+            // FIXME: buggy fix for block transfer in obvervation, since the first request needs to be kept.
+            if (!_pairs.ContainsKey(pair.key))// || !request.IsObserving)
+                _pairs[pair.key] = pair;
+
             return pair;
         }
 
