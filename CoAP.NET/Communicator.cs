@@ -19,6 +19,8 @@ namespace CoAP
     /// </summary>
     public class Communicator : UpperLayer
     {
+        private static Int32 port = 0;
+
         protected TokenLayer _tokenLayer;
         protected TransferLayer _transferLayer;
         protected MatchingLayer _matchingLayer;
@@ -46,11 +48,22 @@ namespace CoAP
             }
         }
 
+        public static Int32 ListeningPort
+        {
+            get { return port; }
+            set { port = value; }
+        }
+
+        public Int32 Port
+        {
+            get { return _udpLayer == null ? 0 : _udpLayer.Port; }
+        }
+
         /// <summary>
         /// Initialize a communicator.
         /// </summary>
         private Communicator()
-            : this(0)
+            : this(ListeningPort)
         { }
 
         /// <summary>

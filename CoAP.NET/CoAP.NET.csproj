@@ -40,6 +40,9 @@
     <Compile Include="Code.cs" />
     <Compile Include="Communicator.cs" />
     <Compile Include="EndpointAddress.cs" />
+    <Compile Include="EndPoint\DiscoveryResource.cs" />
+    <Compile Include="EndPoint\EndPoint.cs" />
+    <Compile Include="EndPoint\LocalEndPoint.cs" />
     <Compile Include="EndPoint\LocalResource.cs" />
     <Compile Include="EndPoint\RemoteResource.cs" />
     <Compile Include="EndPoint\Resource.cs" />
@@ -60,6 +63,7 @@
     <Compile Include="MediaType.cs" />
     <Compile Include="Message.cs" />
     <Compile Include="MessageType.cs" />
+    <Compile Include="ObservingManager.cs" />
     <Compile Include="Option.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Request.cs" />
