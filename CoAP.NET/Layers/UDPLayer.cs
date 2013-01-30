@@ -22,10 +22,11 @@ namespace CoAP.Layers
     public class UDPLayer : Layer
     {
         private static ILogger log = LogManager.GetLogger(typeof(UDPLayer));
-        
-        private Socket _socket;
+
+        private Int32 _port;
+        private UDPSocket _socketV6;
+        private UDPSocket _socketV4;
         private AsyncCallback _receiveCallback;
-        private Byte[] _buffer = new Byte[CoapConstants.ReceiveBufferSize + 1];  // +1 to check for > ReceiveBufferSize
 
         /// <summary>
         /// Initializes a UDP layer.
@@ -40,21 +41,19 @@ namespace CoAP.Layers
         /// <param name="port">The port which this UDP layer will bind to</param>
         public UDPLayer(Int32 port)
         {
-            IPEndPoint localEP = new IPEndPoint(IPAddress.IPv6Any, port);
-            this._socket = new Socket(AddressFamily.InterNetworkV6, SocketType.Dgram, ProtocolType.Udp);
-            try
-            {
-                // Enable IPv4-mapped to accept both ipv6 and ipv4 connections in a same socket.
-                this._socket.SetSocketOption(SocketOptionLevel.IPv6, (SocketOptionName)27, 0);
-            }
-            catch (Exception ex)
-            { 
-                // ignore it
-                if (log.IsWarnEnabled)
-                    log.Warn("UDPLayer - " + ex.Message);
-            }
-            this._receiveCallback = new AsyncCallback(SocketReceiveCallback);
-            this._socket.Bind(localEP);
+            _port = port;
+
+            _socketV6 = new UDPSocket();
+            _socketV6.Socket = new Socket(AddressFamily.InterNetworkV6, SocketType.Dgram, ProtocolType.Udp);
+            _socketV6.Socket.Bind(new IPEndPoint(IPAddress.IPv6Any, port));
+            _socketV6.Buffer = new Byte[CoapConstants.ReceiveBufferSize + 1];  // +1 to check for > ReceiveBufferSize
+
+            _socketV4 = new UDPSocket();
+            _socketV4.Socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+            _socketV4.Socket.Bind(new IPEndPoint(IPAddress.Any, port));
+            _socketV4.Buffer = new Byte[CoapConstants.ReceiveBufferSize + 1];
+
+            _receiveCallback = new AsyncCallback(SocketReceiveCallback);
             BeginReceive();
         }
 
@@ -72,7 +71,15 @@ namespace CoAP.Layers
 
             IPEndPoint remoteEP = new IPEndPoint(msg.PeerAddress.Address, msg.PeerAddress.Port);
             Byte[] data = msg.Encode();
-            this._socket.SendTo(data, remoteEP);
+
+            if (remoteEP.AddressFamily == AddressFamily.InterNetwork)
+            {
+                _socketV4.Socket.SendTo(data, remoteEP);
+            }
+            else
+            {
+                _socketV6.Socket.SendTo(data, remoteEP);
+            }
         }
 
         /// <summary>
@@ -87,17 +94,23 @@ namespace CoAP.Layers
 
         private void BeginReceive()
         {
-            System.Net.EndPoint remote = new IPEndPoint(System.Net.IPAddress.IPv6Any, 0);
-            this._socket.BeginReceiveFrom(this._buffer, 0, this._buffer.Length, SocketFlags.None, ref remote, this._receiveCallback, null);
+            System.Net.EndPoint remoteV6 = new IPEndPoint(IPAddress.IPv6Any, 0);
+            System.Net.EndPoint remoteV4 = new IPEndPoint(IPAddress.Any, 0);
+            _socketV6.Socket.BeginReceiveFrom(_socketV6.Buffer, 0, _socketV6.Buffer.Length, SocketFlags.None,
+                ref remoteV6, _receiveCallback, _socketV6);
+            _socketV4.Socket.BeginReceiveFrom(_socketV4.Buffer, 0, _socketV4.Buffer.Length, SocketFlags.None,
+                ref remoteV4, _receiveCallback, _socketV4);
         }
 
         private void SocketReceiveCallback(IAsyncResult ar)
         {
-            System.Net.EndPoint remoteEP = new IPEndPoint(System.Net.IPAddress.IPv6Any, 0);
+            UDPSocket socket = (UDPSocket)ar.AsyncState;
+            System.Net.EndPoint remoteEP = new IPEndPoint(
+                socket.Socket.AddressFamily == AddressFamily.InterNetwork ? IPAddress.Any : IPAddress.IPv6Any, 0);
             Int32 count = 0;
             try
             {
-                count = this._socket.EndReceiveFrom(ar, ref remoteEP);
+                count = socket.Socket.EndReceiveFrom(ar, ref remoteEP);
             }
             catch (SocketException)
             {
@@ -108,7 +121,7 @@ namespace CoAP.Layers
             if (count > 0)
             {
                 Byte[] bytes = new Byte[count];
-                Buffer.BlockCopy(this._buffer, 0, bytes, 0, count);
+                Buffer.BlockCopy(socket.Buffer, 0, bytes, 0, count);
                 Handle(bytes, remoteEP);
             }
             BeginReceive();
@@ -160,7 +173,13 @@ namespace CoAP.Layers
 
         public Int32 Port
         {
-            get { return ((IPEndPoint)_socket.LocalEndPoint).Port; }
+            get { return _port == 0 ? ((IPEndPoint)_socketV6.Socket.LocalEndPoint).Port : _port; }
+        }
+
+        class UDPSocket
+        {
+            public Socket Socket;
+            public Byte[] Buffer;
         }
     }
 }
