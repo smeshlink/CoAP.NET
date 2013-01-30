@@ -10,19 +10,29 @@
  */
 
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace CoAP.Log
 {
-    static class LogManager
+    public static class LogManager
     {
-        public static ILogger GetLogger(Type type)
+        public static LogLevel Level { get; set; }
+
+        public enum LogLevel
+        { 
+            All,
+            Debug,
+            Info,
+            Warning,
+            Error,
+            Fatal
+        }
+
+        internal static ILogger GetLogger(Type type)
         {
             return GetLogger(type.FullName);
         }
 
-        public static ILogger GetLogger(String name)
+        internal static ILogger GetLogger(String name)
         {
             return new ConsoleLogger();
         }
@@ -40,7 +50,7 @@ namespace CoAP.Log
 
             public Boolean IsDebugEnabled
             {
-                get { return true; }
+                get { return LogLevel.Debug >= Level; }
             }
 
             public Boolean IsInfoEnabled
@@ -58,12 +68,12 @@ namespace CoAP.Log
                 get { return true; }
             }
 
-            public bool IsFatalEnabled
+            public Boolean IsFatalEnabled
             {
                 get { return true; }
             }
 
-            public bool IsWarnEnabled
+            public Boolean IsWarnEnabled
             {
                 get { return true; }
             }
