@@ -45,13 +45,24 @@ namespace CoAP.Layers
 
             _socketV6 = new UDPSocket();
             _socketV6.Socket = new Socket(AddressFamily.InterNetworkV6, SocketType.Dgram, ProtocolType.Udp);
-            _socketV6.Socket.Bind(new IPEndPoint(IPAddress.IPv6Any, port));
             _socketV6.Buffer = new Byte[CoapConstants.ReceiveBufferSize + 1];  // +1 to check for > ReceiveBufferSize
 
-            _socketV4 = new UDPSocket();
-            _socketV4.Socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-            _socketV4.Socket.Bind(new IPEndPoint(IPAddress.Any, port));
-            _socketV4.Buffer = new Byte[CoapConstants.ReceiveBufferSize + 1];
+            try
+            {
+                // Enable IPv4-mapped IPv6 addresses to accept both IPv6 and IPv4 connections in a same socket.
+                _socketV6.Socket.SetSocketOption(SocketOptionLevel.IPv6, (SocketOptionName)27, 0);
+            }
+            catch (Exception)
+            {
+                // IPv4-mapped address seems not to be supported, set up a separated socket of IPv4.
+                _socketV4 = new UDPSocket();
+                _socketV4.Socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+                _socketV4.Buffer = new Byte[CoapConstants.ReceiveBufferSize + 1];
+            }
+
+            _socketV6.Socket.Bind(new IPEndPoint(IPAddress.IPv6Any, port));
+            if (_socketV4 != null)
+                _socketV4.Socket.Bind(new IPEndPoint(IPAddress.Any, port));
 
             _receiveCallback = new AsyncCallback(SocketReceiveCallback);
             BeginReceive();
@@ -74,7 +85,20 @@ namespace CoAP.Layers
 
             if (remoteEP.AddressFamily == AddressFamily.InterNetwork)
             {
-                _socketV4.Socket.SendTo(data, remoteEP);
+                if (_socketV4 == null)
+                {
+                    // build IPv4 mapped address, i.e. ::ffff:127.0.0.1
+                    Byte[] addrBytes = new Byte[16];
+                    addrBytes[10] = addrBytes[11] = 0xFF;
+                    Array.Copy(remoteEP.Address.GetAddressBytes(), 0, addrBytes, 12, 4);
+                    IPAddress addr = new IPAddress(addrBytes);
+                    _socketV6.Socket.SendTo(data, new IPEndPoint(addr, remoteEP.Port));
+                }
+                else
+                {
+                    // use the separated socket of IPv4 to deal with IPv4 conversions.
+                    _socketV4.Socket.SendTo(data, remoteEP);
+                }
             }
             else
             {
@@ -95,11 +119,14 @@ namespace CoAP.Layers
         private void BeginReceive()
         {
             System.Net.EndPoint remoteV6 = new IPEndPoint(IPAddress.IPv6Any, 0);
-            System.Net.EndPoint remoteV4 = new IPEndPoint(IPAddress.Any, 0);
             _socketV6.Socket.BeginReceiveFrom(_socketV6.Buffer, 0, _socketV6.Buffer.Length, SocketFlags.None,
                 ref remoteV6, _receiveCallback, _socketV6);
-            _socketV4.Socket.BeginReceiveFrom(_socketV4.Buffer, 0, _socketV4.Buffer.Length, SocketFlags.None,
-                ref remoteV4, _receiveCallback, _socketV4);
+            if (_socketV4 != null)
+            {
+                System.Net.EndPoint remoteV4 = new IPEndPoint(IPAddress.Any, 0);
+                _socketV4.Socket.BeginReceiveFrom(_socketV4.Buffer, 0, _socketV4.Buffer.Length, SocketFlags.None,
+                    ref remoteV4, _receiveCallback, _socketV4);
+            }
         }
 
         private void SocketReceiveCallback(IAsyncResult ar)
@@ -144,6 +171,20 @@ namespace CoAP.Layers
                     msg.Timestamp = DateTime.Now.Ticks;
                     
                     IPEndPoint ipe = (IPEndPoint)remoteEP;
+                    if (ipe.AddressFamily == AddressFamily.InterNetworkV6)
+                    {
+                        Byte[] addrBytes = ipe.Address.GetAddressBytes();
+                        // if remote is a IPv4 mapped address, restore original address.
+                        if (addrBytes[0] == 0x00 && addrBytes[1] == 0x00 && addrBytes[2] == 0x00
+                            && addrBytes[3] == 0x00 && addrBytes[4] == 0x00 && addrBytes[5] == 0x00
+                            && addrBytes[6] == 0x00 && addrBytes[7] == 0x00 && addrBytes[8] == 0x00
+                            && addrBytes[9] == 0x00 && addrBytes[10] == 0xFF && addrBytes[11] == 0xFF)
+                        {
+                            IPAddress addrV4 = new IPAddress(new Byte[] {
+                                addrBytes[12], addrBytes[13], addrBytes[14], addrBytes[15] });
+                            ipe = new IPEndPoint(addrV4, ipe.Port);
+                        }
+                    }
                     msg.PeerAddress = new EndpointAddress(ipe.Address, ipe.Port);
 
                     if (data.Length > CoapConstants.ReceiveBufferSize)
