@@ -76,6 +76,8 @@ namespace CoAP
             registry.Add(ImageJpeg, new String[] { "image/jpeg", "jpg" });
             registry.Add(ImagePng, new String[] { "image/png", "png" });
             registry.Add(ImageTiff, new String[] { "image/tiff", "tif" });
+            registry.Add(AudioRaw, new String[] { "audio/raw", "raw" });
+            registry.Add(VideoRaw, new String[] { "video/raw", "raw" });
 
             registry.Add(ApplicationLinkFormat, new String[] { "application/link-format", "wlnk" });
             registry.Add(ApplicationXml, new String[] { "application/xml", "xml" });

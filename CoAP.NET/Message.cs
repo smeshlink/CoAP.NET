@@ -121,6 +121,8 @@ namespace CoAP
             Message ack = new Message(MessageType.ACK, CoAP.Code.Empty);
             ack.PeerAddress = this.PeerAddress;
             ack.ID = this.ID;
+            // echo token
+            ack.SetOption(GetFirstOption(OptionType.Token));
             return ack;
         }
 
@@ -528,8 +530,8 @@ namespace CoAP
         /// </summary>
         public Boolean RequiresToken
         {
-            get { return this._requiresToken; }
-            set { this._requiresToken = value; }
+            get { return _requiresToken && Code != CoAP.Code.Empty; }
+            set { _requiresToken = value; }
         }
 
         public Boolean RequiresBlockwise
@@ -559,23 +561,8 @@ namespace CoAP
                 {
                     // TODO Uri-Host option
 
-                    // Uri-Path option
-                    String path = value.AbsolutePath;
-                    if (!String.IsNullOrEmpty(path))
-                    {
-                        IEnumerable<Option> uriPaths = Option.Split(OptionType.UriPath, path, "/");
-                        SetOptions(uriPaths);
-                    }
-
-                    // Uri-Query option
-                    String query = value.Query;
-                    if (!String.IsNullOrEmpty(query))
-                    {
-                        if (query.StartsWith("?"))
-                            query = query.Substring(1);
-                        IEnumerable<Option> uriQuery = Option.Split(OptionType.UriQuery, query, "&");
-                        SetOptions(uriQuery);
-                    }
+                    UriPath = value.AbsolutePath;
+                    Query = value.Query;
                     PeerAddress = new EndpointAddress(value);
                 }
                 this._uri = value;
@@ -585,11 +572,18 @@ namespace CoAP
         public String UriPath
         {
             get { return Option.Join(GetOptions(OptionType.UriPath), "/"); }
+            set { SetOptions(Option.Split(OptionType.UriPath, value, "/")); }
         }
 
         public String Query
         {
             get { return Option.Join(GetOptions(OptionType.UriQuery), "&"); }
+            set
+            {
+                if (!String.IsNullOrEmpty(value) && value.StartsWith("?"))
+                    value = value.Substring(1);
+                SetOptions(Option.Split(OptionType.UriQuery, value, "&"));
+            }
         }
 
         public Byte[] Token
@@ -652,6 +646,22 @@ namespace CoAP
             set
             {
                 SetOptions(Option.Split(OptionType.LocationPath, value, "/"));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the max-age of this CoAP message.
+        /// </summary>
+        public Int32 MaxAge
+        {
+            get
+            {
+                Option opt = GetFirstOption(OptionType.MaxAge);
+                return (null == opt) ? CoapConstants.DefaultMaxAge : opt.IntValue;
+            }
+            set
+            {
+                SetOption(Option.Create(OptionType.MaxAge, value));
             }
         }
 
