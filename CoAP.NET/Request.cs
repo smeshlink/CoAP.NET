@@ -82,6 +82,8 @@ namespace CoAP
             set { _isObserving = value; }
         }
 
+        public Boolean SeparateResponseEnabled { get; set; }
+
         public LocalResource Resource
         {
             get { return _resource; }
@@ -250,15 +252,18 @@ namespace CoAP
         /// <param name="response"></param>
         public void HandleResponse(Response response)
         {
-            if (ResponseQueueEnabled)
+            if (SeparateResponseEnabled || !response.IsEmptyACK)
             {
-                System.Threading.Monitor.Enter(_responseQueue.SyncRoot);
-                _responseQueue.Enqueue(response);
-                System.Threading.Monitor.Pulse(_responseQueue.SyncRoot);
-                System.Threading.Monitor.Exit(_responseQueue.SyncRoot);
-            }
+                if (ResponseQueueEnabled)
+                {
+                    System.Threading.Monitor.Enter(_responseQueue.SyncRoot);
+                    _responseQueue.Enqueue(response);
+                    System.Threading.Monitor.Pulse(_responseQueue.SyncRoot);
+                    System.Threading.Monitor.Exit(_responseQueue.SyncRoot);
+                }
 
-            OnResponse(response);
+                OnResponse(response);
+            }
         }
 
         private void SendResponse()

@@ -40,9 +40,12 @@ namespace CoAP.Layers
                 Response response = (Response)msg;
                 RequestResponsePair pair = GetOpenRequest(msg.SequenceKey);
                 
-			    // check for missing token
+                // check for missing token
                 if (pair == null)
                 {
+                    if (msg.IsEmptyACK)
+                        return;
+
                     if (response.Token.Length == 0)
                     {
                         if (log.IsInfoEnabled)
@@ -68,7 +71,7 @@ namespace CoAP.Layers
                         log.Debug("MatchingLayer - Matched open request: " + response.SequenceKey);
 
                     // TODO: ObservingManager.getInstance().isObserving(msg.exchangeKey());
-                    if (msg.GetFirstOption(OptionType.Observe) == null)
+                    if (!msg.IsEmptyACK && msg.GetFirstOption(OptionType.Observe) == null)
                         RemoveOpenRequest(response.SequenceKey);
                 }
             }

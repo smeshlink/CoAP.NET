@@ -30,7 +30,6 @@ namespace CoAP.Layers
         private static Int32 currentMessageID = (Int32)((new Random()).NextDouble() * 0x10000);
         
         private Boolean _retransmitEnabled = true;
-        private Int32 _messageId;
         private IDictionary<String, TransmissionContext> _transactionTable = new HashMap<String, TransmissionContext>();
         private HashMap<String, Message> _dupCache = new HashMap<String, Message>();
         private HashMap<String, Message> _replyCache = new HashMap<String, Message>();
@@ -170,7 +169,8 @@ namespace CoAP.Layers
                     if (msg.IsEmptyACK)
                     {
                         // transaction is complete, no information for higher layers
-                        return;
+                        // FIXME still pass the response to higher layers
+                        //return;
                     }
                     else if (msg.Type == MessageType.RST)
                     {

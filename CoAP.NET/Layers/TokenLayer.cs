@@ -79,12 +79,15 @@ namespace CoAP.Layers
                 }
                 else if (sequence != null)
                 {
-                    sequence.Cancel();
-
-                    // TODO separate observe registry
-                    if (msg.GetFirstOption(OptionType.Observe) == null)
+                    if (!msg.IsEmptyACK)
                     {
-                        RemoveExchange(msg.SequenceKey);
+                        sequence.Cancel();
+
+                        // TODO separate observe registry
+                        if (msg.GetFirstOption(OptionType.Observe) == null)
+                        {
+                            RemoveExchange(msg.SequenceKey);
+                        }
                     }
 
                     if (log.IsDebugEnabled)
