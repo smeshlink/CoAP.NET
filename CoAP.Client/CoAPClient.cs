@@ -11,7 +11,7 @@ namespace CoAP.Examples
             Uri uri = null;
             String payload = null;
             Boolean loop = false;
-            Boolean byEvent = false;
+            Boolean byEvent = true;
 
             if (args.Length == 0)
                 PrintUsage();
@@ -83,6 +83,7 @@ namespace CoAP.Examples
             request.SetPayload(payload);
             request.Token = TokenManager.Instance.AcquireToken();
             request.ResponseQueueEnabled = true;
+            request.SeparateResponseEnabled = true;
 
             Console.WriteLine(request);
 
@@ -102,7 +103,7 @@ namespace CoAP.Examples
                             Console.WriteLine(response);
                             Console.WriteLine("Time (ms): " + response.RTT);
                         }
-                        if (!loop)
+                        if (!response.IsEmptyACK && !loop)
                             Environment.Exit(0);
                     };
                     request.Execute();
