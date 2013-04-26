@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2011-2012, Longxiang He <helongxiang@smeshlink.com>,
+ * Copyright (c) 2011-2013, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
  * This program is distributed in the hope that it will be useful,
@@ -362,16 +362,16 @@ namespace CoAP
                     return "Accept";
                 case OptionType.IfMatch:
                     return "If-Match";
-                case OptionType.FENCEPOST_DIVISOR:
-                    return "Fencepost-Divisor";
                 case OptionType.Block2:
                     return "Block2";
                 case OptionType.Block1:
                     return "Block1";
+                case OptionType.Size:
+                    return "Size";
                 case OptionType.IfNoneMatch:
                     return "If-None-Match";
                 default:
-                    return String.Format("Unknown option [number {0}]", type);
+                    return String.Format("Unknown option [{0}]", type);
             }
         }
 
@@ -528,82 +528,5 @@ namespace CoAP
                 throw new NotSupportedException();
             }
         }
-    }
-
-    /// <summary>
-    /// CoAP option types
-    /// </summary>
-    public enum OptionType
-    {
-        Reserved = 0,
-        /// <summary>
-        /// C, 8-bit uint, 1 B, 0 (text/plain)
-        /// </summary>
-        ContentType = 1,
-        /// <summary>
-        /// E, variable length, 1--4 B, 60 Seconds
-        /// </summary>
-        MaxAge = 2,
-        /// <summary>
-        /// C, String, 1-270 B, "coap"
-        /// </summary>
-        ProxyUri = 3,
-        /// <summary>
-        /// E, sequence of bytes, 1-4 B, -
-        /// </summary>
-        ETag = 4,
-        /// <summary>
-        /// C, String, 1-270 B, ""
-        /// </summary>
-        UriHost = 5,
-        /// <summary>
-        /// E, String, 1-270 B, -
-        /// </summary>
-        LocationPath = 6,
-        /// <summary>
-        /// C, uint, 0-2 B
-        /// </summary>
-        UriPort = 7,
-        /// <summary>
-        /// E, String, 1-270 B, -
-        /// </summary>
-        LocationQuery = 8,
-        /// <summary>
-        /// C, String, 1-270 B, ""
-        /// </summary>
-        UriPath = 9,
-        /// <summary>
-        /// C, Sequence of Bytes, 1-2 B, -
-        /// </summary>
-        Token = 11,
-        /// <summary>
-        /// C, String, 1-270 B, ""
-        /// </summary>
-        UriQuery = 15,
-
-        /// <summary>
-        /// E, Duration, 1 B, 0
-        /// <remarks>option types from draft-ietf-core-observe</remarks>
-        /// </summary>
-        Observe = 10,
-
-        /// <summary>
-        /// E  Sequence of Bytes, 1-n B, -
-        /// <remarks>selected option types from draft-bormann-coap-misc-04</remarks>
-        /// </summary>
-        Accept = 12,
-        /// <summary>
-        /// C, unsigned integer, 1--3 B, 0
-        /// <remarks>selected option types from draft-bormann-coap-misc-04</remarks>
-        /// </summary>
-        IfMatch = 13,
-        /// <summary>
-        /// no-op for fenceposting
-        /// <remarks>selected option types from draft-bormann-coap-misc-04</remarks>
-        /// </summary>
-        FENCEPOST_DIVISOR = 14,
-        Block2 = 17,
-        Block1 = 19,
-        IfNoneMatch = 21,
     }
 }
