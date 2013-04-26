@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2011-2012, Longxiang He <helongxiang@smeshlink.com>,
+ * Copyright (c) 2011-2013, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
  * This program is distributed in the hope that it will be useful,
@@ -18,18 +18,17 @@ using CoAP.Util;
 namespace CoAP.Layers
 {
     /// <summary>
-    /// This class describes the functionality of a CoAP message layer. It provides:
-    /// 1. Reliable transport of Confirmable messages over underlying layers by making use of retransmissions and exponential backoff;
-    /// 2. Matching of Confirmables to their corresponding Acknowledgement/Reset;
+    /// This class describes the functionality of a CoAP messaging layer. It provides:
+    /// 1. Reliable transport of confirmable messages over underlying layers by making use of retransmissions and exponential backoff;
+    /// 2. Matching of confirmables to their corresponding ACK/RST;
     /// 3. Detection and cancellation of duplicate messages;
-    /// 4. Retransmission of Acknowledgements/Reset messages upon receiving duplicate Confirmable messages.
+    /// 4. Retransmission of ACK/RST messages upon receiving duplicate confirmable messages.
     /// </summary>
     public class MessageLayer : UpperLayer
     {
-        private static ILogger log = LogManager.GetLogger(typeof(MessageLayer));
+        private static readonly ILogger log = LogManager.GetLogger(typeof(MessageLayer));
         private static Int32 currentMessageID = (Int32)((new Random()).NextDouble() * 0x10000);
         
-        private Boolean _retransmitEnabled = true;
         private IDictionary<String, TransmissionContext> _transactionTable = new HashMap<String, TransmissionContext>();
         private HashMap<String, Message> _dupCache = new HashMap<String, Message>();
         private HashMap<String, Message> _replyCache = new HashMap<String, Message>();
@@ -53,12 +52,15 @@ namespace CoAP.Layers
                 msg.ID = NextMessageID();
             }
 
-            // check if message needs confirmation, i.e. a reply is expected
-            if (msg.IsConfirmable)
+            if (msg is Response && msg.HasOption(OptionType.Observe))
             {
-                // create new transmission context
-                // to keep track of the Confirmable
-                TransmissionContext ctx = AddTransmission(msg);
+                if (UpdateTransmission(msg))
+                    return;
+            }
+            else if (msg.IsConfirmable)
+            {
+                // create new transmission context for retransmissions
+                AddTransmission(msg);
             }
             else if (msg.IsReply)
             {
@@ -218,9 +220,54 @@ namespace CoAP.Layers
             ObservingManager.Instance.RemoveObserver(msg.PeerAddress.ToString(), msg.ID);
         }
 
+        private Boolean UpdateTransmission(Message msg)
+        {
+            lock (_syncRoot)
+            {
+                TransmissionContext ctx = null;
+
+                // remove old notifications
+                foreach (TransmissionContext check in _transactionTable.Values)
+                {
+                    if (check.msg is Response)
+                    {
+                        Response resp = (Response)check.msg;
+                        if (resp.HasOption(OptionType.Observe)
+                            && resp.PeerAddress.Equals(msg.PeerAddress))
+                        {
+                            Response ntf = (Response)msg;
+                            if (resp.Request != null && ntf.Request != null
+                                && resp.Request.UriPath.Equals(ntf.Request.UriPath))
+                            {
+                                ctx = check;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (ctx != null)
+                {
+                    ctx.msg.Payload = msg.Payload;
+                    ctx.msg.SetOption(msg.GetFirstOption(OptionType.Observe));
+
+                    if (log.IsDebugEnabled)
+                        log.Debug(String.Format("Replaced ongoing CON notification: {0} with {1}", ctx.msg.TransactionKey, msg.TransactionKey));
+
+                    return true;
+                }
+                else if (msg.IsConfirmable)
+                {
+                    AddTransmission(msg);
+                }
+
+                return false;
+            }
+        }
+
         private TransmissionContext AddTransmission(Message msg)
         {
-            lock (this._syncRoot)
+            lock (_syncRoot)
             {
                 TransmissionContext ctx = new TransmissionContext();
                 ctx.msg = msg;
@@ -240,7 +287,7 @@ namespace CoAP.Layers
 
         private TransmissionContext GetTransmission(Message msg)
         {
-            lock (this._syncRoot)
+            lock (_syncRoot)
             {
                 return _transactionTable[msg.TransactionKey];
             }
@@ -248,7 +295,7 @@ namespace CoAP.Layers
 
         private void RemoveTransmission(TransmissionContext ctx)
         {
-            lock (this._syncRoot)
+            lock (_syncRoot)
             {
                 ctx.CancelRetransmission();
                 _transactionTable.Remove(ctx.msg.TransactionKey);
@@ -265,7 +312,7 @@ namespace CoAP.Layers
 
         private void HandleResponseTimeout(TransmissionContext ctx)
         {
-            if (this._retransmitEnabled && ctx.numRetransmit < CoapConstants.MaxRetransmit)
+            if (ctx.numRetransmit < CoapConstants.MaxRetransmit)
             {
                 ctx.msg.Retransmissioned = ++ctx.numRetransmit;
 

@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2011-2012, Longxiang He <helongxiang@smeshlink.com>,
+ * Copyright (c) 2011-2013, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
  * This program is distributed in the hope that it will be useful,
@@ -10,25 +10,25 @@
  */
 
 using System;
-using System.Collections.Generic;
-using System.Text;
-using CoAP.Util;
 using CoAP.Log;
+using CoAP.Util;
 
 namespace CoAP.Layers
 {
     /// <summary>
     /// This class matches the request/response pairs using the token option. It must
-    /// be below the <see cref="CoAP.Layers.TransferLayer"/>
+    /// be below the <see cref="CoAP.Layers.TransferLayer"/>, which requires set buddies
+    /// for each message (<see cref="Response.Request"/>) and (<see cref="Request.Response"/>).
     /// </summary>
     public class MatchingLayer : UpperLayer
     {
-        private static ILogger log = LogManager.GetLogger(typeof(MatchingLayer));
+        private static readonly ILogger log = LogManager.GetLogger(typeof(MatchingLayer));
+
         private HashMap<String, RequestResponsePair> _pairs = new HashMap<String, RequestResponsePair>();
 
         protected override void DoSendMessage(Message msg)
         {
-            if (msg is Request)
+            if (msg is Request && !ObservingManager.Instance.HasSubscription(msg.SequenceKey))
                 AddOpenRequest((Request)msg);
             SendMessageOverLowerLayer(msg);
         }
@@ -52,15 +52,35 @@ namespace CoAP.Layers
                             log.Info("MatchingLayer - Remote endpoint failed to echo token: " + msg.Key);
 
                         // TODO try to recover from peerAddress
+                        if (!ObservingManager.Instance.HasSubscription(msg.SequenceKey))
+                        {
+                            msg.Reject();
+                            return;
+                        }
+                    }
+                    else if (ObservingManager.Instance.HasSubscription(msg.SequenceKey))
+                    {
+                        Request observeRequest = ObservingManager.Instance.GetSubscriptionRequest(msg.SequenceKey);
+                        observeRequest.Response = response;
+                        response.Request = observeRequest;
                     }
                     else
                     {
-                        if (log.IsInfoEnabled)
-                            log.Info("MatchingLayer - Dropping unexpected response: " + response.SequenceKey);
-                    }
+                        if (response.IsConfirmable || response.HasOption(OptionType.Observe))
+                        {
+                            if (log.IsInfoEnabled)
+                                log.Info("MatchingLayer - Rejecting unexpected response: " + response.SequenceKey);
+                            response.Reject();
+                        }
+                        else
+                        {
+                            if (log.IsInfoEnabled)
+                                log.Info("MatchingLayer - Dropping unexpected response: " + response.SequenceKey);
+                        }
 
-                    // let timeout handle the problem
-                    return;
+                        // let timeout handle the problem
+                        return;
+                    }
                 }
                 else
                 {
@@ -74,25 +94,37 @@ namespace CoAP.Layers
                     if (!msg.IsEmptyACK && msg.GetFirstOption(OptionType.Observe) == null)
                         RemoveOpenRequest(response.SequenceKey);
                 }
+
+                // FIXME accept here but MessageLayer?
+                if (msg.IsConfirmable)
+                    msg.Accept();
             }
 
             DeliverMessage(msg);
         }
 
-        private RequestResponsePair AddOpenRequest(Request request)
+        private void AddOpenRequest(Request request)
         {
-            RequestResponsePair pair = new RequestResponsePair();
-            pair.key = request.SequenceKey;
-            pair.request = request;
+            if (request.HasOption(OptionType.Observe))
+            {
+                ObservingManager.Instance.AddSubscription(request);
+            }
+            else
+            {
+                if (ObservingManager.Instance.HasSubscription(request.SequenceKey))
+                    ObservingManager.Instance.CancelSubscription(request.SequenceKey);
 
-            if (log.IsDebugEnabled)
-                log.Debug("MatchingLayer - Storing open request: " + pair.key);
+                RequestResponsePair pair = new RequestResponsePair();
+                pair.key = request.SequenceKey;
+                pair.request = request;
 
-            // FIXME: buggy fix for block transfer in obvervation, since the first request needs to be kept.
-            if (!_pairs.ContainsKey(pair.key))// || !request.IsObserving)
-                _pairs[pair.key] = pair;
+                if (log.IsDebugEnabled)
+                    log.Debug("MatchingLayer - Storing open request: " + pair.key);
 
-            return pair;
+                // FIXME: buggy fix for block transfer in obvervation, since the first request needs to be kept.
+                if (!_pairs.ContainsKey(pair.key))// || !request.IsObserving)
+                    _pairs[pair.key] = pair;
+            }
         }
 
         private RequestResponsePair GetOpenRequest(String key)

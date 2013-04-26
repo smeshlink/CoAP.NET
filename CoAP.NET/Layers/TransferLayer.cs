@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2011-2012, Longxiang He <helongxiang@smeshlink.com>,
+ * Copyright (c) 2011-2013, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
  * This program is distributed in the hope that it will be useful,
@@ -11,27 +11,21 @@
 
 using System;
 using System.Collections.Generic;
-using CoAP.Util;
 using CoAP.Log;
+using CoAP.Util;
 
 namespace CoAP.Layers
 {
     /// <summary>
-    /// This class describes the functionality of a CoAP transfer layer. It provides:
-    /// 1. Support for block-wise transfers using BLOCK1 and BLOCK2 options
+    /// The class TransferLayer provides support for blockwise transfers.
     /// </summary>
     public class TransferLayer : UpperLayer
     {
-        private static ILogger log = LogManager.GetLogger(typeof(TransferLayer));
+        private static readonly ILogger log = LogManager.GetLogger(typeof(TransferLayer));
 
         private HashMap<String, TransferContext> _incoming = new HashMap<String, TransferContext>();
         private HashMap<String, TransferContext> _outgoing = new HashMap<String, TransferContext>();
-        
         private Int32 _defaultSZX;
-        private Int32 _defaultBlockSize;
-        private IDictionary<String, Message> _incomplete = new HashMap<String, Message>();
-        private IDictionary<String, Message> _sentMessages = new HashMap<String, Message>();
-        private IDictionary<String, Int32> _awaiting = new HashMap<String, Int32>();
 
         /// <summary>
         /// Initializes a transfer layer.
@@ -52,7 +46,6 @@ namespace CoAP.Layers
                     if (log.IsWarnEnabled)
                         log.Warn(String.Format("TransferLayer - Unsupported block size {0}, using {1} instead", defaultBlockSize, BlockOption.DecodeSZX(_defaultSZX)));
                 }
-                _defaultBlockSize = BlockOption.DecodeSZX(_defaultSZX);
             }
             else
             {
@@ -159,7 +152,10 @@ namespace CoAP.Layers
                     blockOut.NUM++;
             }
             else if (log.IsWarnEnabled)
+            {
                 log.Warn("TransferLayer - Unknown message type received: " + msg.Key);
+                return;
+            }
 
             if (blockIn == null && msg.RequiresBlockwise)
             {
@@ -181,7 +177,7 @@ namespace CoAP.Layers
                 TransferContext transfer = _outgoing[msg.SequenceKey];
                 if (transfer != null)
                 {
-                    if (msg is Request && !msg.UriPath.Equals(transfer.uriPath))
+                    if (msg is Request && (!msg.UriPath.Equals(transfer.uriPath) || !msg.UriQuery.Equals(transfer.uriQuery)))
                     {
                         _outgoing.Remove(msg.SequenceKey);
                         if (log.IsDebugEnabled)
@@ -269,8 +265,8 @@ namespace CoAP.Layers
         private void UpdateCache(TransferContext transfer, Message msg)
         {
             transfer.cache.ID = msg.ID;
-            transfer.cache.SetOptions(msg.GetOptions(OptionType.Block1));
-            transfer.cache.SetOptions(msg.GetOptions(OptionType.Block2));
+            //transfer.cache.SetOptions(msg.GetOptions(OptionType.Block1));
+            //transfer.cache.SetOptions(msg.GetOptions(OptionType.Block2));
         }
 
         private void HandleIncomingPayload(Message msg, BlockOption blockOpt)
@@ -291,28 +287,16 @@ namespace CoAP.Layers
                 else if (log.IsDebugEnabled)
                     log.Debug(String.Format("TransferLayer - Dropping wrong block: {0} | {1}", msg.SequenceKey, blockOpt));
             }
-            else if (blockOpt.NUM == 0 && msg.PayloadSize > 0)
+            else if (blockOpt.NUM == 0 && (msg.PayloadSize == blockOpt.Size || !blockOpt.M))
             {
                 // configure messages for blockwise transfer
                 if (msg.PayloadSize > blockOpt.Size)
                 {
                     Int32 newNum = msg.PayloadSize / blockOpt.Size;
                     blockOpt.NUM = newNum - 1;
-                    // FIXME should be a bug copying payload here, see commented code below
                     Byte[] bytes = new Byte[newNum];
                     Array.Copy(msg.Payload, bytes, newNum);
                     msg.Payload = bytes;
-
-                    //// calculate next block num from received payload length
-                    //Int32 size = blockOpt.Size;
-                    //Int32 num = (msg.PayloadSize / size) - 1;
-                    //blockOpt.NUM = num;
-                    //msg.SetOption(blockOpt);
-
-                    //// crop payload
-                    //Byte[] newPayload = new Byte[(num + 1) * size];
-                    //Array.Copy(msg.Payload, 0, newPayload, 0, newPayload.Length);
-                    //msg.Payload = newPayload;
                 }
 
                 // create new transfer context
@@ -356,7 +340,9 @@ namespace CoAP.Layers
                 if (msg is Response)
                 {
                     reply = new Request(Code.GET, !msg.IsNonConfirmable); // msg could be ACK or CON
-                    reply.URI = new Uri(CoapConstants.UriSchemeName + "://" + msg.PeerAddress.ToString() + transfer.uriPath);
+                    reply.PeerAddress = msg.PeerAddress;
+                    reply.UriPath = transfer.uriPath;
+                    reply.UriQuery = transfer.uriQuery;
 
                     // get next block
                     demandNUM++;
@@ -364,7 +350,7 @@ namespace CoAP.Layers
                 else if (msg is Request)
                 {
                     // picked arbitrary code, cannot decide if created or changed without putting resource logic here
-                    reply = new Response(Code.Valid);
+                    reply = new Response(Code.Changed);
                     reply.Type = msg.IsConfirmable ? MessageType.ACK : MessageType.NON;
                     reply.PeerAddress = msg.PeerAddress;
                     if (msg.IsConfirmable)
@@ -379,7 +365,7 @@ namespace CoAP.Layers
                     return;
                 }
 
-                // MORE=1 for Block1, as Cf handles transfers atomically
+                // MORE=1 for Block1, as CoAP.NET handles transfers atomically
                 BlockOption next = new BlockOption(blockOpt.Type, demandNUM, demandSZX, blockOpt.Type == OptionType.Block1);
                 reply.SetOption(next);
                 // echo options
@@ -502,6 +488,7 @@ namespace CoAP.Layers
         {
             public Message cache;
             public String uriPath;
+            public String uriQuery;
             public BlockOption current;
 
             public TransferContext(Message msg)
@@ -510,6 +497,7 @@ namespace CoAP.Layers
                 {
                     cache = msg;
                     uriPath = msg.UriPath;
+                    uriQuery = msg.UriQuery;
                     current = (BlockOption)msg.GetFirstOption(OptionType.Block1);
                 }
                 else if (msg is Response)
@@ -517,11 +505,13 @@ namespace CoAP.Layers
                     msg.RequiresToken = false;
                     cache = msg;
                     uriPath = ((Response)msg).Request.UriPath;
+                    uriQuery = ((Response)msg).Request.UriQuery;
                     current = (BlockOption)msg.GetFirstOption(OptionType.Block2);
                 }
 
                 if (log.IsDebugEnabled)
-                    log.Debug("TransferLayer - Created new transfer context for " + msg.SequenceKey);
+                    log.Debug(String.Format("TransferLayer - Created new transfer context for {0}?{1}: {2}",
+                        uriPath, uriQuery, msg.SequenceKey));
             }
         }
     }

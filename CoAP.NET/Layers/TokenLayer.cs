@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2011-2012, Longxiang He <helongxiang@smeshlink.com>,
+ * Copyright (c) 2011-2013, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
  * This program is distributed in the hope that it will be useful,
@@ -18,10 +18,12 @@ namespace CoAP.Layers
 {
     /// <summary>
     /// This class takes care of unique tokens for each sequence of request/response exchanges.
+    /// Additionally, the TokenLayer takes care of an overall timeout for each request/response exchange.
     /// </summary>
     public class TokenLayer : UpperLayer
     {
-        private static ILogger log = LogManager.GetLogger(typeof(TokenLayer));
+        private static readonly ILogger log = LogManager.GetLogger(typeof(TokenLayer));
+
         private HashMap<String, RequestResponseSequence> _exchanges = new HashMap<String, RequestResponseSequence>();
         private Int32 _sequenceTimeout;
 

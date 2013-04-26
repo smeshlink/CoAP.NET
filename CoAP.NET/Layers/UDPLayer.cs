@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2011-2012, Longxiang He <helongxiang@smeshlink.com>,
+ * Copyright (c) 2011-2013, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
  * This program is distributed in the hope that it will be useful,
@@ -17,10 +17,14 @@ using CoAP.Log;
 namespace CoAP.Layers
 {
     /// <summary>
-    /// This class describes the functionality of a UDP layer that is able to exchange CoAP messages.
+    /// The class UDPLayer exchanges CoAP messages with remote endpoints using UDP
+    /// datagrams. It is an unreliable channel and thus datagrams may arrive out of
+    /// order, appear duplicated, or are lost without any notice, especially on lossy
+    /// physical layers.
     /// </summary>
-    public class UDPLayer : Layer
+    public class UDPLayer : AbstractLayer
     {
+        public const Int32 ReceiveBufferSize = 4096;
         private static ILogger log = LogManager.GetLogger(typeof(UDPLayer));
 
         private Int32 _port;
@@ -45,7 +49,7 @@ namespace CoAP.Layers
 
             _socketV6 = new UDPSocket();
             _socketV6.Socket = new Socket(AddressFamily.InterNetworkV6, SocketType.Dgram, ProtocolType.Udp);
-            _socketV6.Buffer = new Byte[CoapConstants.ReceiveBufferSize + 1];  // +1 to check for > ReceiveBufferSize
+            _socketV6.Buffer = new Byte[ReceiveBufferSize + 1];  // +1 to check for > ReceiveBufferSize
 
             try
             {
@@ -57,7 +61,7 @@ namespace CoAP.Layers
                 // IPv4-mapped address seems not to be supported, set up a separated socket of IPv4.
                 _socketV4 = new UDPSocket();
                 _socketV4.Socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-                _socketV4.Buffer = new Byte[CoapConstants.ReceiveBufferSize + 1];
+                _socketV4.Buffer = new Byte[ReceiveBufferSize + 1];
             }
 
             _socketV6.Socket.Bind(new IPEndPoint(IPAddress.IPv6Any, port));
@@ -66,6 +70,11 @@ namespace CoAP.Layers
 
             _receiveCallback = new AsyncCallback(SocketReceiveCallback);
             BeginReceive();
+        }
+
+        public Int32 Port
+        {
+            get { return _port == 0 ? ((IPEndPoint)_socketV6.Socket.LocalEndPoint).Port : _port; }
         }
 
         /// <summary>
@@ -81,7 +90,7 @@ namespace CoAP.Layers
                 msg.Timestamp = DateTime.Now.Ticks;
 
             IPEndPoint remoteEP = new IPEndPoint(msg.PeerAddress.Address, msg.PeerAddress.Port);
-            Byte[] data = msg.Encode();
+            Byte[] data = Spec.Encode(msg);
 
             if (remoteEP.AddressFamily == AddressFamily.InterNetwork)
             {
@@ -158,7 +167,7 @@ namespace CoAP.Layers
         {
             if (data.Length > 0)
             {
-                Message msg = Message.Decode(data);
+                Message msg = Spec.Decode(data);
 
                 if (msg == null)
                 {
@@ -187,7 +196,7 @@ namespace CoAP.Layers
                     }
                     msg.PeerAddress = new EndpointAddress(ipe.Address, ipe.Port);
 
-                    if (data.Length > CoapConstants.ReceiveBufferSize)
+                    if (data.Length > ReceiveBufferSize)
                     {
                         if (log.IsInfoEnabled)
                             log.Info(String.Format("UDPLayer - Marking large datagram for blockwise transfer: {0}", msg.Key));
@@ -210,11 +219,6 @@ namespace CoAP.Layers
                 if (log.IsDebugEnabled)
                     log.Debug(String.Format("UDPLayer - Dropped empty datagram from: {0}", remoteEP));
             }
-        }
-
-        public Int32 Port
-        {
-            get { return _port == 0 ? ((IPEndPoint)_socketV6.Socket.LocalEndPoint).Port : _port; }
         }
 
         class UDPSocket

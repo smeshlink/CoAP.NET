@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2011-2012, Longxiang He <helongxiang@smeshlink.com>,
+ * Copyright (c) 2011-2013, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
  * This program is distributed in the hope that it will be useful,
@@ -17,11 +17,14 @@ namespace CoAP.Layers
     /// <summary>
     /// Base class of all layers in CoAP communication
     /// </summary>
-    public abstract class Layer : IMessageReceiver
+    public abstract class AbstractLayer : ILayer
     {
         private List<IMessageReceiver> _receivers;
         private Int32 _messagesSentCount;
         private Int32 _messagesReceivedCount;
+#if COAPALL
+        public ISpec Spec = CoAP.Spec.Draft12;
+#endif
 
         /// <summary>
         /// Gets the total number of sent messages.
@@ -47,7 +50,7 @@ namespace CoAP.Layers
         {
             if (msg != null)
             {
-                ++_messagesReceivedCount;
+                _messagesReceivedCount++;
                 DoReceiveMessage(msg);
             }
         }
@@ -61,7 +64,7 @@ namespace CoAP.Layers
             if (msg != null)
             {
                 DoSendMessage(msg);
-                ++_messagesSentCount;
+                _messagesSentCount++;
             }
         }
 
@@ -75,9 +78,7 @@ namespace CoAP.Layers
             if (receiver != null && receiver != this)
             {
                 if (_receivers == null)
-                {
                     _receivers = new List<IMessageReceiver>();
-                }
                 _receivers.Add(receiver);
             }
         }
@@ -89,9 +90,7 @@ namespace CoAP.Layers
         public void UnregisterReceiver(IMessageReceiver receiver)
         {
             if (_receivers != null)
-            {
                 _receivers.Remove(receiver);
-            }
         }
 
         /// <summary>
