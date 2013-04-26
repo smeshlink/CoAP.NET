@@ -19,7 +19,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;COAPALL</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -69,12 +69,14 @@
     <Compile Include="Request.cs" />
     <Compile Include="Response.cs" />
     <Compile Include="ResponseEventArgs.cs" />
+    <Compile Include="Spec.cs" />
     <Compile Include="TokenManager.cs" />
     <Compile Include="Util\DatagramReader.cs" />
     <Compile Include="Util\DatagramWriter.cs" />
     <Compile Include="Util\HashMap.cs" />
     <Compile Include="Util\HashSet.cs" />
     <Compile Include="Util\Scanner.cs" />
+    <Compile Include="Util\Sort.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="README" />
