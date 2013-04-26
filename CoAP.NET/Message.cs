@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2011-2012, Longxiang He <helongxiang@smeshlink.com>,
+ * Copyright (c) 2011-2013, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
  * This program is distributed in the hope that it will be useful,
@@ -19,7 +19,7 @@ using CoAP.Util;
 namespace CoAP
 {
     /// <summary>
-    /// This class describes the functionality of the CoAP messages
+    /// This class describes the functionality of a CoAP message.
     /// </summary>
     public class Message
     {
@@ -38,8 +38,8 @@ namespace CoAP
         public const Int32 InvalidID = -1;
 
         private static ILogger log = LogManager.GetLogger(typeof(Message));
-       
-        private Int32 _version = SupportedVersion;
+
+        private Int32 _version = Spec.SupportedVersion;
         private MessageType _type;
         private Int32 _code;
         private Int32 _id = InvalidID;
@@ -219,103 +219,6 @@ namespace CoAP
                 if (mediaType != MediaType.Undefined)
                     SetOption(Option.Create(OptionType.ContentType, mediaType));
             }
-        }
-
-        /// <summary>
-        /// Encodes the message into its raw binary representation.
-        /// </summary>
-        /// <returns>A byte array containing the CoAP encoding of the message</returns>
-        public Byte[] Encode()
-        {
-            // create datagram writer to encode options
-            DatagramWriter optWriter = new DatagramWriter();
-            Int32 optionCount = 0;
-            Int32 lastOptionNumber = 0;
-            foreach (Option opt in GetOptions())
-            {
-                if (opt.IsDefault)
-                    continue;
-
-                Int32 optionDelta = (Int32)opt.Type - lastOptionNumber;
-
-                // ensure that option delta value can be encoded correctly
-                while (optionDelta > MaxOptionDelta)
-                {
-                    // option delta is too large to be encoded:
-                    // add fencepost options in order to reduce the option delta
-                    // get fencepost option that is next to the last option
-                    Int32 fencepostNumber =
-                        Option.NextFencepost(lastOptionNumber);
-
-                    // calculate fencepost delta
-                    int fencepostDelta = fencepostNumber - lastOptionNumber;
-                    if (fencepostDelta <= 0)
-                    {
-                        if (log.IsWarnEnabled)
-                            log.Warn("Fencepost liveness violated: delta = " + fencepostDelta);
-                    }
-                    if (fencepostDelta > MaxOptionDelta)
-                    {
-                        if (log.IsWarnEnabled)
-                            log.Warn("Fencepost safety violated: delta = " + fencepostDelta);
-                    }
-
-                    // write fencepost option delta
-                    optWriter.Write(fencepostDelta, OptionDeltaBits);
-                    // fencepost have an empty value
-                    optWriter.Write(0, OptionLengthBaseBits);
-
-                    ++optionCount;
-                    lastOptionNumber = fencepostNumber;
-                    optionDelta -= fencepostDelta;
-                }
-
-                // write option delta
-                optWriter.Write(optionDelta, OptionDeltaBits);
-
-                // write option length
-                Int32 length = opt.Length;
-                if (length <= MaxOptionLengthBase)
-                {
-                    // use option length base field only to encode
-                    // option lengths less or equal than MAX_OPTIONLENGTH_BASE
-                    optWriter.Write(length, OptionLengthBaseBits);
-                }
-                else
-                {
-                    // use both option length base and extended field
-                    // to encode option lengths greater than MAX_OPTIONLENGTH_BASE
-                    Int32 baseLength = MaxOptionLengthBase + 1;
-                    optWriter.Write(baseLength, OptionLengthBaseBits);
-
-                    Int32 extLength = length - baseLength;
-                    optWriter.Write(extLength, OptionLengthExtendedBits);
-                }
-
-                // write option value
-                optWriter.WriteBytes(opt.RawValue);
-
-                ++optionCount;
-                lastOptionNumber = (Int32)opt.Type;
-            }
-
-            // create datagram writer to encode message data
-            DatagramWriter writer = new DatagramWriter();
-
-            // write fixed-size CoAP headers
-            writer.Write(_version, VersionBits);
-            writer.Write((Int32)_type, TypeBits);
-            writer.Write(optionCount, OptionCountBits);
-            writer.Write(_code, CodeBits);
-            writer.Write(_id, IDBits);
-
-            // write options
-            writer.WriteBytes(optWriter.ToByteArray());
-
-            //write payload
-            writer.WriteBytes(_payLoadBytes);
-
-            return writer.ToByteArray();
         }
 
         /// <summary>
@@ -562,7 +465,7 @@ namespace CoAP
                     // TODO Uri-Host option
 
                     UriPath = value.AbsolutePath;
-                    Query = value.Query;
+                    UriQuery = value.Query;
                     PeerAddress = new EndpointAddress(value);
                 }
                 this._uri = value;
@@ -575,7 +478,7 @@ namespace CoAP
             set { SetOptions(Option.Split(OptionType.UriPath, value, "/")); }
         }
 
-        public String Query
+        public String UriQuery
         {
             get { return Option.Join(GetOptions(OptionType.UriQuery), "&"); }
             set
@@ -904,71 +807,6 @@ namespace CoAP
             {
                 return new Message(MessageType.CON, code);
             }
-        }
-
-        /// <summary>
-        /// Decodes the message from the its binary representation.
-        /// </summary>
-        /// <param name="bytes">A byte array containing the CoAP encoding of the message</param>
-        /// <returns></returns>
-        public static Message Decode(Byte[] bytes)
-        {
-            DatagramReader datagram = new DatagramReader(bytes);
-
-            // read headers
-            Int32 version = datagram.Read(VersionBits);
-            if (version != SupportedVersion)
-                return null;
-
-            MessageType type = (MessageType)datagram.Read(TypeBits);
-            Int32 optionCount = datagram.Read(OptionCountBits);
-            Int32 code = datagram.Read(CodeBits);
-
-            // create new message with subtype according to code number
-            Message msg = Create(code);
-
-            msg._type = type;
-            msg._id = datagram.Read(IDBits);
-
-            // read options
-            Int32 currentOption = 0;
-            for (Int32 i = 0; i < optionCount; i++)
-            {
-                // read option delta bits
-                Int32 optionDelta = datagram.Read(OptionDeltaBits);
-
-                currentOption += optionDelta;
-                OptionType currentOptionType = (OptionType)currentOption;
-
-                if (Option.IsFencepost(currentOptionType))
-                {
-                    // read number of options
-                    datagram.Read(OptionLengthBaseBits);
-                }
-                else
-                {
-                    // read option length
-                    Int32 length = datagram.Read(OptionLengthBaseBits);
-                    if (length > MaxOptionLengthBase)
-                    {
-                        // read extended option length
-                        length += datagram.Read(OptionLengthExtendedBits);
-                    }
-                    // read option
-                    Option opt = Option.Create(currentOptionType);
-                    opt.RawValue = datagram.ReadBytes(length);
-
-                    msg.AddOption(opt);
-                }
-            }
-
-            msg.Payload = datagram.ReadBytesLeft();
-
-            // incoming message already have a token, 
-            // including implicit empty token
-            msg.RequiresToken = false;
-
-            return msg;
         }
 
         /// <summary>
