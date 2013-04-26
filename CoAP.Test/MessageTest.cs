@@ -4,6 +4,10 @@ namespace CoAP.Test
 {
     class MessageTest
     {
+#if COAPALL
+        public ISpec Spec = CoAP.Spec.Draft08;
+#endif
+
         public void TestMessage()
         {
             Message msg = new Message();
@@ -13,8 +17,8 @@ namespace CoAP.Test
             msg.ID = 12345;
             msg.Payload = System.Text.Encoding.UTF8.GetBytes("payload");
 
-            Byte[] data = msg.Encode();
-            Message convMsg = Message.Decode(data);
+            Byte[] data = Spec.Encode(msg);
+            Message convMsg = Spec.Decode(data);
 
             Assert.IsEqualTo(msg.Code, convMsg.Code);
             Assert.IsEqualTo(msg.Type, convMsg.Type);
@@ -34,8 +38,8 @@ namespace CoAP.Test
             msg.AddOption(Option.Create(OptionType.ContentType, "text/plain"));
             msg.AddOption(Option.Create(OptionType.MaxAge, 30));
 
-            Byte[] data = msg.Encode();
-            Message convMsg = Message.Decode(data);
+            Byte[] data = Spec.Encode(msg);
+            Message convMsg = Spec.Decode(data);
 
             Assert.IsEqualTo(msg.Code, convMsg.Code);
             Assert.IsEqualTo(msg.Type, convMsg.Type);
@@ -52,12 +56,12 @@ namespace CoAP.Test
             msg.Code = Code.GET;
             msg.Type = MessageType.CON;
             msg.ID = 12345;
-            msg.Payload = System.Text.Encoding.UTF8.GetBytes("payload");
+            msg.AddOption(Option.Create(Spec.GetOptionType(1), "a"));
             msg.AddOption(Option.Create((OptionType)197, "extend option"));
-            msg.AddOption(Option.Create(OptionType.MaxAge, 30));
+            msg.Payload = System.Text.Encoding.UTF8.GetBytes("payload");
 
-            Byte[] data = msg.Encode();
-            Message convMsg = Message.Decode(data);
+            Byte[] data = Spec.Encode(msg);
+            Message convMsg = Spec.Decode(data);
 
             Assert.IsEqualTo(msg.Code, convMsg.Code);
             Assert.IsEqualTo(msg.Type, convMsg.Type);
