@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2011-2012, Longxiang He <helongxiang@smeshlink.com>,
+ * Copyright (c) 2011-2013, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
  * This program is distributed in the hope that it will be useful,
@@ -28,6 +28,7 @@ namespace CoAP
             = new Dictionary<String, IDictionary<String, Observationship>>();
         private Int32 _checkInterval = CoapConstants.ObservingRefreshInterval;
         private IDictionary<String, Int32> _intervalByResource = new Dictionary<String, Int32>();
+        private IDictionary<String, Request> _observeRequests = new Dictionary<String, Request>();
         private Object _sync = new Byte[0];
 
         public static ObservingManager Instance
@@ -205,7 +206,6 @@ namespace CoAP
                 request.Response.ID = MessageLayer.NextMessageID();
 
             // 16-bit second counter
-            
             Int32 secs = (Int32)((DateTime.Now - request.StartTime).TotalMilliseconds / 1000) & 0xFFFF;
             request.Response.SetOption(Option.Create(OptionType.Observe, secs));
 
@@ -243,6 +243,32 @@ namespace CoAP
                 map[key] = dict;
                 return dict;
             }
+        }
+
+        public Boolean HasSubscription(String key)
+        {
+            return _observeRequests.ContainsKey(key);
+        }
+
+        public void AddSubscription(Request request)
+        {
+            if (HasSubscription(request.SequenceKey) && log.IsWarnEnabled)
+                log.Warn(String.Format("Observe subspricption will be overwritten: {0}", request.SequenceKey));
+            if (log.IsInfoEnabled)
+                log.Info(String.Format("Adding Observe subscription for {0}: {1}", request.UriPath, request.SequenceKey));
+            _observeRequests[request.SequenceKey] = request;
+        }
+
+        public Request GetSubscriptionRequest(String key)
+        {
+            return _observeRequests.ContainsKey(key) ? _observeRequests[key] : null;
+        }
+
+        public void CancelSubscription(String key)
+        {
+            if (log.IsInfoEnabled)
+                log.Info(String.Format("Cancelling Observe subscription {0}", key));
+            _observeRequests.Remove(key);
         }
 
         class Observationship
