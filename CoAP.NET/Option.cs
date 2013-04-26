@@ -304,26 +304,6 @@ namespace CoAP
         }
 
         /// <summary>
-        /// Checks whether an option is a fencepost option.
-        /// </summary>
-        /// <param name="type">The option type to check</param>
-        /// <returns>True iff the option is a fencepost option</returns>
-        public static Boolean IsFencepost(OptionType type)
-        {
-            return (Int32)type % (Int32)OptionType.FENCEPOST_DIVISOR == 0;
-        }
-
-        /// <summary>
-        /// Returns the next fencepost option number following a given option number.
-        /// </summary>
-        /// <param name="optionNumber">The option number</param>
-        /// <returns>The smallest fencepost option number larger than the given option</returns>
-        public static Int32 NextFencepost(Int32 optionNumber)
-        {
-            return (optionNumber / (Int32)OptionType.FENCEPOST_DIVISOR + 1) * (Int32)OptionType.FENCEPOST_DIVISOR;
-        }
-
-        /// <summary>
         /// Returns a string representation of the option type.
         /// </summary>
         /// <param name="type">The option type to describe</param>
@@ -428,7 +408,7 @@ namespace CoAP
                 case OptionType.Block2:
                 case OptionType.Block1:
                 case OptionType.Accept:
-                case OptionType.FENCEPOST_DIVISOR:
+                case OptionType.FencepostDivisor:
                     return int32Convertor;
                 case OptionType.ProxyUri:
                 case OptionType.ETag:

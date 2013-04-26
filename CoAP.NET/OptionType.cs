@@ -93,9 +93,9 @@ namespace CoAP
         IfNoneMatch = 21,
         /// <summary>
         /// no-op for fenceposting
-        /// <remarks>draft-ietf-core-coap</remarks>
+        /// <remarks>draft-bormann-coap-misc-04</remarks>
         /// </summary>
-        FENCEPOST_DIVISOR = 14,
+        FencepostDivisor = 14,
 
         /// <summary>
         /// E, Duration, 1 B, 0

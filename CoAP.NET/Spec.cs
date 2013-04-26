@@ -51,6 +51,7 @@ namespace CoAP
         const Int32 OptionLengthExtendedBits = 8;
         const Int32 MaxOptionDelta = (1 << OptionDeltaBits) - 1;
         const Int32 MaxOptionLengthBase = (1 << OptionLengthBaseBits) - 2;
+        const Int32 FencepostDivisor = 14;
 
         static readonly ILogger log = LogManager.GetLogger(typeof(Spec));
 
@@ -93,8 +94,7 @@ namespace CoAP
                     // option delta is too large to be encoded:
                     // add fencepost options in order to reduce the option delta
                     // get fencepost option that is next to the last option
-                    Int32 fencepostNumber =
-                        Option.NextFencepost(lastOptionNumber);
+                    Int32 fencepostNumber = NextFencepost(lastOptionNumber);
 
                     // calculate fencepost delta
                     int fencepostDelta = fencepostNumber - lastOptionNumber;
@@ -200,7 +200,7 @@ namespace CoAP
                 currentOption += optionDelta;
                 OptionType currentOptionType = GetOptionType(currentOption);
 
-                if (Option.IsFencepost(currentOptionType))
+                if (IsFencepost(currentOptionType))
                 {
                     // read number of options
                     datagram.Read(OptionLengthBaseBits);
@@ -269,6 +269,8 @@ namespace CoAP
                     return 12;
                 case OptionType.IfMatch:
                     return 13;
+                case OptionType.FencepostDivisor:
+                    return 14;
                 case OptionType.Block2:
                     return 17;
                 case OptionType.Block1:
@@ -318,6 +320,8 @@ namespace CoAP
                     return OptionType.Accept;
                 case 13:
                     return OptionType.IfMatch;
+                case 14:
+                    return OptionType.FencepostDivisor;
                 case 17:
                     return OptionType.Block2;
                 case 19:
@@ -327,6 +331,26 @@ namespace CoAP
                 default:
                     return (OptionType)optionNumber;
             }
+        }
+
+        /// <summary>
+        /// Checks whether an option is a fencepost option.
+        /// </summary>
+        /// <param name="type">The option type to check</param>
+        /// <returns>True iff the option is a fencepost option</returns>
+        public static Boolean IsFencepost(OptionType type)
+        {
+            return (Int32)type % (Int32)FencepostDivisor == 0;
+        }
+
+        /// <summary>
+        /// Returns the next fencepost option number following a given option number.
+        /// </summary>
+        /// <param name="optionNumber">The option number</param>
+        /// <returns>The smallest fencepost option number larger than the given option</returns>
+        public static Int32 NextFencepost(Int32 optionNumber)
+        {
+            return (optionNumber / (Int32)FencepostDivisor + 1) * (Int32)FencepostDivisor;
         }
     }
 #endif
