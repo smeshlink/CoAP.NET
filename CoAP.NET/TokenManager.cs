@@ -120,7 +120,7 @@ namespace CoAP
                 if (!_acquiredTokens.Remove(token))
                 {
                     if (log.IsWarnEnabled)
-                        log.Warn("Token to release is not acquired: " + token.ToString());
+                        log.Warn("Token to release is not acquired: " + Option.Hex(token));
                 }
             }
         }

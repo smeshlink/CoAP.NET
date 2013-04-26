@@ -37,5 +37,26 @@ namespace CoAP.Util
                     list[j] = temp;
             }
         }
+
+        public static Boolean IsSequenceEqualTo<T>(IEnumerable<T> obj, IEnumerable<T> other)
+        {
+            if (obj == null && other == null)
+                return true;
+            else if (obj != null && other != null)
+            {
+                IEnumerator<T> it1 = obj.GetEnumerator();
+                IEnumerator<T> it2 = other.GetEnumerator();
+                while (it1.MoveNext() && it2.MoveNext())
+                {
+                    if (!Object.Equals(it1.Current, it2.Current))
+                        return false;
+                }
+                if (it1.MoveNext() || it2.MoveNext())
+                    return false;
+                return true;
+            }
+            else
+                return false;
+        }
     }
 }

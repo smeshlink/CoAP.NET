@@ -23,33 +23,25 @@ namespace CoAP
     /// </summary>
     public class Message
     {
-        const Int32 SupportedVersion = 1;
-        const Int32 VersionBits = 2;
-        const Int32 TypeBits = 2;
-        const Int32 OptionCountBits = 4;
-        const Int32 CodeBits = 8;
-        const Int32 IDBits = 16;
-        const Int32 OptionDeltaBits = 4;
-        const Int32 OptionLengthBaseBits = 4;
-        const Int32 OptionLengthExtendedBits = 8;
-        public const Int32 MaxOptionDelta = (1 << OptionDeltaBits) - 1;
-        public const Int32 MaxOptionLengthBase = (1 << OptionLengthBaseBits) - 2;
-        public const Int32 MaxID = (1 << IDBits) - 1;
+        /// <summary>
+        /// Invalid message ID.
+        /// </summary>
         public const Int32 InvalidID = -1;
 
-        private static ILogger log = LogManager.GetLogger(typeof(Message));
+        private static readonly ILogger log = LogManager.GetLogger(typeof(Message));
 
         private Int32 _version = Spec.SupportedVersion;
         private MessageType _type;
         private Int32 _code;
         private Int32 _id = InvalidID;
         private Byte[] _payLoadBytes;
-        private Message _buddy;
-        protected Boolean _requiresToken = true;
-        protected Boolean _requiresBlockwise = false;
+        private Boolean _requiresToken = true;
+        private Boolean _requiresBlockwise = false;
         private SortedDictionary<OptionType, IList<Option>> _optionMap = new SortedDictionary<OptionType, IList<Option>>();
         private Int64 _timestamp;
         private Uri _uri;
+        private Int32 _retransmissioned;
+        private EndpointAddress _peerAddress;
         private Boolean _cancelled = false;
         private Boolean _complete = false;
         private Communicator _communicator = Communicator.Instance;
@@ -77,7 +69,7 @@ namespace CoAP
         /// </summary>
         public Message(Uri uri, MessageType type, Int32 code, Int32 id, Byte[] payload)
         {
-            _uri = uri;
+            URI = uri;
             _type = type;
             _code = code;
             _id = id;
@@ -85,7 +77,8 @@ namespace CoAP
         }
 
         /// <summary>
-        /// Creates a reply message to this message.
+        /// Creates a reply message to this message, which addressed to the
+        /// peer and has the same message ID and token.
         /// </summary>
         /// <param name="ack">Acknowledgement or not</param>
         /// <returns></returns>
@@ -105,7 +98,7 @@ namespace CoAP
             // echo ID
             reply._id = this._id;
             // set the receiver URI of the reply to the sender of this message
-            reply.URI = this.URI;
+            reply._peerAddress = _peerAddress;
 
             // echo token
             reply.SetOption(GetFirstOption(OptionType.Token));
@@ -116,6 +109,9 @@ namespace CoAP
             return reply;
         }
 
+        /// <summary>
+        /// Creates a new ACK message with peer address and MID matching to this message.
+        /// </summary>
         public Message NewAccept()
         {
             Message ack = new Message(MessageType.ACK, CoAP.Code.Empty);
@@ -126,6 +122,9 @@ namespace CoAP
             return ack;
         }
 
+        /// <summary>
+        /// Creates a new RST message with peer address and MID matching to this message.
+        /// </summary>
         public Message NewReject()
         {
             Message rst = new Message(MessageType.RST, CoAP.Code.Empty);
@@ -134,6 +133,11 @@ namespace CoAP
             return rst;
         }
 
+        /// <summary>
+        /// Accepts this message with an empty ACK. Use this method only at
+        /// application level, as the ACK will be sent through the whole stack.
+        /// Within the stack use NewAccept() and send it through the corresponding lower layer.
+        /// </summary>
         public virtual void Accept()
         {
             if (IsConfirmable)
@@ -260,6 +264,42 @@ namespace CoAP
                 Key, Type, CoAP.Code.ToString(_code),
                 PayloadString, PayloadSize);
 #endif
+        }
+
+        public override Boolean Equals(Object obj)
+        {
+            if (obj == null)
+                return false;
+            if (Object.ReferenceEquals(this, obj))
+                return true;
+            if (this.GetType() != obj.GetType())
+                return false;
+            Message other = (Message)obj;
+            if (_type != other._type)
+                return false;
+            if (_version != other._version)
+                return false;
+            if (_code != other._code)
+                return false;
+            if (_id != other._id)
+                return false;
+            if (_optionMap == null)
+            {
+                if (other._optionMap != null)
+                    return false;
+            }
+            else if (!_optionMap.Equals(other._optionMap))
+                return false;
+            if (!Sort.IsSequenceEqualTo(_payLoadBytes, other._payLoadBytes))
+                return false;
+            if (PeerAddress == null)
+            {
+                if (other.PeerAddress != null)
+                    return false;
+            }
+            else if (!PeerAddress.Equals(other.PeerAddress))
+                return false;
+            return true;
         }
 
         #region Option operations
@@ -453,6 +493,15 @@ namespace CoAP
         }
 
         /// <summary>
+        /// Gets or sets how many times this message has been retransmissioned.
+        /// </summary>
+        public Int32 Retransmissioned
+        {
+            get { return _retransmissioned; }
+            set { _retransmissioned = value; }
+        }
+
+        /// <summary>
         /// Gets or sets the URI of this CoAP message.
         /// </summary>
         public Uri URI
@@ -472,9 +521,30 @@ namespace CoAP
             }
         }
 
+        public String UriHost
+        {
+            get
+            {
+                Option host = GetFirstOption(OptionType.UriHost);
+                if (host == null)
+                {
+                    if (_peerAddress != null && _peerAddress.Address != null)
+                    {
+                        return _peerAddress.Address.ToString();
+                    }
+                    else
+                        return "localhost";
+                }
+                else
+                {
+                    return host.StringValue;
+                }
+            }
+        }
+
         public String UriPath
         {
-            get { return Option.Join(GetOptions(OptionType.UriPath), "/"); }
+            get { return "/" + Option.Join(GetOptions(OptionType.UriPath), "/"); }
             set { SetOptions(Option.Split(OptionType.UriPath, value, "/")); }
         }
 
@@ -504,14 +574,7 @@ namespace CoAP
 
         public String TokenString
         {
-            get
-            {
-                Byte[] token = Token;
-                if (token == null || token.Length == 0)
-                    return "--";
-                else
-                    return BitConverter.ToString(token);
-            }
+            get { return Option.Hex(Token); }
         }
 
         /// <summary>
@@ -734,9 +797,11 @@ namespace CoAP
             }
         }
 
-        public EndpointAddress PeerAddress { get; set; }
-
-        public Int32 Retransmissioned { get; set; }
+        public EndpointAddress PeerAddress
+        {
+            get { return _peerAddress; }
+            set { _peerAddress = value; }
+        }
 
         /// <summary>
         /// Gets the endpoint ID of this CoAP message, including ip address and port.
@@ -806,31 +871,6 @@ namespace CoAP
             else
             {
                 return new Message(MessageType.CON, code);
-            }
-        }
-
-        /// <summary>
-        /// Matches two messages to buddies if they have the same message ID.
-        /// </summary>
-        /// <param name="msg1">The first message</param>
-        /// <param name="msg2">The second message</param>
-        /// <returns>True iif the messages were matched to buddies</returns>
-        public static Boolean MatchBuddies(Message msg1, Message msg2)
-        {
-            if (
-                msg1 != null && msg2 != null &&  // both messages must exist
-                msg1 != msg2 &&                  // no message can be its own buddy 
-                msg1.ID == msg2.ID     // buddy condition: same IDs
-            )
-            {
-                msg1._buddy = msg2;
-                msg2._buddy = msg1;
-
-                return true;
-            }
-            else
-            {
-                return false;
             }
         }
 

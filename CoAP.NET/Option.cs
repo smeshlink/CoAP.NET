@@ -12,11 +12,12 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using CoAP.Util;
 
 namespace CoAP
 {
     /// <summary>
-    /// This class describes the options of the CoAP messages
+    /// This class describes the options of the CoAP messages.
     /// </summary>
     public class Option
     {
@@ -135,9 +136,8 @@ namespace CoAP
         }
 
         /// <summary>
-        /// 
+        /// Returns a human-readable string representation of the option's value.
         /// </summary>
-        /// <returns></returns>
         public override String ToString()
         {
             switch (this._type)
@@ -146,13 +146,11 @@ namespace CoAP
                     return MediaType.ToString(IntValue);
                 case OptionType.MaxAge:
                     return String.Format("{0} s", IntValue);
-                case OptionType.ETag:
-                case OptionType.Token:
-                    return Hex(RawValue);
                 case OptionType.UriPort:
                 case OptionType.Observe:
                 case OptionType.Block2:
                 case OptionType.Block1:
+                case OptionType.Size:
                     return IntValue.ToString();
                 case OptionType.ProxyUri:
                 case OptionType.UriHost:
@@ -161,6 +159,13 @@ namespace CoAP
                 case OptionType.UriPath:
                 case OptionType.UriQuery:
                     return StringValue;
+                case OptionType.IfNoneMatch:
+                    return "set";
+                case OptionType.Accept:
+                    return MediaType.ToString(IntValue);
+                case OptionType.ETag:
+                case OptionType.Token:
+                case OptionType.IfMatch:
                 default:
                     return Hex(RawValue);
             }
@@ -195,9 +200,7 @@ namespace CoAP
             else if (null != this.RawValue && null == other.RawValue)
                 return false;
             else
-                // TODO 有没有更合适的方法判断？
-                //return Array.Equals(this.RawValue, other.RawValue);
-                return this.GetHashCode().Equals(other.GetHashCode());
+                return Sort.IsSequenceEqualTo(this.RawValue, other.RawValue);
         }
 
         /// <summary>
@@ -270,7 +273,8 @@ namespace CoAP
             {
                 foreach (String segment in s.Split(new String[] { delimiter }, StringSplitOptions.None))
                 {
-                    if (!String.IsNullOrEmpty(segment))
+                    // empty path segments are allowed (e.g., /test vs /test/)
+                    if ("/".Equals(delimiter) || !String.IsNullOrEmpty(segment))
                     {
                         opts.Add(Create(type, segment));
                     }
@@ -294,12 +298,40 @@ namespace CoAP
             else
             {
                 StringBuilder sb = new StringBuilder();
+                Boolean append = false;
                 foreach (Option opt in options)
                 {
-                    sb.Append(delimiter);
+                    if (append)
+                        sb.Append(delimiter);
+                    else
+                        append = true;
                     sb.Append(opt.StringValue);
                 }
                 return sb.ToString();
+            }
+        }
+
+        /// <summary>
+        /// Returns a hex string representation of the given bytes array.
+        /// </summary>
+        public static String Hex(Byte[] data)
+        {
+            const String digits = "0123456789ABCDEF";
+            if (data != null && data.Length > 0)
+            {
+                StringBuilder builder = new StringBuilder(data.Length * 3);
+                for (Int32 i = 0; i < data.Length; i++)
+                {
+                    builder.Append(digits[(data[i] >> 4) & 0xF]);
+                    builder.Append(digits[data[i] & 0xF]);
+                    if (i < data.Length - 1)
+                        builder.Append(' ');
+                }
+                return builder.ToString();
+            }
+            else
+            {
+                return "--";
             }
         }
 
@@ -342,6 +374,8 @@ namespace CoAP
                     return "Accept";
                 case OptionType.IfMatch:
                     return "If-Match";
+                case OptionType.FencepostDivisor:
+                    return "Fencepost-Divisor";
                 case OptionType.Block2:
                     return "Block2";
                 case OptionType.Block1:
@@ -371,27 +405,6 @@ namespace CoAP
                 hash ^= hash >> 17;
                 hash += hash << 5;
                 return hash;
-            }
-        }
-
-        private static String Hex(Byte[] data)
-        {
-            const String digits = "0123456789ABCDEF";
-            if (data != null && data.Length > 0)
-            {
-                StringBuilder builder = new StringBuilder(data.Length * 3);
-                for (int i = 0; i < data.Length; i++)
-                {
-                    builder.Append(digits[(data[i] >> 4) & 0xF]);
-                    builder.Append(digits[data[i] & 0xF]);
-                    if (i < data.Length - 1)
-                        builder.Append(' ');
-                }
-                return builder.ToString();
-            }
-            else
-            {
-                return "--";
             }
         }
 
