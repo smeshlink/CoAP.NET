@@ -110,7 +110,7 @@ namespace CoAP.Layers
                         {
                             if (log.IsDebugEnabled)
                                 log.Debug("MessageLayer - Re-acknowledging duplicate response: " + msg.Key);
-                            msg.Accept();
+                            SendMessageOverLowerLayer(msg.NewAccept());
                         }
                         catch (Exception ex)
                         {

@@ -54,7 +54,7 @@ namespace CoAP.Layers
                         // TODO try to recover from peerAddress
                         if (!ObservingManager.Instance.HasSubscription(msg.SequenceKey))
                         {
-                            msg.Reject();
+                            SendMessageOverLowerLayer(msg.NewReject());
                             return;
                         }
                     }
@@ -70,7 +70,7 @@ namespace CoAP.Layers
                         {
                             if (log.IsInfoEnabled)
                                 log.Info("MatchingLayer - Rejecting unexpected response: " + response.SequenceKey);
-                            response.Reject();
+                            SendMessageOverLowerLayer(response.NewReject());
                         }
                         else
                         {
@@ -97,7 +97,9 @@ namespace CoAP.Layers
 
                 // FIXME accept here but MessageLayer?
                 if (msg.IsConfirmable)
-                    msg.Accept();
+                {
+                    SendMessageOverLowerLayer(msg.NewAccept());
+                }
             }
 
             DeliverMessage(msg);
