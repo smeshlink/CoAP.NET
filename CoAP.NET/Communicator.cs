@@ -21,6 +21,77 @@ namespace CoAP
     {
         private static CommonCommunicator instance;
 
+#if COAPALL
+        private static CommonCommunicator draft03;
+        private static CommonCommunicator draft08;
+        private static CommonCommunicator draft12;
+        private static CommonCommunicator draft13;
+
+        public static CommonCommunicator Draft03
+        {
+            get
+            {
+                if (draft03 == null)
+                {
+                    lock (typeof(Communicator))
+                    {
+                        if (draft03 == null)
+                            draft03 = CreateCommunicator(0, 0, Spec.Draft03);
+                    }
+                }
+                return draft03;
+            }
+        }
+
+        public static CommonCommunicator Draft08
+        {
+            get
+            {
+                if (draft08 == null)
+                {
+                    lock (typeof(Communicator))
+                    {
+                        if (draft08 == null)
+                            draft08 = CreateCommunicator(0, 0, Spec.Draft08);
+                    }
+                }
+                return draft08;
+            }
+        }
+
+        public static CommonCommunicator Draft12
+        {
+            get
+            {
+                if (draft12 == null)
+                {
+                    lock (typeof(Communicator))
+                    {
+                        if (draft12 == null)
+                            draft12 = CreateCommunicator(0, 0, Spec.Draft12);
+                    }
+                }
+                return draft12;
+            }
+        }
+
+        public static CommonCommunicator Draft13
+        {
+            get
+            {
+                if (draft13 == null)
+                {
+                    lock (typeof(Communicator))
+                    {
+                        if (draft13 == null)
+                            draft13 = CreateCommunicator(0, 0, Spec.Draft13);
+                    }
+                }
+                return draft13;
+            }
+        }
+#endif
+
         public static CommonCommunicator Default
         {
             get
@@ -32,7 +103,7 @@ namespace CoAP
                         if (instance == null)
                         {
 #if COAPALL
-                            instance = new CommonCommunicator(0, 0, Spec.Draft12);
+                            instance = Draft13;
 #else
                             instance = new CommonCommunicator(0, 0);
 #endif
@@ -49,9 +120,9 @@ namespace CoAP
         }
 
 #if COAPALL
-        public static CommonCommunicator CreateCommunicator(ISpec spec)
+        public static CommonCommunicator CreateCommunicator(Int32 port, Int32 transferBlockSize, ISpec spec)
         {
-            return new CommonCommunicator(spec.DefaultPort, spec.DefaultBlockSize, spec);
+            return new CommonCommunicator(port, transferBlockSize, spec);
         }
 #endif
 

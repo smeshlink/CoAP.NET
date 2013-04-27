@@ -20,6 +20,7 @@ namespace CoAP
     public static class Spec
     {
         public const Int32 SupportedVersion = 1;
+        public const Int32 DefaultPort = 5683;
         public static readonly ISpec Draft03 = new CoAP.Draft03();
         public static readonly ISpec Draft08 = new CoAP.Draft08();
         public static readonly ISpec Draft12 = new CoAP.Draft12();

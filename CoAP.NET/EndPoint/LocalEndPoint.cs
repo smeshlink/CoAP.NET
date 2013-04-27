@@ -30,12 +30,12 @@ namespace CoAP.EndPoint
 
 #if COAPALL
         public LocalEndPoint(ISpec spec)
-            : this(CoAP.Communicator.CreateCommunicator(spec))
+            : this(CoAP.Communicator.CreateCommunicator(spec.DefaultPort, spec.DefaultBlockSize, spec))
         { }
 #endif
 
         public LocalEndPoint()
-            : this(CoapConstants.DefaultPort, 0)
+            : this(Spec.DefaultPort, 0)
         { }
 
         public LocalEndPoint(Int32 port)
