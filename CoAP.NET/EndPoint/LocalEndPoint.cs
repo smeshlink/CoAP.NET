@@ -30,16 +30,26 @@ namespace CoAP.EndPoint
 
 #if COAPALL
         public LocalEndPoint(ISpec spec)
-        {
-            _communicator = new Communicator.CommonCommunicator(spec);
-            _communicator.RegisterReceiver(this);
-            _root = new RootResource();
-            AddResource(new DiscoveryResource(_root));
-        }
+            : this(CoAP.Communicator.CreateCommunicator(spec))
+        { }
 #endif
+
         public LocalEndPoint()
+            : this(CoapConstants.DefaultPort, 0)
+        { }
+
+        public LocalEndPoint(Int32 port)
+            : this(port, 0)
+        { }
+
+        public LocalEndPoint(Int32 port, Int32 transferBlockSize)
+            : this(CoAP.Communicator.CreateCommunicator(port, transferBlockSize))
+        { }
+
+        public LocalEndPoint(Communicator.CommonCommunicator communicator)
         {
-            _communicator = CoAP.Communicator.Default;
+            _communicator = communicator;
+            _communicator.RegisterReceiver(this);
             _root = new RootResource();
             AddResource(new DiscoveryResource(_root));
         }

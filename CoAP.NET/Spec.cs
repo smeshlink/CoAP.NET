@@ -381,12 +381,12 @@ namespace CoAP
         const Int32 MaxOptionLengthBase = (1 << OptionLengthBaseBits) - 2;
 
 #if COAP12
-        public const String Name = "draft-ietf-core-coap-13";
+        public const String Name = "draft-ietf-core-coap-12";
         public const Int32 SupportedVersion = 1;
         public const Int32 DefaultPort = 5683;
         public const Int32 DefaultBlockSize = 512;
 #else
-        public String Name { get { return "draft-ietf-core-coap-13"; } }
+        public String Name { get { return "draft-ietf-core-coap-12"; } }
         public Int32 SupportedVersion { get { return 1; } }
         public Int32 DefaultPort { get { return 5683; } }
         public Int32 DefaultBlockSize { get { return 512; } }

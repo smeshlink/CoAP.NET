@@ -27,27 +27,45 @@ namespace CoAP
             {
                 if (instance == null)
                 {
-                    //lock (typeof(CommonCommunicator))
-                    //{
-                    //    if (instance == null)
-                    //    {
-                    //        instance = new CommonCommunicator(0, CoapConstants.DefaultBlockSize);
-                    //    }
-                    //}
+                    lock (typeof(CommonCommunicator))
+                    {
+                        if (instance == null)
+                        {
+#if COAPALL
+                            instance = new CommonCommunicator(0, 0, Spec.Draft12);
+#else
+                            instance = new CommonCommunicator(0, 0);
+#endif
+                        }
+                    }
                 }
                 return instance;
             }
         }
 
-        public class CommonCommunicator : UpperLayer
+        public static CommonCommunicator CreateCommunicator(Int32 port, Int32 transferBlockSize)
+        {
+            return new CommonCommunicator(port, transferBlockSize);
+        }
+
+#if COAPALL
+        public static CommonCommunicator CreateCommunicator(ISpec spec)
+        {
+            return new CommonCommunicator(spec.DefaultPort, spec.DefaultBlockSize, spec);
+        }
+#endif
+
+        public class CommonCommunicator : UpperLayer, IShutdown
         {
             private readonly CoapStack _coapStack;
 
-            public CommonCommunicator(ISpec spec)
+#if COAPALL
+            public CommonCommunicator(Int32 port, Int32 transferBlockSize, ISpec spec)
             {
-                _coapStack = new CoapStack(spec);
+                _coapStack = new CoapStack(port, transferBlockSize, spec);
                 LowerLayer = _coapStack;
             }
+#endif
 
             public CommonCommunicator(Int32 port, Int32 transferBlockSize)
             {
@@ -58,6 +76,11 @@ namespace CoAP
             public Int32 Port
             {
                 get { return _coapStack.Port; }
+            }
+
+            public void Shutdown()
+            {
+                _coapStack.Shutdown();
             }
 
             protected override void DoSendMessage(Message msg)
