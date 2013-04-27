@@ -22,7 +22,7 @@ namespace CoAP.Layers
     /// order, appear duplicated, or are lost without any notice, especially on lossy
     /// physical layers.
     /// </summary>
-    public class UDPLayer : AbstractLayer
+    public class UDPLayer : AbstractLayer, IShutdown
     {
         public const Int32 ReceiveBufferSize = 4096;
         private static ILogger log = LogManager.GetLogger(typeof(UDPLayer));
@@ -78,6 +78,14 @@ namespace CoAP.Layers
         public Int32 Port
         {
             get { return _port == 0 ? ((IPEndPoint)_socketV6.Socket.LocalEndPoint).Port : _port; }
+        }
+
+        public void Shutdown()
+        {
+            if (_socketV6 != null)
+                _socketV6.Socket.Close();
+            if (_socketV4 != null)
+                _socketV4.Socket.Close();
         }
 
         /// <summary>

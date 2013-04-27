@@ -16,24 +16,15 @@ namespace CoAP.Layers
     /// <summary>
     /// The CoapStack encapsulates the layers needed to communicate to CoAP nodes.
     /// </summary>
-    public class CoapStack : UpperLayer
+    public class CoapStack : UpperLayer, IShutdown
     {
         private UDPLayer _udpLayer;
 
 #if COAPALL
-        public CoapStack(ISpec spec)
+        public CoapStack(Int32 port, Int32 transferBlockSize, ISpec spec)
+            : this(port, transferBlockSize)
         {
-            TokenLayer tokenLayer = new TokenLayer();
-            TransferLayer transferLayer = new TransferLayer(spec.DefaultBlockSize);
-            MatchingLayer matchingLayer = new MatchingLayer();
-            MessageLayer messageLayer = new MessageLayer();
-            _udpLayer = new UDPLayer(spec.DefaultPort) { Spec = spec };
-
-            this.LowerLayer = tokenLayer;
-            tokenLayer.LowerLayer = transferLayer;
-            transferLayer.LowerLayer = matchingLayer;
-            matchingLayer.LowerLayer = messageLayer;
-            messageLayer.LowerLayer = _udpLayer;
+            _udpLayer.Spec = spec;
         }
 #endif
 
@@ -55,6 +46,11 @@ namespace CoAP.Layers
         public Int32 Port
         {
             get { return _udpLayer.Port; }
+        }
+
+        public void Shutdown()
+        {
+            _udpLayer.Shutdown();
         }
     }
 }

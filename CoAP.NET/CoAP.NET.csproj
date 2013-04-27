@@ -49,6 +49,7 @@
     <Compile Include="IMessageHandler.cs" />
     <Compile Include="IRequestHandler.cs" />
     <Compile Include="IMessageReceiver.cs" />
+    <Compile Include="IShutdown.cs" />
     <Compile Include="Layers\AbstractLayer.cs" />
     <Compile Include="Layers\AdverseLayer.cs" />
     <Compile Include="Layers\CoapStack.cs" />
