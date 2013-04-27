@@ -23,35 +23,24 @@ namespace CoAP
         /// </summary>
         Reserved = 0,
         /// <summary>
-        /// C, 8-bit uint, 1 B, 0 (text/plain)
+        /// C, unsigned integer, 1--3 B, 0
         /// <remarks>draft-ietf-core-coap</remarks>
         /// </summary>
-        ContentType = 1,
+        IfMatch = 1,
         /// <summary>
-        /// E, variable length, 1--4 B, 60 Seconds
+        /// C, String, 1-270 B, ""
         /// <remarks>draft-ietf-core-coap</remarks>
         /// </summary>
-        MaxAge = 2,
-        /// <summary>
-        /// C, String, 1-270 B, "coap"
-        /// <remarks>draft-ietf-core-coap</remarks>
-        /// </summary>
-        ProxyUri = 3,
+        UriHost = 3,
         /// <summary>
         /// E, sequence of bytes, 1-4 B, -
         /// <remarks>draft-ietf-core-coap</remarks>
         /// </summary>
         ETag = 4,
         /// <summary>
-        /// C, String, 1-270 B, ""
         /// <remarks>draft-ietf-core-coap</remarks>
         /// </summary>
-        UriHost = 5,
-        /// <summary>
-        /// E, String, 1-270 B, -
-        /// <remarks>draft-ietf-core-coap</remarks>
-        /// </summary>
-        LocationPath = 6,
+        IfNoneMatch = 5,
         /// <summary>
         /// C, uint, 0-2 B
         /// <remarks>draft-ietf-core-coap</remarks>
@@ -61,17 +50,22 @@ namespace CoAP
         /// E, String, 1-270 B, -
         /// <remarks>draft-ietf-core-coap</remarks>
         /// </summary>
-        LocationQuery = 8,
+        LocationPath = 8,
         /// <summary>
         /// C, String, 1-270 B, ""
         /// <remarks>draft-ietf-core-coap</remarks>
         /// </summary>
-        UriPath = 9,
+        UriPath = 11,
         /// <summary>
-        /// C, Sequence of Bytes, 1-2 B, -
+        /// C, 8-bit uint, 1 B, 0 (text/plain)
         /// <remarks>draft-ietf-core-coap</remarks>
         /// </summary>
-        Token = 11,
+        ContentType = 12,
+        /// <summary>
+        /// E, variable length, 1--4 B, 60 Seconds
+        /// <remarks>draft-ietf-core-coap</remarks>
+        /// </summary>
+        MaxAge = 14,
         /// <summary>
         /// C, String, 1-270 B, ""
         /// <remarks>draft-ietf-core-coap</remarks>
@@ -81,39 +75,46 @@ namespace CoAP
         /// E  Sequence of Bytes, 1-n B, -
         /// <remarks>draft-ietf-core-coap</remarks>
         /// </summary>
-        Accept = 12,
+        Accept = 16,
         /// <summary>
-        /// C, unsigned integer, 1--3 B, 0
+        /// C, Sequence of Bytes, 1-2 B, -
         /// <remarks>draft-ietf-core-coap</remarks>
         /// </summary>
-        IfMatch = 13,
+        Token = 19,
         /// <summary>
+        /// E, String, 1-270 B, -
         /// <remarks>draft-ietf-core-coap</remarks>
         /// </summary>
-        IfNoneMatch = 21,
+        LocationQuery = 20,
         /// <summary>
-        /// no-op for fenceposting
-        /// <remarks>draft-bormann-coap-misc-04</remarks>
+        /// C, String, 1-270 B, "coap"
+        /// <remarks>draft-ietf-core-coap</remarks>
         /// </summary>
-        FencepostDivisor = 14,
+        ProxyUri = 35,
 
         /// <summary>
         /// E, Duration, 1 B, 0
         /// <remarks>draft-ietf-core-observe</remarks>
         /// </summary>
-        Observe = 10,
+        Observe = 6,
 
         /// <summary>
         /// <remarks>draft-ietf-core-block</remarks>
         /// </summary>
-        Block2 = 17,
+        Block2 = 23,
         /// <summary>
         /// <remarks>draft-ietf-core-block</remarks>
         /// </summary>
-        Block1 = 19,
+        Block1 = 27,
         /// <summary>
         /// <remarks>draft-ietf-core-block-08</remarks>
         /// </summary>
         Size = 28,
+
+        /// <summary>
+        /// no-op for fenceposting
+        /// <remarks>draft-bormann-coap-misc-04</remarks>
+        /// </summary>
+        FencepostDivisor = 114,
     }
 }

@@ -26,6 +26,7 @@ namespace CoAP
 
     public interface ISpec
     {
+        String Name { get; }
         Int32 SupportedVersion { get; }
         Int32 DefaultPort { get; }
         Byte[] Encode(Message msg);
@@ -56,9 +57,11 @@ namespace CoAP
         static readonly ILogger log = LogManager.GetLogger(typeof(Spec));
 
 #if COAP08
+        public const String Name = "draft-ietf-core-coap-08";
         public const Int32 SupportedVersion = 1;
         public const Int32 DefaultPort = 5683;
 #else
+        public String Name { get { return "draft-ietf-core-coap-08"; } }
         public Int32 SupportedVersion { get { return 1; } }
         public Int32 DefaultPort { get { return 5683; } }
 #endif
@@ -375,9 +378,11 @@ namespace CoAP
         const Int32 MaxOptionLengthBase = (1 << OptionLengthBaseBits) - 2;
 
 #if COAP12
+        public const String Name = "draft-ietf-core-coap-13";
         public const Int32 SupportedVersion = 1;
         public const Int32 DefaultPort = 5683;
 #else
+        public String Name { get { return "draft-ietf-core-coap-13"; } }
         public Int32 SupportedVersion { get { return 1; } }
         public Int32 DefaultPort { get { return 5683; } }
 #endif
@@ -619,52 +624,7 @@ namespace CoAP
         public Int32 GetOptionNumber(OptionType optionType)
 #endif
         {
-            switch (optionType)
-            {
-                // draft-ietf-core-coap-12
-                case OptionType.Reserved:
-                    return 0;
-                case OptionType.IfMatch:
-                    return 1;
-                case OptionType.UriHost:
-                    return 3;
-                case OptionType.ETag:
-                    return 4;
-                case OptionType.IfNoneMatch:
-                    return 5;
-                case OptionType.UriPort:
-                    return 7;
-                case OptionType.LocationPath:
-                    return 8;
-                case OptionType.UriPath:
-                    return 11;
-                case OptionType.ContentType:
-                    return 12;
-                case OptionType.MaxAge:
-                    return 14;
-                case OptionType.UriQuery:
-                    return 15;
-                case OptionType.Accept:
-                    return 16;
-                case OptionType.Token:
-                    return 19;
-                case OptionType.LocationQuery:
-                    return 20;
-                case OptionType.ProxyUri:
-                    return 35;
-                // draft-ietf-core-observe-07
-                case OptionType.Observe:
-                    return 6;
-                // draft-ietf-core-block-08
-                case OptionType.Block2:
-                    return 23;
-                case OptionType.Block1:
-                    return 27;
-                case OptionType.Size:
-                    return 28;
-                default:
-                    return (Int32)optionType;
-            }
+            return (Int32)optionType;
         }
 
 #if COAP12
@@ -673,49 +633,7 @@ namespace CoAP
         public OptionType GetOptionType(Int32 optionNumber)
 #endif
         {
-            switch (optionNumber)
-            {
-                case 0:
-                    return OptionType.Reserved;
-                case 1:
-                    return OptionType.IfMatch;
-                case 3:
-                    return OptionType.UriHost;
-                case 4:
-                    return OptionType.ETag;
-                case 5:
-                    return OptionType.IfNoneMatch;
-                case 7:
-                    return OptionType.UriPort;
-                case 8:
-                    return OptionType.LocationPath;
-                case 11:
-                    return OptionType.UriPath;
-                case 12:
-                    return OptionType.ContentType;
-                case 14:
-                    return OptionType.MaxAge;
-                case 15:
-                    return OptionType.UriQuery;
-                case 16:
-                    return OptionType.Accept;
-                case 19:
-                    return OptionType.Token;
-                case 20:
-                    return OptionType.LocationQuery;
-                case 35:
-                    return OptionType.ProxyUri;
-                case 6:
-                    return OptionType.Observe;
-                case 23:
-                    return OptionType.Block2;
-                case 27:
-                    return OptionType.Block1;
-                case 28:
-                    return OptionType.Size;
-                default:
-                    return (OptionType)optionNumber;
-            }
+            return (OptionType)optionNumber;
         }
     }
 #endif
