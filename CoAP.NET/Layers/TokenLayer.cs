@@ -51,7 +51,12 @@ namespace CoAP.Layers
             else if (msg.Code == Code.Empty)
             {
                 if (log.IsDebugEnabled)
-                    log.Debug("TokenLayer - Accepting request: " + msg.Key);
+                {
+                    if (msg.Type == MessageType.RST)
+                        log.Debug("TokenLayer - Rejecting request: " + msg.Key);
+                    else
+                        log.Debug("TokenLayer - Accepting request: " + msg.Key);
+                }
             }
             else
             {

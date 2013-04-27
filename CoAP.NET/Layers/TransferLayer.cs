@@ -369,7 +369,7 @@ namespace CoAP.Layers
                 BlockOption next = new BlockOption(blockOpt.Type, demandNUM, demandSZX, blockOpt.Type == OptionType.Block1);
                 reply.SetOption(next);
                 // echo options
-                reply.SetOption(msg.GetFirstOption(OptionType.Token));
+                reply.Token = msg.Token;
 
                 try
                 {
@@ -449,6 +449,7 @@ namespace CoAP.Layers
                 }
 
                 block.PeerAddress = msg.PeerAddress;
+                block.Token = msg.Token;
 
                 // use same options
                 foreach (Option opt in msg.GetOptions())

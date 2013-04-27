@@ -381,22 +381,32 @@ namespace CoAP.EndPoint
             else
             {
                 // resource is added to base
+
                 String[] segments = path.Split('/');
-
-                resource.Name = segments[segments.Length - 1];
-
-                // insert middle segments
-                Resource sub = null;
-                for (Int32 i = 0; i < segments.Length - 1; i++)
+                if (segments.Length > 1)
                 {
-                    sub = baseRes.CreateInstance(segments[i]);
-                    sub.Hidden = true;
-                    baseRes.AddSubResource(sub);
-                    baseRes = sub;
+                    if (log.IsDebugEnabled)
+                        log.Debug("Splitting up compound resource " + resource.Name);
+                    resource.Name = segments[segments.Length - 1];
+
+                    // insert middle segments
+                    Resource sub = null;
+                    for (Int32 i = 0; i < segments.Length - 1; i++)
+                    {
+                        sub = baseRes.CreateInstance(segments[i]);
+                        sub.Hidden = true;
+                        baseRes.AddSubResource(sub);
+                        baseRes = sub;
+                    }
                 }
+                else
+                    resource.Name = path;
 
                 resource._parent = baseRes;
                 baseRes.SubResources[resource.Name] = resource;
+
+                if (log.IsDebugEnabled)
+                    log.Debug("Add resource " + resource.Name);
             }
 
             // update number of sub-resources in the tree
