@@ -23,8 +23,8 @@ namespace CoAP
         /// </summary>
         Reserved = 0,
         /// <summary>
-        /// C, unsigned integer, 1--3 B, 0
-        /// <remarks>draft-ietf-core-coap</remarks>
+        /// C, opaque, 0-8 B, -
+        /// <remarks>draft-ietf-core-coap-07</remarks>
         /// </summary>
         IfMatch = 1,
         /// <summary>
@@ -38,7 +38,7 @@ namespace CoAP
         /// </summary>
         ETag = 4,
         /// <summary>
-        /// <remarks>draft-ietf-core-coap</remarks>
+        /// <remarks>draft-ietf-core-coap-07</remarks>
         /// </summary>
         IfNoneMatch = 5,
         /// <summary>
@@ -78,7 +78,7 @@ namespace CoAP
         Accept = 16,
         /// <summary>
         /// C, Sequence of Bytes, 1-2 B, -
-        /// <remarks>draft-ietf-core-coap</remarks>
+        /// <remarks>draft-ietf-core-coap-03, draft-ietf-core-coap-12</remarks>
         /// </summary>
         Token = 19,
         /// <summary>
@@ -88,9 +88,12 @@ namespace CoAP
         LocationQuery = 20,
         /// <summary>
         /// C, String, 1-270 B, "coap"
-        /// <remarks>draft-ietf-core-coap</remarks>
+        /// <remarks>draft-ietf-core-coap-04</remarks>
         /// </summary>
         ProxyUri = 35,
+        /// <summary>
+        /// <remarks>draft-ietf-core-coap-13</remarks>
+        /// </summary>
         ProxyScheme = 39,
 
         /// <summary>
