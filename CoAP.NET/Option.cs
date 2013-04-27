@@ -365,6 +365,8 @@ namespace CoAP
                     return "Size";
                 case OptionType.IfNoneMatch:
                     return "If-None-Match";
+                case OptionType.ProxyScheme:
+                    return "Proxy-Scheme";
                 default:
                     return String.Format("Unknown option [{0}]", type);
             }

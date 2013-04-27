@@ -35,6 +35,7 @@ namespace CoAP
         private MessageType _type;
         private Int32 _code;
         private Int32 _id = InvalidID;
+        private Byte[] _token;
         private Byte[] _payLoadBytes;
         private Boolean _requiresToken = true;
         private Boolean _requiresBlockwise = false;
@@ -102,7 +103,7 @@ namespace CoAP
             reply._peerAddress = _peerAddress;
 
             // echo token
-            reply.SetOption(GetFirstOption(OptionType.Token));
+            reply.Token = Token;
             reply.RequiresToken = this.RequiresToken;
             // create an empty reply by default
             reply.Code = CoAP.Code.Empty;
@@ -119,7 +120,7 @@ namespace CoAP
             ack.PeerAddress = this.PeerAddress;
             ack.ID = this.ID;
             // echo token
-            ack.SetOption(GetFirstOption(OptionType.Token));
+            ack.Token = Token;
             return ack;
         }
 
@@ -348,7 +349,7 @@ namespace CoAP
             list.Add(option);
 
             if (option.Type == OptionType.Token)
-                _requiresToken = false;
+                Token = option.RawValue;
         }
 
         /// <summary>
@@ -589,14 +590,14 @@ namespace CoAP
 
         public Byte[] Token
         {
-            get
-            {
-                Option opt = GetFirstOption(OptionType.Token);
-                return opt == null ? TokenManager.EmptyToken : opt.RawValue;
-            }
+            get { return _token == null ? TokenManager.EmptyToken : _token; }
             set
             {
-                SetOption(Option.Create(OptionType.Token, value));
+                if (value != null && value != TokenManager.EmptyToken)
+                    _token = (Byte[])value.Clone();
+                RequiresToken = false;
+                
+                _optionMap[OptionType.Token] = new List<Option>() { Option.Create(OptionType.Token, value) };
             }
         }
 

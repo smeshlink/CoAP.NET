@@ -74,7 +74,7 @@ namespace CoAP.Util
         /// Writes a sequence of bytes to the stream
         /// </summary>
         /// <param name="bytes">The sequence of bytes to write</param>
-        public void WriteBytes(byte[] bytes)
+        public void WriteBytes(Byte[] bytes)
         {
             // check if anything to do at all
             if (bytes == null)
@@ -94,6 +94,14 @@ namespace CoAP.Util
                 // to byte stream to increase
                 _stream.Write(bytes, 0, bytes.Length);
             }
+        }
+
+        /// <summary>
+        /// Writes one byte to the stream.
+        /// </summary>
+        public void WriteByte(Byte b)
+        {
+            WriteBytes(new Byte[] { b });
         }
 
         /// <summary>

@@ -7,7 +7,7 @@ namespace CoAP.Examples
     class CoAPServer : LocalEndPoint
     {
 #if COAPALL
-        static ISpec Spec = CoAP.Spec.Draft12;
+        static ISpec Spec = CoAP.Spec.Draft13;
 #endif
 
         public CoAPServer()

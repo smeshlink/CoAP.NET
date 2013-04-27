@@ -91,6 +91,7 @@ namespace CoAP
         /// <remarks>draft-ietf-core-coap</remarks>
         /// </summary>
         ProxyUri = 35,
+        ProxyScheme = 39,
 
         /// <summary>
         /// E, Duration, 1 B, 0

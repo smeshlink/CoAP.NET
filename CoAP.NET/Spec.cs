@@ -23,6 +23,7 @@ namespace CoAP
         public static readonly ISpec Draft03 = new CoAP.Draft03();
         public static readonly ISpec Draft08 = new CoAP.Draft08();
         public static readonly ISpec Draft12 = new CoAP.Draft12();
+        public static readonly ISpec Draft13 = new CoAP.Draft13();
     }
 
     public interface ISpec
@@ -1015,6 +1016,264 @@ namespace CoAP
 #endif
         {
             return (OptionType)optionNumber;
+        }
+    }
+#endif
+    #endregion
+
+    #region CoAP 13
+#if COAPALL || COAP13
+#if COAP13
+    public static class Spec
+#else
+    class Draft13 : ISpec
+#endif
+    {
+        const Int32 VersionBits = 2;
+        const Int32 TypeBits = 2;
+        const Int32 TokenLengthBits = 4;
+        const Int32 CodeBits = 8;
+        const Int32 IDBits = 16;
+        const Int32 OptionDeltaBits = 4;
+        const Int32 OptionLengthBits = 4;
+        const Byte PayloadMarker = 0xFF;
+
+        static readonly ILogger log = LogManager.GetLogger(typeof(Spec));
+
+#if COAP13
+        public const String Name = "draft-ietf-core-coap-13";
+        public const Int32 SupportedVersion = 1;
+        public const Int32 DefaultPort = 5683;
+        public const Int32 DefaultBlockSize = 512;
+#else
+        public String Name { get { return "draft-ietf-core-coap-13"; } }
+        public Int32 SupportedVersion { get { return 1; } }
+        public Int32 DefaultPort { get { return 5683; } }
+        public Int32 DefaultBlockSize { get { return 512; } }
+#endif
+
+#if COAP13
+        public static Byte[] Encode(Message msg)
+#else
+        public Byte[] Encode(Message msg)
+#endif
+        {
+            // create datagram writer to encode message data
+            DatagramWriter writer = new DatagramWriter();
+
+            // write fixed-size CoAP headers
+            writer.Write(msg.Version, VersionBits);
+            writer.Write((Int32)msg.Type, TypeBits);
+            writer.Write(msg.Token.Length, TokenLengthBits);
+            writer.Write(msg.Code, CodeBits);
+            writer.Write(msg.ID, IDBits);
+
+            // write token, which may be 0 to 8 bytes, given by token length field
+            writer.WriteBytes(msg.Token);
+
+            Int32 lastOptionNumber = 0;
+            List<Option> options = (List<Option>)msg.GetOptions();
+            Sort.InsertionSort(options, delegate(Option o1, Option o2)
+            {
+                return GetOptionNumber(o1.Type).CompareTo(GetOptionNumber(o2.Type));
+            });
+
+            foreach (Option opt in options)
+            {
+                if (opt.Type == OptionType.Token)
+                    continue;
+                if (opt.IsDefault)
+                    continue;
+
+                // write 4-bit option delta
+                Int32 optNum = GetOptionNumber(opt.Type);
+                Int32 optionDelta = optNum - lastOptionNumber;
+                Int32 optionDeltaNibble = GetOptionNibble(optionDelta);
+                writer.Write(optionDeltaNibble, OptionDeltaBits);
+
+                // write 4-bit option length
+                Int32 optionLength = opt.Length;
+                Int32 optionLengthNibble = GetOptionNibble(optionLength);
+                writer.Write(optionLengthNibble, OptionLengthBits);
+
+                // write extended option delta field (0 - 2 bytes)
+                if (optionDeltaNibble == 13)
+                {
+                    writer.Write(optionDelta - 13, 8);
+                }
+                else if (optionDeltaNibble == 14)
+                {
+                    writer.Write(optionDelta - 269, 16);
+                }
+
+                // write extended option length field (0 - 2 bytes)
+                if (optionLengthNibble == 13)
+                {
+                    writer.Write(optionLength - 13, 8);
+                }
+                else if (optionLengthNibble == 14)
+                {
+                    writer.Write(optionLength - 269, 16);
+                }
+
+                // write option value
+                writer.WriteBytes(opt.RawValue);
+
+                lastOptionNumber = optNum;
+            }
+
+            if (msg.Payload != null && msg.Payload.Length > 0)
+            {
+                // if payload is present and of non-zero length, it is prefixed by
+                // an one-byte Payload Marker (0xFF) which indicates the end of
+                // options and the start of the payload
+                writer.WriteByte(PayloadMarker);
+            }
+            //write payload
+            writer.WriteBytes(msg.Payload);
+
+            return writer.ToByteArray();
+        }
+
+#if COAP13
+        public static Message Decode(Byte[] bytes)
+#else
+        public Message Decode(Byte[] bytes)
+#endif
+        {
+            DatagramReader datagram = new DatagramReader(bytes);
+
+            // read headers
+            Int32 version = datagram.Read(VersionBits);
+            if (version != SupportedVersion)
+                return null;
+
+            MessageType type = (MessageType)datagram.Read(TypeBits);
+            Int32 tokenLength = datagram.Read(TokenLengthBits);
+            Int32 code = datagram.Read(CodeBits);
+
+            // create new message with subtype according to code number
+            Message msg = Message.Create(code);
+
+            msg.Type = type;
+            msg.ID = datagram.Read(IDBits);
+
+            // read token
+            if (tokenLength > 0)
+                msg.Token = datagram.ReadBytes(tokenLength);
+            else
+                msg.RequiresToken = false;
+
+            // read options
+            Int32 currentOption = 0;
+            while (datagram.BytesAvailable)
+            {
+                Byte nextByte = datagram.ReadNextByte();
+                if (nextByte == PayloadMarker)
+                {
+                    if (!datagram.BytesAvailable)
+                        // the presence of a marker followed by a zero-length payload
+                        // must be processed as a message format error
+                        return null;
+
+                    msg.Payload = datagram.ReadBytesLeft();
+                }
+                else
+                {
+                    // the first 4 bits of the byte represent the option delta
+                    Int32 optionDeltaNibble = (0xF0 & nextByte) >> 4;
+                    currentOption += GetValueFromOptionNibble(optionDeltaNibble, datagram);
+
+                    // the second 4 bits represent the option length
+                    Int32 optionLengthNibble = (0x0F & nextByte);
+                    Int32 optionLength = GetValueFromOptionNibble(optionLengthNibble, datagram);
+
+                    // read option
+                    OptionType currentOptionType = GetOptionType(currentOption);
+                    Option opt = Option.Create(currentOptionType);
+                    opt.RawValue = datagram.ReadBytes(optionLength);
+
+                    msg.AddOption(opt);
+                }
+            }
+
+            return msg;
+        }
+
+#if COAP13
+        public static Int32 GetOptionNumber(OptionType optionType)
+#else
+        public Int32 GetOptionNumber(OptionType optionType)
+#endif
+        {
+            return (Int32)optionType;
+        }
+
+#if COAP13
+        public static OptionType GetOptionType(Int32 optionNumber)
+#else
+        public OptionType GetOptionType(Int32 optionNumber)
+#endif
+        {
+            return (OptionType)optionNumber;
+        }
+
+        /// <summary>
+        /// Calculates the value used in the extended option fields as specified
+        /// in draft-ietf-core-coap-13, section 3.1.
+        /// </summary>
+        /// <param name="nibble">the 4-bit option header value</param>
+        /// <param name="datagram">the datagram</param>
+        /// <returns>the value calculated from the nibble and the extended option value</returns>
+        private static Int32 GetValueFromOptionNibble(Int32 nibble, DatagramReader datagram)
+        {
+            if (nibble < 13)
+            {
+                return nibble;
+            }
+            else if (nibble == 13)
+            {
+                return datagram.Read(8) + 13;
+            }
+            else if (nibble == 14)
+            {
+                return datagram.Read(16) + 269;
+            }
+            else
+            {
+                // TODO error
+                if (log.IsWarnEnabled)
+                    log.Warn("15 is reserved for payload marker, message format error");
+                return 0;
+            }
+        }
+
+        /// <summary>
+        /// Returns the 4-bit option header value.
+        /// </summary>
+        /// <param name="optionValue">the option value (delta or length) to be encoded</param>
+        /// <returns>the 4-bit option header value</returns>
+        private static Int32 GetOptionNibble(Int32 optionValue)
+        {
+            if (optionValue <= 12)
+            {
+                return optionValue;
+            }
+            else if (optionValue <= 255 + 13)
+            {
+                return 13;
+            }
+            else if (optionValue <= 65535 + 269)
+            {
+                return 14;
+            }
+            else
+            {
+                // TODO format error
+                if (log.IsWarnEnabled)
+                    log.Warn("The option value (" + optionValue + ") is too large to be encoded; Max allowed is 65804.");
+                return 0;
+            }
         }
     }
 #endif

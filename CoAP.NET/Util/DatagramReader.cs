@@ -94,6 +94,14 @@ namespace CoAP.Util
         }
 
         /// <summary>
+        /// Reads the next byte from the stream.
+        /// </summary>
+        public Byte ReadNextByte()
+        {
+            return ReadBytes(1)[0];
+        }
+
+        /// <summary>
         /// Reads the complete sequence of bytes left in the stream
         /// </summary>
         /// <returns>The sequence of bytes left in the stream</returns>
