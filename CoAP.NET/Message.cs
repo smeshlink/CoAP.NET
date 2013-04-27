@@ -602,7 +602,7 @@ namespace CoAP
 
         public String TokenString
         {
-            get { return Option.Hex(Token); }
+            get { return ByteArrayUtils.ToHexString(Token); }
         }
 
         /// <summary>

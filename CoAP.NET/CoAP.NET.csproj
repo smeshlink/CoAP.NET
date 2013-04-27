@@ -76,6 +76,7 @@
     <Compile Include="ResponseEventArgs.cs" />
     <Compile Include="Spec.cs" />
     <Compile Include="TokenManager.cs" />
+    <Compile Include="Util\ByteArrayUtils.cs" />
     <Compile Include="Util\DatagramReader.cs" />
     <Compile Include="Util\DatagramWriter.cs" />
     <Compile Include="Util\HashMap.cs" />

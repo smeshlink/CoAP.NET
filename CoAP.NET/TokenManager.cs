@@ -12,6 +12,7 @@
 using System;
 using System.Collections.Generic;
 using CoAP.Log;
+using CoAP.Util;
 
 namespace CoAP
 {
@@ -116,7 +117,7 @@ namespace CoAP
                 if (!_acquiredTokens.Remove(token))
                 {
                     if (log.IsWarnEnabled)
-                        log.Warn("Token to release is not acquired: " + Option.Hex(token));
+                        log.Warn("Token to release is not acquired: " + ByteArrayUtils.ToHexString(token));
                 }
             }
         }
