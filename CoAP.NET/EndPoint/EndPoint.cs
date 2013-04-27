@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2011-2012, Longxiang He <helongxiang@smeshlink.com>,
+ * Copyright (c) 2011-2013, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
  * This program is distributed in the hope that it will be useful,
@@ -13,6 +13,9 @@ using System;
 
 namespace CoAP.EndPoint
 {
+    /// <summary>
+    /// Base class of CoAP endpoints.
+    /// </summary>
     public abstract class EndPoint : IMessageReceiver, IMessageHandler
     {
         public void ReceiveMessage(Message msg)

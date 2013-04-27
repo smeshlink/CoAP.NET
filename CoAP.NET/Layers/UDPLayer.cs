@@ -31,6 +31,9 @@ namespace CoAP.Layers
         private UDPSocket _socketV6;
         private UDPSocket _socketV4;
         private AsyncCallback _receiveCallback;
+#if COAPALL
+        public ISpec Spec { get; set; }
+#endif
 
         /// <summary>
         /// Initializes a UDP layer.

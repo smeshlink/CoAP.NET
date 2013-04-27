@@ -27,7 +27,6 @@ namespace CoAP
     {
         private static readonly ILogger log = LogManager.GetLogger(typeof(Request));
         
-        private static Communicator defaultCommunicator;
         private static readonly Response timeoutResponse = new Response();
         private static readonly Int64 startTime = DateTime.Now.Ticks;
         // number of responses to this request
@@ -234,6 +233,7 @@ namespace CoAP
         public void Respond(Response response)
         {
             response.Request = this;
+            response.Communicator = this.Communicator;
 
             response.PeerAddress = this.PeerAddress;
 
@@ -273,7 +273,7 @@ namespace CoAP
 
             _responseCount++;
             Response = response;
-            SendResponse();
+            // Endpoint will call SendResponse();
         }
 
         /// <summary>
@@ -296,7 +296,10 @@ namespace CoAP
             }
         }
 
-        private void SendResponse()
+        /// <summary>
+        /// Sends the current response.
+        /// </summary>
+        public void SendResponse()
         {
             if (_currentResponse != null)
             {

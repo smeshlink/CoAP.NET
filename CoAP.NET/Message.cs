@@ -13,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Text;
+using CoAP.Layers;
 using CoAP.Log;
 using CoAP.Util;
 
@@ -44,7 +45,7 @@ namespace CoAP
         private EndpointAddress _peerAddress;
         private Boolean _cancelled = false;
         private Boolean _complete = false;
-        private Communicator _communicator = Communicator.Instance;
+        private ILayer _communicator;
 
         /// <summary>
         /// Initializes a message.
@@ -142,18 +143,30 @@ namespace CoAP
         {
             if (IsConfirmable)
             {
-                NewAccept().Send();
+                Message msg = NewAccept();
+                msg.Communicator = this.Communicator;
+                msg.Send();
             }
         }
 
+        /// <summary>
+        /// Rejects this message with an empty RST. Use this method only at
+        /// application level, as the RST will be sent through the whole stack.
+        /// Within the stack use NewReject() and send it through the corresponding lower layer.
+        /// </summary>
         public void Reject()
         {
-            NewReject().Send();
+            Message msg = NewReject();
+            msg.Communicator = this.Communicator;
+            msg.Send();
         }
 
+        /// <summary>
+        /// Sends this message.
+        /// </summary>
         public void Send()
         {
-            _communicator.SendMessage(this);
+            Communicator.SendMessage(this);
         }
 
         /// <summary>
@@ -224,9 +237,8 @@ namespace CoAP
         }
 
         /// <summary>
-        /// 
+        /// To string.
         /// </summary>
-        /// <returns></returns>
         public override String ToString()
         {
 #if DEBUG
@@ -264,6 +276,9 @@ namespace CoAP
 #endif
         }
 
+        /// <summary>
+        /// Equals.
+        /// </summary>
         public override Boolean Equals(Object obj)
         {
             if (obj == null)
@@ -298,6 +313,14 @@ namespace CoAP
             else if (!PeerAddress.Equals(other.PeerAddress))
                 return false;
             return true;
+        }
+
+        /// <summary>
+        /// Get hash code.
+        /// </summary>
+        public override Int32 GetHashCode()
+        {
+            return base.GetHashCode();
         }
 
         #region Option operations
@@ -434,9 +457,14 @@ namespace CoAP
 
         #region Properties
 
-        public Communicator Communicator
+        public ILayer Communicator
         {
-            get { return _communicator; }
+            get
+            {
+                if (_communicator == null)
+                    _communicator = CoAP.Communicator.Default;
+                return _communicator;
+            }
             set { _communicator = value; }
         }
 

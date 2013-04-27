@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2011-2012, Longxiang He <helongxiang@smeshlink.com>,
+ * Copyright (c) 2011-2013, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
  * This program is distributed in the hope that it will be useful,
@@ -14,41 +14,67 @@ using CoAP.Log;
 
 namespace CoAP.EndPoint
 {
+    /// <summary>
+    /// Provides the functionality of a server endpoint.
+    /// A server implementation using CoAP.NET will override
+    /// this class to provide custom resources. Internally, the main purpose of this
+    /// class is to forward received requests to the corresponding resource specified
+    /// by the Uri-Path option.
+    /// </summary>
     public class LocalEndPoint : EndPoint
     {
-        private static ILogger log = LogManager.GetLogger(typeof(LocalEndPoint));
-        private Resource _root;
+        private static readonly ILogger log = LogManager.GetLogger(typeof(LocalEndPoint));
 
+        private Resource _root;
+        private Communicator.CommonCommunicator _communicator;
+
+#if COAPALL
+        public LocalEndPoint(ISpec spec)
+        {
+            _communicator = new Communicator.CommonCommunicator(spec);
+            _communicator.RegisterReceiver(this);
+            _root = new RootResource();
+            AddResource(new DiscoveryResource(_root));
+        }
+#endif
         public LocalEndPoint()
         {
-            Communicator.ListeningPort = CoapConstants.DefaultPort;
-            Communicator.Instance.RegisterReceiver(this);
+            _communicator = CoAP.Communicator.Default;
             _root = new RootResource();
             AddResource(new DiscoveryResource(_root));
         }
 
+        public Communicator.CommonCommunicator Communicator
+        {
+            get { return _communicator; }
+        }
+
+        /// <summary>
+        /// Adds a resource to the root resource of the endpoint. If the resource
+        /// identifier is actually a path, it is split up into multiple resources.
+        /// </summary>
+        /// <param name="resource">the resource to add</param>
         public void AddResource(LocalResource resource)
         {
             _root.AddSubResource(resource);
         }
 
+        /// <summary>
+        /// Gets a resource with the given path.
+        /// </summary>
+        /// <param name="path">the path of the resource</param>
         public LocalResource GetResource(String path)
         {
             return (LocalResource)_root.GetResource(path);
         }
 
-        private class RootResource : LocalResource
+        /// <summary>
+        /// Removes a resource with the given path.
+        /// </summary>
+        /// <param name="path">the path of the resource to remove</param>
+        public void RemoveResource(String path)
         {
-            public RootResource()
-                : base(String.Empty, true)
-            { }
-
-            public override void DoGet(Request request)
-            {
-                Response response = new Response(Code.Content);
-                response.PayloadString = "Ni Hao from CoAP.NET";
-                request.Respond(response);
-            }
+            _root.RemoveSubResource(path);
         }
 
         protected override void DoHandleMessage(Request request)
@@ -58,7 +84,6 @@ namespace CoAP.EndPoint
 
         protected override void DoHandleMessage(Response response)
         {
-            
         }
 
         protected override void DoExecute(Request request)
@@ -73,18 +98,34 @@ namespace CoAP.EndPoint
                     request.Resource = resource;
                     if (log.IsDebugEnabled)
                         log.Debug("Dispatching execution: " + path);
-                    request.Dispatch(resource);
+                    // TODO threading
+                    try
+                    {
+                        request.Dispatch(resource);
+                    }
+                    catch (Exception ex)
+                    {
+                        if (log.IsErrorEnabled)
+                            log.Error(String.Format("Resource handler {0} crashed: {1}", resource.Name, ex.Message));
+                        request.Respond(Code.InternalServerError);
+                        request.SendResponse();
+                        return;
+                    }
+
+                    request.SendResponse();
                 }
                 else if (request.Code == Code.PUT)
                 {
                     // allows creation of non-existing resources through PUT
                     CreateByPut(path, request);
+                    request.SendResponse();
                 }
                 else
                 {
                     if (log.IsWarnEnabled)
                         log.Warn("Cannot find resource: " + path);
                     request.Respond(Code.NotFound);
+                    request.SendResponse();
                 }
             }
         }
@@ -104,6 +145,20 @@ namespace CoAP.EndPoint
             } while ((parent = GetResource(parentIdentifier)) == null);
 
             // TODO create
+        }
+
+        private class RootResource : LocalResource
+        {
+            public RootResource()
+                : base(String.Empty, true)
+            { }
+
+            public override void DoGet(Request request)
+            {
+                Response response = new Response(Code.Content);
+                response.PayloadString = "Ni Hao from CoAP.NET";
+                request.Respond(response);
+            }
         }
     }
 }

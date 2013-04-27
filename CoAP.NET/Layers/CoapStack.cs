@@ -18,19 +18,43 @@ namespace CoAP.Layers
     /// </summary>
     public class CoapStack : UpperLayer
     {
+        private UDPLayer _udpLayer;
+
+#if COAPALL
+        public CoapStack(ISpec spec)
+        {
+            TokenLayer tokenLayer = new TokenLayer();
+            TransferLayer transferLayer = new TransferLayer(spec.DefaultBlockSize);
+            MatchingLayer matchingLayer = new MatchingLayer();
+            MessageLayer messageLayer = new MessageLayer();
+            _udpLayer = new UDPLayer(spec.DefaultPort) { Spec = spec };
+
+            this.LowerLayer = tokenLayer;
+            tokenLayer.LowerLayer = transferLayer;
+            transferLayer.LowerLayer = matchingLayer;
+            matchingLayer.LowerLayer = messageLayer;
+            messageLayer.LowerLayer = _udpLayer;
+        }
+#endif
+
         public CoapStack(Int32 port, Int32 transferBlockSize)
         {
             TokenLayer tokenLayer = new TokenLayer();
             TransferLayer transferLayer = new TransferLayer(transferBlockSize);
             MatchingLayer matchingLayer = new MatchingLayer();
             MessageLayer messageLayer = new MessageLayer();
-            UDPLayer udpLayer = new UDPLayer(port);
+            _udpLayer = new UDPLayer(port);
 
             this.LowerLayer = tokenLayer;
             tokenLayer.LowerLayer = transferLayer;
             transferLayer.LowerLayer = matchingLayer;
             matchingLayer.LowerLayer = messageLayer;
-            messageLayer.LowerLayer = udpLayer;
+            messageLayer.LowerLayer = _udpLayer;
+        }
+
+        public Int32 Port
+        {
+            get { return _udpLayer.Port; }
         }
     }
 }

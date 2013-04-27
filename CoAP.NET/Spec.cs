@@ -29,6 +29,7 @@ namespace CoAP
         String Name { get; }
         Int32 SupportedVersion { get; }
         Int32 DefaultPort { get; }
+        Int32 DefaultBlockSize { get; }
         Byte[] Encode(Message msg);
         Message Decode(Byte[] bytes);
         OptionType GetOptionType(Int32 optionNumber);
@@ -60,10 +61,12 @@ namespace CoAP
         public const String Name = "draft-ietf-core-coap-08";
         public const Int32 SupportedVersion = 1;
         public const Int32 DefaultPort = 5683;
+        public const Int32 DefaultBlockSize = 512;
 #else
         public String Name { get { return "draft-ietf-core-coap-08"; } }
         public Int32 SupportedVersion { get { return 1; } }
         public Int32 DefaultPort { get { return 5683; } }
+        public Int32 DefaultBlockSize { get { return 512; } }
 #endif
 
 #if COAP08
@@ -381,10 +384,12 @@ namespace CoAP
         public const String Name = "draft-ietf-core-coap-13";
         public const Int32 SupportedVersion = 1;
         public const Int32 DefaultPort = 5683;
+        public const Int32 DefaultBlockSize = 512;
 #else
         public String Name { get { return "draft-ietf-core-coap-13"; } }
         public Int32 SupportedVersion { get { return 1; } }
         public Int32 DefaultPort { get { return 5683; } }
+        public Int32 DefaultBlockSize { get { return 512; } }
 #endif
 
 #if COAP12

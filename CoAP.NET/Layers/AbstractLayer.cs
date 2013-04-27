@@ -22,9 +22,6 @@ namespace CoAP.Layers
         private List<IMessageReceiver> _receivers;
         private Int32 _messagesSentCount;
         private Int32 _messagesReceivedCount;
-#if COAPALL
-        public ISpec Spec = CoAP.Spec.Draft12;
-#endif
 
         /// <summary>
         /// Gets the total number of sent messages.

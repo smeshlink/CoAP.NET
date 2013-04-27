@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2011-2012, Longxiang He <helongxiang@smeshlink.com>,
+ * Copyright (c) 2011-2013, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
  * This program is distributed in the hope that it will be useful,
@@ -15,110 +15,73 @@ using CoAP.Layers;
 namespace CoAP
 {
     /// <summary>
-    /// Class for message communicating
+    /// Class for message communicating.
     /// </summary>
-    public class Communicator : UpperLayer
+    public static class Communicator
     {
-        private static Int32 port = 0;
+        private static CommonCommunicator instance;
 
-        protected TokenLayer _tokenLayer;
-        protected TransferLayer _transferLayer;
-        protected MatchingLayer _matchingLayer;
-        protected MessageLayer _messageLayer;
-        //protected AdverseLayer adverseLayer;
-        protected UDPLayer _udpLayer;
-
-        private static Communicator instance;
-
-        public static Communicator Instance
+        public static CommonCommunicator Default
         {
             get
             {
                 if (instance == null)
                 {
-                    lock (typeof(Communicator))
-                    {
-                        if (instance == null)
-                        {
-                            instance = new Communicator();
-                        }
-                    }
+                    //lock (typeof(CommonCommunicator))
+                    //{
+                    //    if (instance == null)
+                    //    {
+                    //        instance = new CommonCommunicator(0, CoapConstants.DefaultBlockSize);
+                    //    }
+                    //}
                 }
                 return instance;
             }
         }
 
-        public static Int32 ListeningPort
+        public class CommonCommunicator : UpperLayer
         {
-            get { return port; }
-            set { port = value; }
-        }
+            private readonly CoapStack _coapStack;
 
-        public Int32 Port
-        {
-            get { return _udpLayer == null ? 0 : _udpLayer.Port; }
-        }
-
-        /// <summary>
-        /// Initialize a communicator.
-        /// </summary>
-        private Communicator()
-            : this(ListeningPort)
-        { }
-
-        /// <summary>
-        /// Initialize a communicator.
-        /// </summary>
-        /// <param name="port">The local UDP port to listen for incoming messages</param>
-        private Communicator(Int32 port)
-            : this(port, CoapConstants.DefaultBlockSize)
-        { }
-
-        /// <summary>
-        /// Initialize a communicator.
-        /// </summary>
-        /// <param name="port">The local UDP port to listen for incoming messages</param>
-        /// <param name="defaultBlockSize">The default block size used for block-wise transfers, or -1 to disable outgoing block-wise transfers</param>
-        public Communicator(Int32 port, Int32 defaultBlockSize)
-        {
-            _tokenLayer = new TokenLayer();
-            _transferLayer = new TransferLayer(defaultBlockSize);
-            _matchingLayer = new MatchingLayer();
-            _messageLayer = new MessageLayer();
-            _udpLayer = new UDPLayer(port);
-
-            BuildStack();
-        }
-
-        protected override void DoSendMessage(Message msg)
-        {
-            if (msg != null)
+            public CommonCommunicator(ISpec spec)
             {
-                if (msg.PeerAddress == null)
-                    throw new InvalidOperationException("Remote address not specified");
-                SendMessageOverLowerLayer(msg);
+                _coapStack = new CoapStack(spec);
+                LowerLayer = _coapStack;
             }
-        }
 
-        protected override void DoReceiveMessage(Message msg)
-        {
-            if (msg is Response)
+            public CommonCommunicator(Int32 port, Int32 transferBlockSize)
             {
-                Response response = (Response)msg;
-                if (response.Request != null)
-                    response.Request.HandleResponse(response);
+                _coapStack = new CoapStack(port, transferBlockSize);
+                LowerLayer = _coapStack;
             }
-            
-            DeliverMessage(msg);
-        }
 
-        private void BuildStack()
-        {
-            this.LowerLayer = _tokenLayer;
-            _tokenLayer.LowerLayer = _transferLayer;
-            _transferLayer.LowerLayer = _matchingLayer;
-            _matchingLayer.LowerLayer = _messageLayer;
-            _messageLayer.LowerLayer = _udpLayer;
+            public Int32 Port
+            {
+                get { return _coapStack.Port; }
+            }
+
+            protected override void DoSendMessage(Message msg)
+            {
+                if (msg != null)
+                {
+                    if (msg.PeerAddress == null || msg.PeerAddress.Address == null)
+                        throw new InvalidOperationException("Remote address not specified");
+                    SendMessageOverLowerLayer(msg);
+                }
+            }
+
+            protected override void DoReceiveMessage(Message msg)
+            {
+                msg.Communicator = this;
+                if (msg is Response)
+                {
+                    Response response = (Response)msg;
+                    if (response.Request != null)
+                        response.Request.HandleResponse(response);
+                }
+
+                DeliverMessage(msg);
+            }
         }
     }
 }

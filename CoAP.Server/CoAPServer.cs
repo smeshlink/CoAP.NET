@@ -7,6 +7,7 @@ namespace CoAP.Examples
     class CoAPServer : LocalEndPoint
     {
         public CoAPServer()
+            : base(Spec.Draft08)
         {
             AddResource(new HelloWorldResource());
             AddResource(new CarelessResource());
@@ -18,7 +19,7 @@ namespace CoAP.Examples
         static void Main(String[] args)
         {
             CoAPServer server = new CoAPServer();
-            Console.WriteLine("CoAP server is listening on port {0}. Press any key to exit.", Communicator.Instance.Port);
+            Console.WriteLine("CoAP server is listening on port {0}. Press any key to exit.", server.Communicator.Port);
             Console.ReadKey();
         }
     }
