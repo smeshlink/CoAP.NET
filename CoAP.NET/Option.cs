@@ -271,6 +271,11 @@ namespace CoAP
             List<Option> opts = new List<Option>();
             if (!String.IsNullOrEmpty(s))
             {
+                while (s.StartsWith(delimiter))
+                {
+                    s = s.Substring(delimiter.Length);
+                }
+
                 foreach (String segment in s.Split(new String[] { delimiter }, StringSplitOptions.None))
                 {
                     // empty path segments are allowed (e.g., /test vs /test/)

@@ -220,7 +220,9 @@ namespace CoAP
         /// <param name="payload">The string representation of the payload</param>
         public void SetPayload(String payload)
         {
-            SetPayload(payload, MediaType.Undefined);
+            if (payload == null)
+                payload = String.Empty;
+            Payload = System.Text.Encoding.UTF8.GetBytes(payload);
         }
 
         /// <summary>
@@ -626,6 +628,14 @@ namespace CoAP
             }
         }
 
+        public Int32 FirstAccept
+        {
+            get {
+                Option opt = GetFirstOption(OptionType.Accept);
+                return opt == null ? MediaType.Undefined : opt.IntValue;
+            }
+        }
+
         /// <summary>
         /// Gets or set the location-path of this CoAP message.
         /// </summary>
@@ -638,6 +648,17 @@ namespace CoAP
             set
             {
                 SetOptions(Option.Split(OptionType.LocationPath, value, "/"));
+            }
+        }
+
+        public String LocationQuery
+        {
+            get { return Option.Join(GetOptions(OptionType.LocationQuery), "&"); }
+            set
+            {
+                if (!String.IsNullOrEmpty(value) && value.StartsWith("?"))
+                    value = value.Substring(1);
+                SetOptions(Option.Split(OptionType.LocationQuery, value, "&"));
             }
         }
 

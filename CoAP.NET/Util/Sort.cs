@@ -14,7 +14,7 @@ using System.Collections.Generic;
 
 namespace CoAP.Util
 {
-    class Sort
+    static class Sort
     {
         public static void InsertionSort<T>(List<T> list, Comparison<T> comparison)
         {

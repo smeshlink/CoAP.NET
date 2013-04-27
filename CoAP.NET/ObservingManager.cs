@@ -17,7 +17,10 @@ using CoAP.Log;
 
 namespace CoAP
 {
-    class ObservingManager
+    /// <summary>
+    /// Manages observationships.
+    /// </summary>
+    public class ObservingManager
     {
         private static readonly ILogger log = LogManager.GetLogger(typeof(ObservingManager));
         private static readonly ObservingManager instance = new ObservingManager();
@@ -197,6 +200,25 @@ namespace CoAP
 
             if (log.IsWarnEnabled)
                 log.Warn(String.Format("Cannot find observing relationship: {0} @ {1}", clientID, path));
+        }
+
+        public void RemoveObservers(LocalResource resource)
+        {
+            NotifyObservers(resource);
+
+            String path = resource.Path;
+            IDictionary<String, Observationship> resourceObservers = null;
+            if (_observersByResource.ContainsKey(path))
+                resourceObservers = _observersByResource[path];
+            if (resourceObservers != null)
+            {
+                lock (_sync)
+                {
+                    if (log.IsInfoEnabled)
+                        log.Info(String.Format("Terminated {0} observing relationship @ {1}", resourceObservers.Count, path));
+                    _observersByResource[path] = new Dictionary<String, Observationship>();
+                }
+            }
         }
 
         private void PrepareResponse(Request request)
