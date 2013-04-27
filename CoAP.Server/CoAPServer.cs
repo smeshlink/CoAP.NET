@@ -6,8 +6,14 @@ namespace CoAP.Examples
 {
     class CoAPServer : LocalEndPoint
     {
+#if COAPALL
+        static ISpec Spec = CoAP.Spec.Draft12;
+#endif
+
         public CoAPServer()
-            : base(Spec.Draft08)
+#if COAPALL
+            : base(Spec)
+#endif
         {
             AddResource(new HelloWorldResource());
             AddResource(new CarelessResource());
@@ -18,8 +24,18 @@ namespace CoAP.Examples
 
         static void Main(String[] args)
         {
-            CoAPServer server = new CoAPServer();
-            Console.WriteLine("CoAP server is listening on port {0}. Press any key to exit.", server.Communicator.Port);
+            try
+            {
+                CoAPServer server = new CoAPServer();
+                Console.WriteLine("CoAP server [{1}] is listening on port {0}.",
+                    server.Communicator.Port,
+                    Spec.Name);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            Console.WriteLine("Press any key to exit.");
             Console.ReadKey();
         }
     }
