@@ -32,5 +32,9 @@ namespace CoAP.EndPoint
         {
             return new RemoteResource(name);
         }
+
+        protected override void DoCreateSubResource(Request request, String newIdentifier)
+        { 
+        }
     }
 }

@@ -56,5 +56,10 @@ namespace CoAP.EndPoint
         {
             ObservingManager.Instance.NotifyObservers(this);
         }
+
+        protected override void DoCreateSubResource(Request request, String newIdentifier)
+        {
+            request.Respond(Code.Forbidden);
+        }
     }
 }

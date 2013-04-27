@@ -288,7 +288,7 @@ namespace CoAP.EndPoint
 
         public Resource GetResource(String path, Boolean last)
         {
-            if (path == null)
+            if (String.IsNullOrEmpty(path))
                 return this;
 
             // find root for absolute path
@@ -439,6 +439,11 @@ namespace CoAP.EndPoint
             }
         }
 
+        public void CreateSubResource(Request request, String newIdentifier)
+        {
+            DoCreateSubResource(request, newIdentifier);
+        }
+
         public Int32 CompareTo(Resource other)
         {
             return Path.CompareTo(other.Path);
@@ -485,6 +490,7 @@ namespace CoAP.EndPoint
         /// </summary>
         /// <returns></returns>
         protected abstract Resource CreateInstance(String name);
+        protected abstract void DoCreateSubResource(Request request, String newIdentifier);
 
         private static IList<String> GetStringValues(IEnumerable<LinkAttribute> attributes)
         {

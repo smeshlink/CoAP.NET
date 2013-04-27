@@ -144,7 +144,7 @@ namespace CoAP.EndPoint
                 parentIdentifier = parentIdentifier.Substring(0, parentIdentifier.LastIndexOf('/'));
             } while ((parent = GetResource(parentIdentifier)) == null);
 
-            // TODO create
+            parent.CreateSubResource(request, newIdentifier);
         }
 
         private class RootResource : LocalResource
