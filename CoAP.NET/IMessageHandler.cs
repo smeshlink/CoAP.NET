@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2011-2012, Longxiang He <helongxiang@smeshlink.com>,
+ * Copyright (c) 2011-2013, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
  * This program is distributed in the hope that it will be useful,
@@ -12,19 +12,19 @@
 namespace CoAP
 {
     /// <summary>
-    /// Interface of message handlers
+    /// Provides methods to handle messages.
     /// </summary>
     public interface IMessageHandler
     {
         /// <summary>
         /// Handles a request message.
         /// </summary>
-        /// <param name="request">The request to be handled</param>
+        /// <param name="request">the request to handle</param>
         void HandleMessage(Request request);
         /// <summary>
         /// Handles a response message.
         /// </summary>
-        /// <param name="Response">The response to be handled</param>
+        /// <param name="Response">the response to handle</param>
         void HandleMessage(Response response);
     }
 }

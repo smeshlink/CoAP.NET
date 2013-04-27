@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2011-2012, Longxiang He <helongxiang@smeshlink.com>,
+ * Copyright (c) 2011-2013, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
  * This program is distributed in the hope that it will be useful,
@@ -12,14 +12,14 @@
 namespace CoAP
 {
     /// <summary>
-    /// Interface of message receivers
+    /// Provides a method to receive messages.
     /// </summary>
     public interface IMessageReceiver
     {
         /// <summary>
         /// Receives a message.
         /// </summary>
-        /// <param name="msg"></param>
+        /// <param name="msg">the message to receive</param>
         void ReceiveMessage(Message msg);
     }
 }

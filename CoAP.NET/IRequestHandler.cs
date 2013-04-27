@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2011-2012, Longxiang He <helongxiang@smeshlink.com>,
+ * Copyright (c) 2011-2013, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
  * This program is distributed in the hope that it will be useful,
@@ -12,7 +12,7 @@
 namespace CoAP
 {
     /// <summary>
-    /// Interface of request handlers
+    /// Provides methods to handle CoAP Requests.
     /// </summary>
     public interface IRequestHandler
     {

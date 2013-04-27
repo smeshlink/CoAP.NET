@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2011-2012, Longxiang He <helongxiang@smeshlink.com>,
+ * Copyright (c) 2011-2013, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
  * This program is distributed in the hope that it will be useful,
@@ -25,15 +25,16 @@ namespace CoAP
     /// </summary>
     public class Request : Message
     {
-        private static ILogger log = LogManager.GetLogger(typeof(Request));
+        private static readonly ILogger log = LogManager.GetLogger(typeof(Request));
         
         private static Communicator defaultCommunicator;
-        private static readonly Response TIMEOUT_RESPONSE = new Response();
+        private static readonly Response timeoutResponse = new Response();
         private static readonly Int64 startTime = DateTime.Now.Ticks;
         // number of responses to this request
         private Int32 _responseCount;
         private Queue _responseQueue;
         private Boolean _isObserving;
+        private Boolean _separateResponseEnabled;
         private Response _currentResponse;
         private LocalResource _resource;
         private readonly DateTime _startTime = DateTime.Now;
@@ -76,31 +77,75 @@ namespace CoAP
             }
         }
 
+        /// <summary>
+        /// Gets or sets if this request is an observing request.
+        /// </summary>
         public Boolean IsObserving
         {
             get { return _isObserving; }
             set { _isObserving = value; }
         }
 
-        public Boolean SeparateResponseEnabled { get; set; }
+        public Boolean SeparateResponseEnabled
+        {
+            get { return _separateResponseEnabled; }
+            set { _separateResponseEnabled = value; }
+        }
 
+        /// <summary>
+        /// Gets or sets the local resource associated with this request.
+        /// </summary>
         public LocalResource Resource
         {
             get { return _resource; }
             set { _resource = value; }
         }
 
+        /// <summary>
+        /// Gets or sets the response to this request.
+        /// </summary>
         public Response Response
         {
             get { return _currentResponse; }
-            set { _currentResponse = value; }
+            set
+            {
+                // check for valid CoAP message
+                if (value != null && value.PayloadSize > 0)
+                {
+                    if (CoAP.Code.IsSuccess(value.Code))
+                    {
+                        if (value.Code == CoAP.Code.Valid || value.Code == CoAP.Code.Deleted)
+                        {
+                            if (log.IsWarnEnabled)
+                                log.Warn(String.Format("Removing payload of {0} response: {1}",
+                                    CoAP.Code.ToString(value.Code), value.Key));
+                            value.SetPayload(String.Empty, MediaType.Undefined);
+                        }
+                    }
+                    else if (value.ContentType == MediaType.Undefined)
+                    {
+                        if (log.IsWarnEnabled)
+                            log.Warn(String.Format("Removing Content-Format of {0} response: {1}",
+                                    CoAP.Code.ToString(value.Code), value.Key));
+                        value.ContentType = MediaType.Undefined;
+                    }
+                }
+                _currentResponse = value;
+            }
         }
 
+        /// <summary>
+        /// Gets the time when a request was issued to calculate Observe counter.
+        /// </summary>
         public DateTime StartTime
         {
             get { return _startTime; }
         }
 
+        /// <summary>
+        /// Accepts this message and keeps track of the response count, which
+        /// is required to manage MIDs for exchanges over multiple transactions.
+        /// </summary>
         public override void Accept()
         {
             _responseCount++;
@@ -158,7 +203,7 @@ namespace CoAP
                 response = (Response)_responseQueue.Dequeue();
             System.Threading.Monitor.Exit(_responseQueue.SyncRoot);
 
-            return response == TIMEOUT_RESPONSE ? null : response;
+            return response == timeoutResponse ? null : response;
         }
 
         public void Respond(Int32 code)
@@ -226,23 +271,8 @@ namespace CoAP
                 }
             }
 
-            // check observe option
-            /*Option observeOpt = GetFirstOption(OptionType.Observe);
-            if (null != observeOpt && !response.HasOption(OptionType.Observe))
-            {
-                // 16-bit second counter
-                Int32 secs = (Int32)((DateTime.Now.Ticks - startTime) / 1000) & 0xFFFF;
-
-                response.SetOption(Option.Create(OptionType.Observe, secs));
-
-                if (response.IsConfirmable)
-                {
-                    response.Type = MessageType.NON;
-                }
-            }*/
-
             _responseCount++;
-            _currentResponse = response;
+            Response = response;
             SendResponse();
         }
 
@@ -314,7 +344,7 @@ namespace CoAP
 
         protected override void DoHandleTimeout()
         {
-            HandleResponse(TIMEOUT_RESPONSE);
+            HandleResponse(timeoutResponse);
         }
 
         protected override void DoHandleBy(IMessageHandler handler)
@@ -335,7 +365,7 @@ namespace CoAP
         {
             if (null != Responded)
             {
-                Responded(this, new ResponseEventArgs(response == TIMEOUT_RESPONSE ? null : response));
+                Responded(this, new ResponseEventArgs(response == timeoutResponse ? null : response));
             }
         }
 

@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2011-2012, Longxiang He <helongxiang@smeshlink.com>,
+ * Copyright (c) 2011-2013, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
  * This program is distributed in the hope that it will be useful,
@@ -49,6 +49,10 @@ namespace CoAP
         /// Name of the attribute Observable
         /// </summary>
         public static readonly String Observable = "obs";
+        /// <summary>
+        /// Name of the attribute link
+        /// </summary>
+        public static readonly String Link = "href";
 
         /// <summary>
         /// The string as the delimiter between resources
@@ -165,10 +169,8 @@ namespace CoAP
             if (query == null)
                 return true;
 
-            Int32 count = 0;
             foreach (Option q in query)
             {
-                count++;
                 String s = q.StringValue;
                 Int32 delim = s.IndexOf('=');
                 if (delim == -1)
@@ -181,6 +183,15 @@ namespace CoAP
                 {
                     String attrName = s.Substring(0, delim);
                     String expected = s.Substring(delim + 1);
+
+                    if (attrName.Equals(LinkFormat.Link))
+                    {
+                        if (expected.EndsWith("*"))
+                            return resource.Path.StartsWith(expected.Substring(0, expected.Length - 1));
+                        else
+                            return resource.Path.Equals(expected);
+                    }
+                    
                     foreach (LinkAttribute attr in resource.GetAttributes(attrName))
                     {
                         String actual = attr.Value.ToString();
@@ -194,13 +205,23 @@ namespace CoAP
                             actual = actual.Substring(0, prefixLength);
                         }
 
+                        // handle case like rt=[Type1 Type2]
+                        if (actual.IndexOf(' ') > -1)
+                        {
+                            foreach (String part in actual.Split(' '))
+                            {
+                                if (part.Equals(expected))
+                                    return true;
+                            }
+                        }
+
                         if (expected.Equals(actual))
                             return true;
                     }
                 }
             }
 
-            return count == 0;
+            return false;
         }
 
         internal static Boolean AddAttribute(ICollection<LinkAttribute> attributes, LinkAttribute attrToAdd)

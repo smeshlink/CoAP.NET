@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2011-2012, Longxiang He <helongxiang@smeshlink.com>,
+ * Copyright (c) 2011-2013, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
  * This program is distributed in the hope that it will be useful,
@@ -16,7 +16,7 @@ namespace CoAP
 {
     /// <summary>
     /// This class describes the CoAP Media Type Registry as defined in
-    /// draft-ietf-core-coap (07), section 11.3
+    /// draft-ietf-core-coap (07), section 11.3.
     /// </summary>
     public class MediaType
     {
@@ -28,15 +28,45 @@ namespace CoAP
         /// text/plain; charset=utf-8
         /// </summary>
         public const Int32 TextPlain = 0;
+        /// <summary>
+        /// text/xml
+        /// </summary>
         public const Int32 TextXml = 1;
+        /// <summary>
+        /// text/csv
+        /// </summary>
         public const Int32 TextCsv = 2;
+        /// <summary>
+        /// text/html
+        /// </summary>
         public const Int32 TextHtml = 3;
+        /// <summary>
+        /// image/gif
+        /// </summary>
         public const Int32 ImageGif = 21;
+        /// <summary>
+        /// image/jpeg
+        /// </summary>
         public const Int32 ImageJpeg = 22;
+        /// <summary>
+        /// image/png
+        /// </summary>
         public const Int32 ImagePng = 23;
+        /// <summary>
+        /// image/tiff
+        /// </summary>
         public const Int32 ImageTiff = 24;
+        /// <summary>
+        /// audio/raw
+        /// </summary>
         public const Int32 AudioRaw = 25;
+        /// <summary>
+        /// video/raw
+        /// </summary>
         public const Int32 VideoRaw = 26;
+        /// <summary>
+        /// application/link-format
+        /// </summary>
         public const Int32 ApplicationLinkFormat = 40;
         /// <summary>
         /// application/xml
@@ -46,21 +76,45 @@ namespace CoAP
         /// application/octet-stream
         /// </summary>
         public const Int32 ApplicationOctetStream = 42;
+        /// <summary>
+        /// application/rdf+xml
+        /// </summary>
         public const Int32 ApplicationRdfXml = 43;
+        /// <summary>
+        /// application/soap+xml
+        /// </summary>
         public const Int32 ApplicationSoapXml = 44;
+        /// <summary>
+        /// application/atom+xml
+        /// </summary>
         public const Int32 ApplicationAtomXml = 45;
+        /// <summary>
+        /// application/xmpp+xml
+        /// </summary>
         public const Int32 ApplicationXmppXml = 46;
         /// <summary>
         /// application/exi
         /// </summary>
         public const Int32 ApplicationExi = 47;
+        /// <summary>
+        /// application/fastinfoset
+        /// </summary>
         public const Int32 ApplicationFastinfoset = 48;
+        /// <summary>
+        /// application/soap+fastinfoset
+        /// </summary>
         public const Int32 ApplicationSoapFastinfoset = 49;
         /// <summary>
         /// application/json
         /// </summary>
         public const Int32 ApplicationJson = 50;
+        /// <summary>
+        /// application/x-obix-binary
+        /// </summary>
         public const Int32 ApplicationXObixBinary = 51;
+        /// <summary>
+        /// any
+        /// </summary>
         public const Int32 Any = 0xFF;
 
         private static readonly Dictionary<Int32, String[]> registry = new Dictionary<Int32, String[]>();
@@ -120,6 +174,9 @@ namespace CoAP
             }
         }
 
+        /// <summary>
+        /// Gets the file extension of the given media type.
+        /// </summary>
         public static String ToFileExtension(Int32 mediaType)
         {
             if (registry.ContainsKey(mediaType))

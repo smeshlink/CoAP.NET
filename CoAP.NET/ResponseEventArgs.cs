@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2011-2012, Longxiang He <helongxiang@smeshlink.com>,
+ * Copyright (c) 2011-2013, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
  * This program is distributed in the hope that it will be useful,
@@ -14,7 +14,7 @@ using System;
 namespace CoAP
 {
     /// <summary>
-    /// This class contains an incoming response for a request.
+    /// Represents an event when a response arrives for a request.
     /// </summary>
     public class ResponseEventArgs : EventArgs
     {
@@ -23,7 +23,6 @@ namespace CoAP
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="response"></param>
         public ResponseEventArgs(Response response)
         {
             _response = response;

@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2011-2012, Longxiang He <helongxiang@smeshlink.com>,
+ * Copyright (c) 2011-2013, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
  * This program is distributed in the hope that it will be useful,
@@ -15,7 +15,7 @@ namespace CoAP
 {
     /// <summary>
     /// This class describes the CoAP Code Registry as defined in 
-    /// draft-ietf-core-coap (07), section 11.1
+    /// draft-ietf-core-coap-08, section 11.1
     /// </summary>
     public class Code
     {
@@ -103,7 +103,7 @@ namespace CoAP
         /// <summary>
         /// 
         /// </summary>
-        public const Int32 RESP_PRECONDITION_FAILED = 140;
+        public const Int32 PreconditionFailed = 140;
         /// <summary>
         /// 4.13 Request Entity Too Large
         /// </summary>
@@ -165,6 +165,14 @@ namespace CoAP
         }
 
         /// <summary>
+        /// Checks whether a code represents a success code.
+        /// </summary>
+        public static Boolean IsSuccess(Int32 code)
+        {
+            return code >= Created && code < BadRequest;
+        }
+
+        /// <summary>
         /// Checks whether a code is valid
         /// </summary>
         /// <param name="code">The code to be checked</param>
@@ -220,7 +228,7 @@ namespace CoAP
                     return "4.06 Not Acceptable";
                 case RequestEntityIncomplete:
                     return "4.08 Request Entity Incomplete";
-                case RESP_PRECONDITION_FAILED:
+                case PreconditionFailed:
                     return "4.12 Precondition Failed";
                 case RequestEntityTooLarge:
                     return "4.13 Request Entity Too Large";

@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2011-2012, Longxiang He <helongxiang@smeshlink.com>,
+ * Copyright (c) 2011-2013, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
  * This program is distributed in the hope that it will be useful,
@@ -16,12 +16,8 @@ using CoAP.Log;
 namespace CoAP
 {
     /// <summary>
-    /// This class describes the functionality of a Token Manager.
-    /// 
-    /// Its purpose is to manage tokens used for keeping state of
-    /// transactions and block-wise transfers. Communication layers use
-    /// a TokenManager to acquire token where needed and release
-    /// them after completion of the task.
+    /// Stores all tokens currently used in transfers. New transfers
+    /// can acquire unique tokens from the manager.
     /// </summary>
     public class TokenManager
     {
@@ -29,15 +25,15 @@ namespace CoAP
         /// The empty token, used as default value
         /// </summary>
         public static readonly Byte[] EmptyToken = new Byte[0];
-        private static ILogger log = LogManager.GetLogger(typeof(TokenManager));
+        private static readonly ILogger log = LogManager.GetLogger(typeof(TokenManager));
         private static TokenManager instance = new TokenManager();
 
-        private Int64 _currentToken;
+        private UInt64 _currentToken;
         private List<Byte[]> _acquiredTokens = new List<Byte[]>();
 
         private TokenManager()
         {
-            _currentToken = (Int64)(new Random().NextDouble() * 0x1001);
+            _currentToken = (UInt64)(new Random().NextDouble() * 0x100L);
         }
 
         public static TokenManager Instance
@@ -49,7 +45,7 @@ namespace CoAP
         {
             _currentToken++;
 
-            Int64 temp = _currentToken;
+            UInt64 temp = _currentToken;
             using (System.IO.MemoryStream ms = new System.IO.MemoryStream(CoapConstants.TokenLength))
             {
                 while (temp > 0 && ms.Length < CoapConstants.TokenLength)
@@ -69,18 +65,18 @@ namespace CoAP
         public Byte[] AcquireToken(Boolean preferEmptyToken)
         {
             Byte[] token = null;
-            if (preferEmptyToken && !IsAcquired(EmptyToken))
-                token = EmptyToken;
-            else
-            {
-                do 
-                {
-                    token = NextToken();
-                } while (IsAcquired(token));
-            }
 
             lock (this)
             {
+                if (preferEmptyToken && !IsAcquired(EmptyToken))
+                    token = EmptyToken;
+                else
+                {
+                    do
+                    {
+                        token = NextToken();
+                    } while (IsAcquired(token));
+                }
                 _acquiredTokens.Add(token);
             }
 

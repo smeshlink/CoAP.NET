@@ -217,12 +217,10 @@ namespace CoAP
         /// <param name="mediaType">The content-type of the payload</param>
         public void SetPayload(String payload, Int32 mediaType)
         {
-            if (!String.IsNullOrEmpty(payload))
-            {
-                Payload = System.Text.Encoding.UTF8.GetBytes(payload);
-                if (mediaType != MediaType.Undefined)
-                    SetOption(Option.Create(OptionType.ContentType, mediaType));
-            }
+            if (payload == null)
+                payload = String.Empty;
+            Payload = System.Text.Encoding.UTF8.GetBytes(payload);
+            ContentType = mediaType;
         }
 
         /// <summary>

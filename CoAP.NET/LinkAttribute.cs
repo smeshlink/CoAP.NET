@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2011-2012, Longxiang He <helongxiang@smeshlink.com>,
+ * Copyright (c) 2011-2013, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
  * This program is distributed in the hope that it will be useful,
@@ -20,12 +20,13 @@ namespace CoAP
     /// </summary>
     public class LinkAttribute : IComparable<LinkAttribute>
     {
-        private static ILogger log = LogManager.GetLogger(typeof(LinkAttribute));
+        private static readonly ILogger log = LogManager.GetLogger(typeof(LinkAttribute));
+
         private String _name;
         private Object _value;
 
         /// <summary>
-        /// Initialize an attribute.
+        /// Initializes an attribute.
         /// </summary>
         public LinkAttribute(String name, Object value)
         {
