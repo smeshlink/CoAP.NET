@@ -20,6 +20,7 @@ namespace CoAP
     public static class Spec
     {
         public const Int32 SupportedVersion = 1;
+        public static readonly ISpec Draft03 = new CoAP.Draft03();
         public static readonly ISpec Draft08 = new CoAP.Draft08();
         public static readonly ISpec Draft12 = new CoAP.Draft12();
     }
@@ -36,6 +37,379 @@ namespace CoAP
     }
 #endif
 
+    #region CoAP 03
+#if COAPALL || COAP03
+#if COAP03
+    public static class Spec
+#else
+    class Draft03 : ISpec
+#endif
+    {
+        const Int32 VersionBits = 2;
+        const Int32 TypeBits = 2;
+        const Int32 OptionCountBits = 4;
+        const Int32 CodeBits = 8;
+        const Int32 IDBits = 16;
+        const Int32 OptionDeltaBits = 4;
+        const Int32 OptionLengthBaseBits = 4;
+        const Int32 OptionLengthExtendedBits = 8;
+        const Int32 MaxOptionDelta = (1 << OptionDeltaBits) - 1;
+        const Int32 MaxOptionLengthBase = (1 << OptionLengthBaseBits) - 2;
+        const Int32 FencepostDivisor = 14;
+
+        static readonly ILogger log = LogManager.GetLogger(typeof(Spec));
+
+#if COAP03
+        public const String Name = "draft-ietf-core-coap-03";
+        public const Int32 SupportedVersion = 1;
+        public const Int32 DefaultPort = 5683;
+        public const Int32 DefaultBlockSize = 512;
+#else
+        public String Name { get { return "draft-ietf-core-coap-03"; } }
+        public Int32 SupportedVersion { get { return 1; } }
+        public Int32 DefaultPort { get { return 5683; } }
+        public Int32 DefaultBlockSize { get { return 512; } }
+#endif
+
+#if COAP03
+        public static Byte[] Encode(Message msg)
+#else
+        public Byte[] Encode(Message msg)
+#endif
+        {
+            // create datagram writer to encode options
+            DatagramWriter optWriter = new DatagramWriter();
+            Int32 optionCount = 0;
+            Int32 lastOptionNumber = 0;
+
+            List<Option> options = (List<Option>)msg.GetOptions();
+            Sort.InsertionSort(options, delegate(Option o1, Option o2)
+            {
+                return GetOptionNumber(o1.Type).CompareTo(GetOptionNumber(o2.Type));
+            });
+
+            foreach (Option opt in options)
+            {
+                if (opt.IsDefault)
+                    continue;
+
+                Option opt2 = opt;
+
+                Int32 optNum = GetOptionNumber(opt2.Type);
+                Int32 optionDelta = optNum - lastOptionNumber;
+
+                // ensure that option delta value can be encoded correctly
+                while (optionDelta > MaxOptionDelta)
+                {
+                    // option delta is too large to be encoded:
+                    // add fencepost options in order to reduce the option delta
+                    // get fencepost option that is next to the last option
+                    Int32 fencepostNumber = NextFencepost(lastOptionNumber);
+
+                    // calculate fencepost delta
+                    Int32 fencepostDelta = fencepostNumber - lastOptionNumber;
+                    if (fencepostDelta <= 0)
+                    {
+                        if (log.IsWarnEnabled)
+                            log.Warn("Fencepost liveness violated: delta = " + fencepostDelta);
+                    }
+                    if (fencepostDelta > MaxOptionDelta)
+                    {
+                        if (log.IsWarnEnabled)
+                            log.Warn("Fencepost safety violated: delta = " + fencepostDelta);
+                    }
+
+                    // write fencepost option delta
+                    optWriter.Write(fencepostDelta, OptionDeltaBits);
+                    // fencepost have an empty value
+                    optWriter.Write(0, OptionLengthBaseBits);
+
+                    ++optionCount;
+                    lastOptionNumber = fencepostNumber;
+                    optionDelta -= fencepostDelta;
+                }
+
+                // write option delta
+                optWriter.Write(optionDelta, OptionDeltaBits);
+
+                if (opt2.Type == OptionType.ContentType)
+                {
+                    Int32 ct = opt2.IntValue;
+                    Int32 ct2 = MapOutMediaType(ct);
+                    if (ct != ct2)
+                        opt2 = Option.Create(opt2.Type, ct2);
+                }
+
+                // write option length
+                Int32 length = opt2.Length;
+                if (length <= MaxOptionLengthBase)
+                {
+                    // use option length base field only to encode
+                    // option lengths less or equal than MAX_OPTIONLENGTH_BASE
+                    optWriter.Write(length, OptionLengthBaseBits);
+                }
+                else
+                {
+                    // use both option length base and extended field
+                    // to encode option lengths greater than MAX_OPTIONLENGTH_BASE
+                    Int32 baseLength = MaxOptionLengthBase + 1;
+                    optWriter.Write(baseLength, OptionLengthBaseBits);
+
+                    Int32 extLength = length - baseLength;
+                    optWriter.Write(extLength, OptionLengthExtendedBits);
+                }
+
+                // write option value
+                optWriter.WriteBytes(opt2.RawValue);
+
+                ++optionCount;
+                lastOptionNumber = optNum;
+            }
+
+            // create datagram writer to encode message data
+            DatagramWriter writer = new DatagramWriter();
+
+            // write fixed-size CoAP headers
+            writer.Write(msg.Version, VersionBits);
+            writer.Write((Int32)msg.Type, TypeBits);
+            writer.Write(optionCount, OptionCountBits);
+            writer.Write(MapOutCode(msg.Code), CodeBits);
+            writer.Write(msg.ID, IDBits);
+
+            // write options
+            writer.WriteBytes(optWriter.ToByteArray());
+
+            //write payload
+            writer.WriteBytes(msg.Payload);
+
+            return writer.ToByteArray();
+        }
+
+#if COAP03
+        public static Message Decode(Byte[] bytes)
+#else
+        public Message Decode(Byte[] bytes)
+#endif
+        {
+            DatagramReader datagram = new DatagramReader(bytes);
+
+            // read headers
+            Int32 version = datagram.Read(VersionBits);
+            if (version != SupportedVersion)
+                return null;
+
+            MessageType type = (MessageType)datagram.Read(TypeBits);
+            Int32 optionCount = datagram.Read(OptionCountBits);
+            Int32 code = datagram.Read(CodeBits);
+
+            // create new message with subtype according to code number
+            Message msg = Message.Create(MapInCode(code));
+
+            msg.Type = type;
+            msg.ID = datagram.Read(IDBits);
+
+            // read options
+            Int32 currentOption = 0;
+            for (Int32 i = 0; i < optionCount; i++)
+            {
+                // read option delta bits
+                Int32 optionDelta = datagram.Read(OptionDeltaBits);
+
+                currentOption += optionDelta;
+                OptionType currentOptionType = GetOptionType(currentOption);
+
+                if (IsFencepost(currentOptionType))
+                {
+                    // read number of options
+                    datagram.Read(OptionLengthBaseBits);
+                }
+                else
+                {
+                    // read option length
+                    Int32 length = datagram.Read(OptionLengthBaseBits);
+                    if (length > MaxOptionLengthBase)
+                    {
+                        // read extended option length
+                        length += datagram.Read(OptionLengthExtendedBits);
+                    }
+                    // read option
+                    Option opt = Option.Create(currentOptionType);
+                    opt.RawValue = datagram.ReadBytes(length);
+
+                    if (opt.Type == OptionType.ContentType)
+                    {
+                        Int32 ct = opt.IntValue;
+                        Int32 ct2 = MapInMediaType(ct);
+                        if (ct != ct2)
+                            opt = Option.Create(currentOptionType, ct2);
+                    }
+
+                    msg.AddOption(opt);
+                }
+            }
+
+            msg.Payload = datagram.ReadBytesLeft();
+
+            // incoming message already have a token, 
+            // including implicit empty token
+            msg.RequiresToken = false;
+
+            return msg;
+        }
+
+#if COAP03
+        public static Int32 GetOptionNumber(OptionType optionType)
+#else
+        public Int32 GetOptionNumber(OptionType optionType)
+#endif
+        {
+            switch (optionType)
+            {
+                case OptionType.Reserved:
+                    return 0;
+                case OptionType.ContentType:
+                    return 1;
+                case OptionType.MaxAge:
+                    return 2;
+                case OptionType.ProxyUri:
+                    return 3;
+                case OptionType.ETag:
+                    return 4;
+                case OptionType.UriHost:
+                    return 5;
+                case OptionType.LocationPath:
+                    return 6;
+                case OptionType.UriPort:
+                    return 7;
+                case OptionType.LocationQuery:
+                    return 8;
+                case OptionType.UriPath:
+                    return 9;
+                case OptionType.Token:
+                    return 11;
+                case OptionType.UriQuery:
+                    return 15;
+                case OptionType.Observe:
+                    return 10;
+                case OptionType.FencepostDivisor:
+                    return 14;
+                case OptionType.Block2:
+                    return 13;
+                default:
+                    return (Int32)optionType;
+            }
+        }
+
+#if COAP03
+        public static OptionType GetOptionType(Int32 optionNumber)
+#else
+        public OptionType GetOptionType(Int32 optionNumber)
+#endif
+        {
+            switch (optionNumber)
+            {
+                case 0:
+                    return OptionType.Reserved;
+                case 1:
+                    return OptionType.ContentType;
+                case 2:
+                    return OptionType.MaxAge;
+                case 3:
+                    return OptionType.ProxyUri;
+                case 4:
+                    return OptionType.ETag;
+                case 5:
+                    return OptionType.UriHost;
+                case 6:
+                    return OptionType.LocationPath;
+                case 7:
+                    return OptionType.UriPort;
+                case 8:
+                    return OptionType.LocationQuery;
+                case 9:
+                    return OptionType.UriPath;
+                case 11:
+                    return OptionType.Token;
+                case 15:
+                    return OptionType.UriQuery;
+                case 10:
+                    return OptionType.Observe;
+                case 13:
+                    return OptionType.Block2;
+                case 14:
+                    return OptionType.FencepostDivisor;
+                default:
+                    return (OptionType)optionNumber;
+            }
+        }
+
+        private static Int32 MapOutCode(Int32 code)
+        {
+            switch (code)
+            {
+                case Code.Content:
+                    return 80;
+                default:
+                    return (code >> 5) * 40 + (code & 0xf);
+            }
+        }
+
+        private static Int32 MapInCode(Int32 code)
+        {
+            if (code == 80)
+                return Code.Content;
+            else
+                return ((code / 40) << 5) + (code % 40);
+        }
+
+        private static Int32 MapOutMediaType(Int32 mediaType)
+        {
+            switch (mediaType)
+            {
+                case MediaType.ApplicationXObixBinary:
+                    return 48;
+                case MediaType.ApplicationFastinfoset:
+                    return 49;
+                case MediaType.ApplicationSoapFastinfoset:
+                    return 50;
+                case MediaType.ApplicationJson:
+                    return 51;
+                default:
+                    return mediaType;
+            }
+        }
+
+        private static Int32 MapInMediaType(Int32 mediaType)
+        {
+            switch (mediaType)
+            {
+                case 48:
+                    return MediaType.ApplicationXObixBinary;
+                case 49:
+                    return MediaType.ApplicationFastinfoset;
+                case 50:
+                    return MediaType.ApplicationSoapFastinfoset;
+                case 51:
+                    return MediaType.ApplicationJson;
+                default:
+                    return mediaType;
+            }
+        }
+
+        private static Boolean IsFencepost(OptionType type)
+        {
+            return (Int32)type % (Int32)FencepostDivisor == 0;
+        }
+
+        private static Int32 NextFencepost(Int32 optionNumber)
+        {
+            return (optionNumber / (Int32)FencepostDivisor + 1) * (Int32)FencepostDivisor;
+        }
+    }
+#endif
+    #endregion
+
+    #region CoAP 08
 #if COAPALL || COAP08
 #if COAP08
     public static class Spec
@@ -103,7 +477,7 @@ namespace CoAP
                     Int32 fencepostNumber = NextFencepost(lastOptionNumber);
 
                     // calculate fencepost delta
-                    int fencepostDelta = fencepostNumber - lastOptionNumber;
+                    Int32 fencepostDelta = fencepostNumber - lastOptionNumber;
                     if (fencepostDelta <= 0)
                     {
                         if (log.IsWarnEnabled)
@@ -360,7 +734,9 @@ namespace CoAP
         }
     }
 #endif
+    #endregion
 
+    #region CoAP 12
 #if COAPALL || COAP12
 #if COAP12
     public static class Spec
@@ -642,4 +1018,5 @@ namespace CoAP
         }
     }
 #endif
+    #endregion
 }
