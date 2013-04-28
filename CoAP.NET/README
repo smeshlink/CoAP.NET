@@ -1,15 +1,21 @@
-﻿CoAP.NET: A CoAP framework in C#
+﻿CoAP.NET - A CoAP framework in C#
+=================================
 
 Copyright (c) 2011-2012, Longxiang He <longxianghe@gmail.com>,
 SmeshLink Technology Co.
 
 ABOUT
 
-CoAP.NET is a C# implementation of the CoAP protocol based
-on Californium, a CoAP framework in Java by Matthias Kovatsch, 
-Dominique Im Obersteg, and Daniel Pauli, ETH Zurich.
-See <http://people.inf.ethz.ch/mkovatsc/californium.php>. Thanks to
-the authors and their great job.
+The Constrained Application Protocol (CoAP) (https://datatracker.ietf.org/doc/draft-ietf-core-coap/)
+is a RESTful web transfer protocol for resource-constrained networks and nodes.
+CoAP.NET is an implementation in C# providing CoAP-based services to .NET applications. 
+Reviews and suggestions would be appreciated.
+
+CoAP.NET is based on [**Californium**] (https://github.com/mkovatsc/Californium),
+a CoAP framework in Java by Matthias Kovatsch, Dominique Im Obersteg,
+and Daniel Pauli, ETH Zurich. See <http://people.inf.ethz.ch/mkovatsc/californium.php>.
+Thanks to the authors and their great job.
+
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY.
