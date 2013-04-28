@@ -10,6 +10,7 @@ Content
 -------
 - [Quick Start] (#quick-start)
 - [Build] (#build)
+- [License] (#license)
 - [Acknowledgements] (#acknowledgements)
 
 Quick Start
@@ -154,6 +155,11 @@ with constants and static methods instead of various drafts:
     public static Message Decode(Byte[] bytes);
   }
 ```
+
+License
+-------
+
+See [LICENSE] (LICENSE) for more info.
 
 Acknowledgements
 ----------------
