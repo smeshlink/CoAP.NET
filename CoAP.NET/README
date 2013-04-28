@@ -16,6 +16,22 @@ a CoAP framework in Java by Matthias Kovatsch, Dominique Im Obersteg,
 and Daniel Pauli, ETH Zurich. See <http://people.inf.ethz.ch/mkovatsc/californium.php>.
 Thanks to the authors and their great job.
 
+BUILD
+
+To build CoAP.NET, define one of the following compile symbols:
+COAPALL, COAP03, COAP08, COAP12, COAP13
+
+- COAPALL -- all supported drafts below
+- COAP03  -- [draft-ietf-core-coap-03] (http://tools.ietf.org/html/draft-ietf-core-coap-03)
+- COAP08  -- [draft-ietf-core-coap-08] (http://tools.ietf.org/html/draft-ietf-core-coap-08)
+- COAP12  -- [draft-ietf-core-coap-12] (http://tools.ietf.org/html/draft-ietf-core-coap-12)
+- COAP13  -- [draft-ietf-core-coap-13] (http://tools.ietf.org/html/draft-ietf-core-coap-13)
+
+With COAPALL defined, all supported drafts will be available in class Spec.
+With one of the other symbols defined (i.e. COAP08), only a specific
+version of draft will be compiled as the class Spec with constants and
+static methods instead of various drafts.
+
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY.
