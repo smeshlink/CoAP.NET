@@ -24,7 +24,7 @@ namespace CoAP
         /// <summary>
         /// Handles a response message.
         /// </summary>
-        /// <param name="Response">the response to handle</param>
+        /// <param name="response">the response to handle</param>
         void HandleMessage(Response response);
     }
 }

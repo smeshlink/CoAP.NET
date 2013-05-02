@@ -30,7 +30,6 @@ namespace CoAP.Layers
         /// <summary>
         /// Initializes a transfer layer.
         /// </summary>
-        /// <param name="tokenManager"></param>
         /// <param name="defaultBlockSize">The default block size used for block-wise transfers or -1 to disable outgoing block-wise transfers</param>
         public TransferLayer(Int32 defaultBlockSize)
         {

@@ -265,7 +265,7 @@ namespace CoAP
         /// <param name="type">The type of options</param>
         /// <param name="s">The string to be splited</param>
         /// <param name="delimiter">The seperator string</param>
-        /// <returns><see cref="System.Collections.Generic.IList"/> of options</returns>
+        /// <returns><see cref="System.Collections.Generic.IEnumerable&lt;T&gt;"/> of options</returns>
         public static IEnumerable<Option> Split(OptionType type, String s, String delimiter)
         {
             List<Option> opts = new List<Option>();

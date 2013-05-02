@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("SmeshLink Technology")]
 [assembly: AssemblyProduct("CoAP.NET")]
-[assembly: AssemblyCopyright("Copyright © SmeshLink 2011-2012")]
+[assembly: AssemblyCopyright("Copyright © SmeshLink 2011-2013")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

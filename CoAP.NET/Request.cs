@@ -54,7 +54,7 @@ namespace CoAP
         /// <summary>
         /// Initializes a request message.
         /// </summary>
-        /// <param name="code">The method code of the message</param>
+        /// <param name="method">The method code of the message</param>
         /// <param name="confirmable">True if the request is Confirmable</param>
         public Request(Int32 method, Boolean confirmable)
             : base(confirmable ? MessageType.CON : MessageType.NON, method)
