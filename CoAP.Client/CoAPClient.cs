@@ -13,6 +13,8 @@ namespace CoAP.Examples
             Boolean loop = false;
             Boolean byEvent = true;
 
+            args = new String[] { "GET", "coap://127.0.0.1" };
+
             if (args.Length == 0)
                 PrintUsage();
 
@@ -73,9 +75,9 @@ namespace CoAP.Examples
                 loop = true;
             }
 
-            if ("DISCOVER".Equals(method) && 
+            if ("DISCOVER".Equals(method) &&
                 (String.IsNullOrEmpty(uri.AbsolutePath) || uri.AbsolutePath.Equals("/")))
-            { 
+            {
                 uri = new Uri(uri, "/.well-known/core");
             }
 
@@ -179,17 +181,17 @@ namespace CoAP.Examples
         private static void PrintUsage()
         {
             Console.WriteLine("CoAP.NET Example Client");
-		    Console.WriteLine();
+            Console.WriteLine();
             Console.WriteLine("Usage: CoAPClient [-e] [-l] method uri [payload]");
-		    Console.WriteLine("  method  : { GET, POST, PUT, DELETE, DISCOVER, OBSERVE }");
+            Console.WriteLine("  method  : { GET, POST, PUT, DELETE, DISCOVER, OBSERVE }");
             Console.WriteLine("  uri     : The CoAP URI of the remote endpoint or resource.");
             Console.WriteLine("  payload : The data to send with the request.");
             Console.WriteLine("Options:");
             Console.WriteLine("  -e      : Receives responses by the Responded event.");
-		    Console.WriteLine("  -l      : Loops for multiple responses.");
-		    Console.WriteLine("            (automatic for OBSERVE and separate responses)");
-		    Console.WriteLine();
-		    Console.WriteLine("Examples:");
+            Console.WriteLine("  -l      : Loops for multiple responses.");
+            Console.WriteLine("            (automatic for OBSERVE and separate responses)");
+            Console.WriteLine();
+            Console.WriteLine("Examples:");
             Console.WriteLine("  CoAPClient DISCOVER coap://localhost");
             Console.WriteLine("  CoAPClient POST coap://localhost/storage data");
             Environment.Exit(0);
