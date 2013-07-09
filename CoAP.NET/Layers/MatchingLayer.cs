@@ -54,6 +54,7 @@ namespace CoAP.Layers
                         // TODO try to recover from peerAddress
                         if (!ObservingManager.Instance.HasSubscription(msg.SequenceKey))
                         {
+                            // also covers CoAP ping
                             SendMessageOverLowerLayer(msg.NewReject());
                             return;
                         }
@@ -90,7 +91,7 @@ namespace CoAP.Layers
                     if (log.IsDebugEnabled)
                         log.Debug("MatchingLayer - Matched open request: " + response.SequenceKey);
 
-                    // TODO: ObservingManager.getInstance().isObserving(msg.exchangeKey());
+                    // TODO Cancel possible open transaction (note: waiting for stack redesign)
                     if (!msg.IsEmptyACK && msg.GetFirstOption(OptionType.Observe) == null)
                         RemoveOpenRequest(response.SequenceKey);
                 }

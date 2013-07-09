@@ -142,6 +142,25 @@ namespace CoAP
         }
 
         /// <summary>
+        /// Gets the value of a query parameter as a <code>String</code>,
+        /// or <code>null</code> if the parameter does not exist.
+        /// </summary>
+        /// <param name="name">a <code>String</code> specifying the name of the parameter</param>
+        /// <returns>a <code>String</code> representing the single value of the parameter</returns>
+        public String GetParameter(String name)
+        {
+            foreach (Option query in GetOptions(OptionType.UriQuery))
+            {
+                String val = query.StringValue;
+                if (String.IsNullOrEmpty(val))
+                    continue;
+                if (val.StartsWith(name + "="))
+                    return val.Substring(name.Length + 1);
+            }
+            return null;
+        }
+
+        /// <summary>
         /// Accepts this message and keeps track of the response count, which
         /// is required to manage MIDs for exchanges over multiple transactions.
         /// </summary>
