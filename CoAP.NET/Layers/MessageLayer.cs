@@ -312,7 +312,7 @@ namespace CoAP.Layers
 
         private void HandleResponseTimeout(TransmissionContext ctx)
         {
-            if (ctx.numRetransmit < CoapConstants.MaxRetransmit)
+            if (ctx.numRetransmit < (ctx.msg.MaxRetransmit < 0 ? CoapConstants.MaxRetransmit : ctx.msg.MaxRetransmit))
             {
                 ctx.msg.Retransmissioned = ++ctx.numRetransmit;
 
@@ -368,13 +368,16 @@ namespace CoAP.Layers
             {
                 CancelRetransmission();
 
-                if (0 == timeout)
-                    timeout = InitialTimeout();
-                else
-                    timeout *= 2;
+                if (msg.ResponseTimeout > 0)
+                {
+                    if (0 == timeout)
+                        timeout = InitialTimeout(msg.ResponseTimeout);
+                    else
+                        timeout *= 2;
 
-                timer.Interval = timeout;
-                timer.Start();
+                    timer.Interval = timeout;
+                    timer.Start();
+                }
             }
 
             public void CancelRetransmission()
@@ -392,9 +395,9 @@ namespace CoAP.Layers
 
         private static Random _rand = new Random();
 
-        private static Int32 InitialTimeout()
+        private static Int32 InitialTimeout(Int32 initialTimeout)
         {
-            Int32 min = CoapConstants.ResponseTimeout;
+            Int32 min = initialTimeout;
             Double f = CoapConstants.ResponseRandomFactor;
             return (Int32)(min + min * (f - 1D) * _rand.NextDouble());
         }

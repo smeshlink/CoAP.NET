@@ -43,6 +43,8 @@ namespace CoAP
         private Int64 _timestamp;
         private Uri _uri;
         private Int32 _retransmissioned;
+        private Int32 _maxRetransmit = CoapConstants.MaxRetransmit;
+        private Int32 _responseTimeout = CoapConstants.ResponseTimeout;
         private EndpointAddress _peerAddress;
         private Boolean _cancelled = false;
         private Boolean _complete = false;
@@ -528,6 +530,28 @@ namespace CoAP
         {
             get { return _retransmissioned; }
             set { _retransmissioned = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets the max times this message should be retransmissioned.
+        /// By default the value is equal to <code>CoapConstants.MaxRetransmit</code>.
+        /// A value of 0 indicates that this message will not be retransmissioned when timeout.
+        /// </summary>
+        public Int32 MaxRetransmit
+        {
+            get { return _maxRetransmit; }
+            set { _maxRetransmit = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets the amount of time in milliseconds after which this message will time out.
+        /// The default value is <code>CoapConstants.ResponseTimeout</code>.
+        /// A value less or equal than 0 indicates an infinite time-out period.
+        /// </summary>
+        public Int32 ResponseTimeout
+        {
+            get { return _responseTimeout; }
+            set { _responseTimeout = value; }
         }
 
         /// <summary>
