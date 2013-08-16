@@ -1,0 +1,13 @@
+﻿<Properties>
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.Workbench ActiveDocument="CoAP.NET/EndPoint/LocalEndPoint.cs">
+    <Files>
+      <File FileName="CoAP.NET/EndPoint/Resource.cs" Line="30" Column="27" />
+      <File FileName="CoAP.NET/EndPoint/LocalEndPoint.cs" Line="38" Column="20" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+</Properties>
