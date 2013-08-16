@@ -27,7 +27,7 @@ namespace CoAP.EndPoint
 
         private Int32 _totalSubResourceCount;
         private String _resourceIdentifier;
-        private HashSet<LinkAttribute> _attributes;
+        private CoAP.Util.HashSet<LinkAttribute> _attributes;
         private Resource _parent;
         private SortedDictionary<String, Resource> _subResources;
         private Boolean _hidden;
@@ -47,7 +47,7 @@ namespace CoAP.EndPoint
         {
             this._resourceIdentifier = resourceIdentifier;
             this._hidden = hidden;
-            this._attributes = new HashSet<LinkAttribute>();
+            this._attributes = new CoAP.Util.HashSet<LinkAttribute>();
         }
 
         /// <summary>
