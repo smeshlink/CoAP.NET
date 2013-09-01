@@ -217,7 +217,7 @@ namespace CoAP.Layers
                         {
                             _outgoing.Remove(msg.SequenceKey);
                             if (log.IsDebugEnabled)
-                                log.Debug("TransferLayer - Freed blockwise upload by completion");
+                                log.Debug("TransferLayer - Freed blockwise upload by completion: " + msg.SequenceKey);
                             // restore original request with registered handlers
                             ((Response)msg).Request = (Request)transfer.cache;
                         }

@@ -55,27 +55,22 @@ namespace CoAP.Log
 
             public Boolean IsInfoEnabled
             {
-                get { return true; }
-            }
-
-            public Boolean IsWarningEnabled
-            {
-                get { return true; }
+                get { return LogLevel.Info >= Level; }
             }
 
             public Boolean IsErrorEnabled
             {
-                get { return true; }
+                get { return LogLevel.Error >= Level; }
             }
 
             public Boolean IsFatalEnabled
             {
-                get { return true; }
+                get { return LogLevel.Fatal >= Level; }
             }
 
             public Boolean IsWarnEnabled
             {
-                get { return true; }
+                get { return LogLevel.Warning >= Level; }
             }
 
             public void Error(Object sender, String msg, params Object[] args)
