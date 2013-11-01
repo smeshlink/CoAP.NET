@@ -31,8 +31,15 @@ namespace CoAP.Layers
         private UDPSocket _socketV6;
         private UDPSocket _socketV4;
         private AsyncCallback _receiveCallback;
+
 #if COAPALL
-        public ISpec Spec { get; set; }
+        private ISpec _spec = CoAP.Spec.Draft13;
+
+        public ISpec Spec
+        {
+            get { return _spec; }
+            set { _spec = value; }
+        }
 #endif
 
         /// <summary>
