@@ -25,10 +25,10 @@ namespace CoAP.Test
             int total = 0;
             int fail = 0;
             Dictionary<Object, MethodInfo[]> tests = new Dictionary<Object, MethodInfo[]>();
-            foreach (var type in testTypes)
+            foreach (Type type in testTypes)
             {
                 MethodInfo[] methods = type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
-                var activeTests = Array.FindAll(methods, delegate(MethodInfo m) { return Attribute.IsDefined(m, typeof(ActiveTestAttribute)); });
+                MethodInfo[] activeTests = Array.FindAll(methods, delegate(MethodInfo m) { return Attribute.IsDefined(m, typeof(ActiveTestAttribute)); });
                 if (activeTests.Length != 0)
                     methods = activeTests;
                 tests.Add(Activator.CreateInstance(type), methods);
@@ -37,7 +37,7 @@ namespace CoAP.Test
 
             foreach (KeyValuePair<Object, MethodInfo[]> pair in tests)
             {
-                foreach (var method in pair.Value)
+                foreach (MethodInfo method in pair.Value)
                 {
                     Console.Write("Running " + method.Name);
                     try

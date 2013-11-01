@@ -16,7 +16,7 @@ namespace CoAP.Examples.Resources
             Title = "GET an image with different content-types";
             ResourceType = "Image";
 
-            foreach (var item in _supported)
+            foreach (Int32 item in _supported)
             {
                 ContentTypeCode = item;
             }

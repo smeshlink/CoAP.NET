@@ -15,7 +15,13 @@ namespace CoAP.Log
 {
     public static class LogManager
     {
-        public static LogLevel Level { get; set; }
+        private static LogLevel _level = LogLevel.All;
+
+        public static LogLevel Level
+        {
+            get { return _level; }
+            set { _level = value; }
+        }
 
         public enum LogLevel
         { 

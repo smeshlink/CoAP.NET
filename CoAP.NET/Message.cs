@@ -620,8 +620,11 @@ namespace CoAP
                 if (value != null && value != TokenManager.EmptyToken)
                     _token = (Byte[])value.Clone();
                 RequiresToken = false;
-                
-                _optionMap[OptionType.Token] = new List<Option>() { Option.Create(OptionType.Token, value) };
+
+                // for compatibility with CoAP 13-
+                List<Option> list = new List<Option>(1);
+                list.Add(Option.Create(OptionType.Token, value));
+                _optionMap[OptionType.Token] = list;
             }
         }
 
