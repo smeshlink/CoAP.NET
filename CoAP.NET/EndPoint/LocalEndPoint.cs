@@ -10,6 +10,7 @@
  */
 
 using System;
+using CoAP.EndPoint.Resources;
 using CoAP.Log;
 
 namespace CoAP.EndPoint

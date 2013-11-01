@@ -11,9 +11,8 @@
 
 using System;
 using System.Collections;
-using CoAP.Util;
+using CoAP.EndPoint.Resources;
 using CoAP.Log;
-using CoAP.EndPoint;
 
 namespace CoAP
 {

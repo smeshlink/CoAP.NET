@@ -1,6 +1,6 @@
 ﻿using System;
 using System.IO;
-using CoAP.EndPoint;
+using CoAP.EndPoint.Resources;
 
 namespace CoAP.Examples.Resources
 {

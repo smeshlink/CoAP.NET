@@ -12,7 +12,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace CoAP.EndPoint
+namespace CoAP.EndPoint.Resources
 {
     /// <summary>
     /// Represents the CoAP .well-known/core resource.

@@ -11,7 +11,7 @@
 
 using System;
 using System.Collections.Generic;
-using CoAP.EndPoint;
+using CoAP.EndPoint.Resources;
 using CoAP.Layers;
 using CoAP.Log;
 

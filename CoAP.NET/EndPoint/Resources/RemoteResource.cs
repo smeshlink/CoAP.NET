@@ -11,7 +11,7 @@
 
 using System;
 
-namespace CoAP.EndPoint
+namespace CoAP.EndPoint.Resources
 {
     public class RemoteResource : Resource
     {

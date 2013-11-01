@@ -1,5 +1,5 @@
 ﻿using System.Threading;
-using CoAP.EndPoint;
+using CoAP.EndPoint.Resources;
 
 namespace CoAP.Examples.Resources
 {

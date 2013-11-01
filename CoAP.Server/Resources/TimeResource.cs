@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using CoAP.EndPoint;
 using System.Threading;
+using CoAP.EndPoint.Resources;
 
 namespace CoAP.Examples.Resources
 {

@@ -30,6 +30,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Release\CoAP.NET.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -40,12 +41,12 @@
     <Compile Include="Code.cs" />
     <Compile Include="Communicator.cs" />
     <Compile Include="EndpointAddress.cs" />
-    <Compile Include="EndPoint\DiscoveryResource.cs" />
+    <Compile Include="EndPoint\Resources\DiscoveryResource.cs" />
     <Compile Include="EndPoint\EndPoint.cs" />
     <Compile Include="EndPoint\LocalEndPoint.cs" />
-    <Compile Include="EndPoint\LocalResource.cs" />
-    <Compile Include="EndPoint\RemoteResource.cs" />
-    <Compile Include="EndPoint\Resource.cs" />
+    <Compile Include="EndPoint\Resources\LocalResource.cs" />
+    <Compile Include="EndPoint\Resources\RemoteResource.cs" />
+    <Compile Include="EndPoint\Resources\Resource.cs" />
     <Compile Include="IMessageHandler.cs" />
     <Compile Include="IRequestHandler.cs" />
     <Compile Include="IMessageReceiver.cs" />

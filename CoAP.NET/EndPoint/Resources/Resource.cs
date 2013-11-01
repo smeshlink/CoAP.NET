@@ -11,12 +11,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
-using CoAP.Util;
 using System.Text;
 using CoAP.Log;
 
-namespace CoAP.EndPoint
+namespace CoAP.EndPoint.Resources
 {
     /// <summary>
     /// This class describes the functionality of a CoAP resource.

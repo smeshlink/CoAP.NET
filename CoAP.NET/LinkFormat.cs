@@ -13,7 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
-using CoAP.EndPoint;
+using CoAP.EndPoint.Resources;
 using CoAP.Log;
 using CoAP.Util;
 
