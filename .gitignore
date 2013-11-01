@@ -2,6 +2,7 @@
 bin
 obj
 .svn
+Apps
 
 # mstest test results
 TestResults
