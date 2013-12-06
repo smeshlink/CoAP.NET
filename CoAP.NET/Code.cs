@@ -131,7 +131,7 @@ namespace CoAP
         /// <summary>
         /// 5.04 Gateway Timeout
         /// </summary>
-        public const Int32 GetwayTimeout = 164;
+        public const Int32 GatewayTimeout = 164;
         /// <summary>
         /// 5.05 Proxying Not Supported
         /// </summary>
@@ -242,7 +242,7 @@ namespace CoAP
                     return "5.02 Bad Gateway";
                 case ServiceUnavailable:
                     return "5.03 Service Unavailable";
-                case GetwayTimeout:
+                case GatewayTimeout:
                     return "5.04 Gateway Timeout";
                 case ProxyingNotSupported:
                     return "5.05 Proxying Not Supported";
