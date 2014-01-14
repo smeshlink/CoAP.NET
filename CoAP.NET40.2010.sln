@@ -1,0 +1,69 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CoAP.NET40", "CoAP.NET\CoAP.NET40.csproj", "{45DB1E45-4831-4E4A-BB1E-AE92EEA182E3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CoAP.Test.NET40", "CoAP.Test\CoAP.Test.NET40.csproj", "{1F828F7D-D1CB-4C47-8A9A-47855B822724}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CoAP.Client.NET40", "CoAP.Client\CoAP.Client.NET40.csproj", "{30223FF5-4DCB-45B8-9B06-61EB9FBF9FA8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CoAP.Server.NET40", "CoAP.Server\CoAP.Server.NET40.csproj", "{05CC2E5E-B663-4560-844C-C8E52ED1C9D1}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|Mixed Platforms = Debug|Mixed Platforms
+		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
+		Release|Mixed Platforms = Release|Mixed Platforms
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{45DB1E45-4831-4E4A-BB1E-AE92EEA182E3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{45DB1E45-4831-4E4A-BB1E-AE92EEA182E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{45DB1E45-4831-4E4A-BB1E-AE92EEA182E3}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{45DB1E45-4831-4E4A-BB1E-AE92EEA182E3}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{45DB1E45-4831-4E4A-BB1E-AE92EEA182E3}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{45DB1E45-4831-4E4A-BB1E-AE92EEA182E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{45DB1E45-4831-4E4A-BB1E-AE92EEA182E3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{45DB1E45-4831-4E4A-BB1E-AE92EEA182E3}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{45DB1E45-4831-4E4A-BB1E-AE92EEA182E3}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{45DB1E45-4831-4E4A-BB1E-AE92EEA182E3}.Release|x86.ActiveCfg = Release|Any CPU
+		{1F828F7D-D1CB-4C47-8A9A-47855B822724}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1F828F7D-D1CB-4C47-8A9A-47855B822724}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1F828F7D-D1CB-4C47-8A9A-47855B822724}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{1F828F7D-D1CB-4C47-8A9A-47855B822724}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{1F828F7D-D1CB-4C47-8A9A-47855B822724}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{1F828F7D-D1CB-4C47-8A9A-47855B822724}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1F828F7D-D1CB-4C47-8A9A-47855B822724}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1F828F7D-D1CB-4C47-8A9A-47855B822724}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{1F828F7D-D1CB-4C47-8A9A-47855B822724}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{1F828F7D-D1CB-4C47-8A9A-47855B822724}.Release|x86.ActiveCfg = Release|Any CPU
+		{30223FF5-4DCB-45B8-9B06-61EB9FBF9FA8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{30223FF5-4DCB-45B8-9B06-61EB9FBF9FA8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{30223FF5-4DCB-45B8-9B06-61EB9FBF9FA8}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{30223FF5-4DCB-45B8-9B06-61EB9FBF9FA8}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{30223FF5-4DCB-45B8-9B06-61EB9FBF9FA8}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{30223FF5-4DCB-45B8-9B06-61EB9FBF9FA8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{30223FF5-4DCB-45B8-9B06-61EB9FBF9FA8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{30223FF5-4DCB-45B8-9B06-61EB9FBF9FA8}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{30223FF5-4DCB-45B8-9B06-61EB9FBF9FA8}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{30223FF5-4DCB-45B8-9B06-61EB9FBF9FA8}.Release|x86.ActiveCfg = Release|Any CPU
+		{05CC2E5E-B663-4560-844C-C8E52ED1C9D1}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{05CC2E5E-B663-4560-844C-C8E52ED1C9D1}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
+		{05CC2E5E-B663-4560-844C-C8E52ED1C9D1}.Debug|Mixed Platforms.Build.0 = Debug|x86
+		{05CC2E5E-B663-4560-844C-C8E52ED1C9D1}.Debug|x86.ActiveCfg = Debug|x86
+		{05CC2E5E-B663-4560-844C-C8E52ED1C9D1}.Debug|x86.Build.0 = Debug|x86
+		{05CC2E5E-B663-4560-844C-C8E52ED1C9D1}.Release|Any CPU.ActiveCfg = Release|x86
+		{05CC2E5E-B663-4560-844C-C8E52ED1C9D1}.Release|Mixed Platforms.ActiveCfg = Release|x86
+		{05CC2E5E-B663-4560-844C-C8E52ED1C9D1}.Release|Mixed Platforms.Build.0 = Release|x86
+		{05CC2E5E-B663-4560-844C-C8E52ED1C9D1}.Release|x86.ActiveCfg = Release|x86
+		{05CC2E5E-B663-4560-844C-C8E52ED1C9D1}.Release|x86.Build.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(MonoDevelopProperties) = preSolution
+		StartupItem = CoAP.NET\CoAP.NET.csproj
+	EndGlobalSection
+EndGlobal
