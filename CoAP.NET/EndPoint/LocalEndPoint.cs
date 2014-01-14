@@ -26,8 +26,9 @@ namespace CoAP.EndPoint
     {
         private static readonly ILogger log = LogManager.GetLogger(typeof(LocalEndPoint));
 
-        private Resource _root;
-        private ICommunicator _communicator;
+        private readonly Resource _root;
+        private readonly ICommunicator _communicator;
+        private readonly IRequestDispatcher _dispatcher = ThreadPoolDispatcher.Instance;
 
 #if COAPALL
         public LocalEndPoint(ISpec spec)
@@ -117,21 +118,7 @@ namespace CoAP.EndPoint
                     request.Resource = resource;
                     if (log.IsDebugEnabled)
                         log.Debug("Dispatching execution: " + path);
-                    // TODO threading
-                    try
-                    {
-                        request.Dispatch(resource);
-                    }
-                    catch (Exception ex)
-                    {
-                        if (log.IsErrorEnabled)
-                            log.Error(String.Format("Resource handler {0} crashed: {1}", resource.Name, ex.Message));
-                        request.Respond(Code.InternalServerError);
-                        request.SendResponse();
-                        return;
-                    }
-
-                    request.SendResponse();
+                    _dispatcher.Dispatch(request);
                 }
                 else if (request.Code == Code.PUT)
                 {
@@ -177,6 +164,35 @@ namespace CoAP.EndPoint
                 Response response = new Response(Code.Content);
                 response.PayloadString = "Ni Hao from CoAP.NET";
                 request.Respond(response);
+            }
+        }
+
+        /// <summary>
+        /// Provides a method to dispatch requests.
+        /// </summary>
+        internal interface IRequestDispatcher
+        {
+            void Dispatch(Request request);
+        }
+
+        internal class SimpleDispatcher : IRequestDispatcher
+        {
+            public virtual void Dispatch(Request request)
+            {
+                try
+                {
+                    request.Dispatch(request.Resource);
+                }
+                catch (Exception ex)
+                {
+                    if (log.IsErrorEnabled)
+                        log.Error(String.Format("Resource handler {0} crashed: {1}", request.Resource.Name, ex.Message));
+                    request.Respond(Code.InternalServerError);
+                    request.SendResponse();
+                    return;
+                }
+
+                request.SendResponse();
             }
         }
     }
