@@ -27,13 +27,14 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
+    <DefineConstants>TRACE;COAPALL</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>bin\Release\CoAP.NET.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="System.Runtime.Remoting" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BlockOption.cs" />
@@ -41,13 +42,23 @@
     <Compile Include="Code.cs" />
     <Compile Include="Communicator.cs" />
     <Compile Include="EndpointAddress.cs" />
-    <Compile Include="EndPoint\Resources\DiscoveryResource.cs" />
     <Compile Include="EndPoint\EndPoint.cs" />
     <Compile Include="EndPoint\LocalEndPoint.cs" />
+    <Compile Include="EndPoint\ProxyEndpoint.cs" />
+    <Compile Include="EndPoint\Resources\DiscoveryResource.cs" />
+    <Compile Include="EndPoint\Resources\ForwardingResource.cs" />
     <Compile Include="EndPoint\Resources\LocalResource.cs" />
+    <Compile Include="EndPoint\Resources\ProxyCoapClientResource.cs" />
+    <Compile Include="EndPoint\Resources\ProxyHttpClientResource.cs" />
     <Compile Include="EndPoint\Resources\RemoteResource.cs" />
     <Compile Include="EndPoint\Resources\Resource.cs" />
-    <Compile Include="EndPoint\Resources\TimerResource.cs"/>
+    <Compile Include="EndPoint\Resources\TimerResource.cs" />
+    <Compile Include="EndPoint\ThreadPoolDispatcher.cs" />
+    <Compile Include="Http\IHttpRequest.cs" />
+    <Compile Include="Http\IHttpResponse.cs" />
+    <Compile Include="Http\IServiceProvider.cs" />
+    <Compile Include="Http\RemotingHttpRequest.cs" />
+    <Compile Include="Http\WebServer.cs" />
     <Compile Include="IMessageHandler.cs" />
     <Compile Include="IRequestHandler.cs" />
     <Compile Include="IMessageReceiver.cs" />
@@ -55,6 +66,7 @@
     <Compile Include="Layers\AbstractLayer.cs" />
     <Compile Include="Layers\AdverseLayer.cs" />
     <Compile Include="Layers\CoapStack.cs" />
+    <Compile Include="Layers\HttpStack.cs" />
     <Compile Include="Layers\ILayer.cs" />
     <Compile Include="Layers\MatchingLayer.cs" />
     <Compile Include="Layers\MessageLayer.cs" />
@@ -77,14 +89,18 @@
     <Compile Include="Response.cs" />
     <Compile Include="ResponseEventArgs.cs" />
     <Compile Include="Spec.cs" />
+    <Compile Include="Util\ThrowHelper.cs" />
     <Compile Include="TokenManager.cs" />
     <Compile Include="Util\ByteArrayUtils.cs" />
+    <Compile Include="Util\CoapTranslator.cs" />
     <Compile Include="Util\DatagramReader.cs" />
     <Compile Include="Util\DatagramWriter.cs" />
     <Compile Include="Util\HashMap.cs" />
     <Compile Include="Util\HashSet.cs" />
+    <Compile Include="Util\HttpTranslator.cs" />
     <Compile Include="Util\Scanner.cs" />
     <Compile Include="Util\Sort.cs" />
+    <Compile Include="Util\TranslationException.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="README" />

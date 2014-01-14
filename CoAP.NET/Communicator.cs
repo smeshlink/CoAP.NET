@@ -10,6 +10,7 @@
  */
 
 using System;
+using System.IO;
 using CoAP.Layers;
 
 namespace CoAP
@@ -130,6 +131,11 @@ namespace CoAP
             return new CommonCommunicator(port, transferBlockSize);
         }
 
+        public static ICommunicator CreateCommunicator(Int32 port, Int32 httpPort, Int32 transferBlockSize)
+        {
+            return new ProxyCommunicator(port, httpPort, transferBlockSize);
+        }
+
 #if COAPALL
         public static ICommunicator CreateCommunicator(Int32 port, Int32 transferBlockSize, ISpec spec)
         {
@@ -186,6 +192,82 @@ namespace CoAP
                 }
 
                 DeliverMessage(msg);
+            }
+        }
+
+        public class ProxyCommunicator : UpperLayer, ICommunicator, IShutdown
+        {
+            private readonly CoapStack _coapStack;
+            private readonly HttpStack _httpStack;
+
+            public ProxyCommunicator(Int32 udpPort, Int32 httpPort, Int32 transferBlockSize)
+            {
+                _coapStack = new CoapStack(udpPort, transferBlockSize);
+                _httpStack = new HttpStack(httpPort);
+
+                _coapStack.RegisterReceiver(this);
+                _httpStack.RegisterReceiver(this);
+            }
+
+            public Int32 Port
+            {
+                get { return _coapStack.Port; }
+            }
+
+            public void Shutdown()
+            {
+                _coapStack.Shutdown();
+                _httpStack.Shutdown();
+            }
+
+            protected override void DoReceiveMessage(Message msg)
+            {
+                msg.Communicator = this;
+                Response response = msg as Response;
+                if (response != null)
+                {
+                    // initiate custom response handling
+                    if (response.Request != null)
+                        response.Request.HandleResponse(response);
+                }
+
+                base.DoReceiveMessage(msg);
+            }
+
+            protected override void DoSendMessage(Message msg)
+            {
+                // defensive programming before entering the stack, lower layers
+			    // should assume a correct message.
+                if (msg != null)
+                {
+                    // check message before sending through the stack
+                    if (msg.PeerAddress.Address == null)
+                        throw new IOException("Remote address not specified");
+
+                    // the ProxyCommunicator can't use the API
+                    // SendMessageOverLowerLayer because it has two lower layers
+
+                    Response response = msg as Response;
+                    if (response != null)
+                    {
+                        Request request = response.Request;
+
+                        if (_httpStack.IsWaitingRequest(request))
+                        {
+                            if (msg.IsEmptyACK)
+                                // if the message is not the actual response, but
+                                // only an acknowledge, should not be forwarded
+                                // (HTTP is on TCP so there is no need for acks in
+                                // the application layer)
+                                return;
+
+                            _httpStack.SendMessage(msg);
+                            return;
+                        }
+                    }
+
+                    _coapStack.SendMessage(msg);
+                }
             }
         }
     }

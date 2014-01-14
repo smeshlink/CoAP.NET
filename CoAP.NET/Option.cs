@@ -372,6 +372,36 @@ namespace CoAP
             }
         }
 
+        public static OptionFormat GetFormatByType(OptionType type)
+        {
+            switch (type)
+            {
+                case OptionType.ContentType:
+                case OptionType.MaxAge:
+                case OptionType.UriPort:
+                case OptionType.Observe:
+                case OptionType.Block2:
+                case OptionType.Block1:
+                case OptionType.Accept:
+                case OptionType.FencepostDivisor:
+                case OptionType.IfNoneMatch:
+                    return OptionFormat.Integer;
+                case OptionType.ProxyUri:
+                case OptionType.UriHost:
+                case OptionType.LocationPath:
+                case OptionType.LocationQuery:
+                case OptionType.UriPath:
+                case OptionType.Token:
+                case OptionType.UriQuery:
+                    return OptionFormat.String;
+                case OptionType.ETag:
+                case OptionType.IfMatch:
+                    return OptionFormat.Opaque;
+                default:
+                    return OptionFormat.Unknown;
+            }
+        }
+
         private static Int32 ComputeHash(params Byte[] data)
         {
             unchecked

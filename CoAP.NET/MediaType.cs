@@ -11,6 +11,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 namespace CoAP
 {
@@ -205,6 +206,33 @@ namespace CoAP
                 hasAccept = true;
             }
             return hasAccept ? Undefined : defaultContentType;
+        }
+
+        public static Int32 Parse(String type)
+        {
+            if (type == null)
+                return Undefined;
+
+            foreach (KeyValuePair<Int32, String[]> pair in registry)
+            {
+                if (pair.Value[0].Equals(type, StringComparison.OrdinalIgnoreCase))
+                    return pair.Key;
+            }
+
+            return Undefined;
+        }
+
+        public static IEnumerable<Int32> ParseWildcard(String regex)
+        {
+            regex = regex.Trim().Substring(0, regex.IndexOf('*')).Trim() + ".*";
+            Regex r = new Regex(regex);
+
+            foreach (KeyValuePair<Int32, String[]> pair in registry)
+            {
+                String mime = pair.Value[0];
+                if (r.IsMatch(mime))
+                    yield return pair.Key;
+            }
         }
     }
 }
