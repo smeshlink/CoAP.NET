@@ -90,7 +90,15 @@ namespace CoAP.EndPoint
 
         protected override void DoHandleMessage(Request request)
         {
-            Execute(request);
+            if (request.HasOption(OptionType.ProxyUri))
+            {
+                request.Respond(Code.ProxyingNotSupported);
+                request.SendResponse();
+            }
+            else
+            {
+                Execute(request);
+            }
         }
 
         protected override void DoHandleMessage(Response response)

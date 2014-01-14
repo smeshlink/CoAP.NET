@@ -690,6 +690,22 @@ namespace CoAP
             }
         }
 
+        public Uri ProxyUri
+        {
+            get
+            {
+                IEnumerable<Option> opts = GetOptions(OptionType.ProxyUri);
+                if (opts == null)
+                    return null;
+
+                String proxyUriString = Uri.UnescapeDataString(Option.Join(opts, "/"));
+                if (!proxyUriString.StartsWith("coap://") || !proxyUriString.StartsWith("coaps://")
+                    || !proxyUriString.StartsWith("http://") || !proxyUriString.StartsWith("https://"))
+                    proxyUriString = "coap://" + proxyUriString;
+                return new Uri(proxyUriString);
+            }
+        }
+
         /// <summary>
         /// Gets or sets the max-age of this CoAP message.
         /// </summary>

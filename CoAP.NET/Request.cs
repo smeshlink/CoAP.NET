@@ -200,6 +200,7 @@ namespace CoAP
         /// </summary>
         /// <param name="waiting">Blocking or not</param>
         /// <returns></returns>
+        /// <exception cref="System.Threading.ThreadInterruptedException"></exception>
         public Response ReceiveResponse(Boolean waiting)
         {
             // response queue required to perform this operation
