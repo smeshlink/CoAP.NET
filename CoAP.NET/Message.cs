@@ -699,8 +699,9 @@ namespace CoAP
                     return null;
 
                 String proxyUriString = Uri.UnescapeDataString(Option.Join(opts, "/"));
-                if (!proxyUriString.StartsWith("coap://") || !proxyUriString.StartsWith("coaps://")
-                    || !proxyUriString.StartsWith("http://") || !proxyUriString.StartsWith("https://"))
+                // TODO URLDecode
+                if (!proxyUriString.StartsWith("coap://") && !proxyUriString.StartsWith("coaps://")
+                    && !proxyUriString.StartsWith("http://") && !proxyUriString.StartsWith("https://"))
                     proxyUriString = "coap://" + proxyUriString;
                 return new Uri(proxyUriString);
             }
