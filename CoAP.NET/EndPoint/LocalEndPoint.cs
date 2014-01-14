@@ -27,11 +27,11 @@ namespace CoAP.EndPoint
         private static readonly ILogger log = LogManager.GetLogger(typeof(LocalEndPoint));
 
         private Resource _root;
-        private Communicator.CommonCommunicator _communicator;
+        private ICommunicator _communicator;
 
 #if COAPALL
         public LocalEndPoint(ISpec spec)
-            : this(CoAP.Communicator.CreateCommunicator(spec.DefaultPort, spec.DefaultBlockSize, spec))
+            : this(CommunicatorFactory.CreateCommunicator(spec.DefaultPort, spec.DefaultBlockSize, spec))
         { }
 #endif
 
@@ -44,10 +44,10 @@ namespace CoAP.EndPoint
         { }
 
         public LocalEndPoint(Int32 port, Int32 transferBlockSize)
-            : this(CoAP.Communicator.CreateCommunicator(port, transferBlockSize))
+            : this(CommunicatorFactory.CreateCommunicator(port, transferBlockSize))
         { }
 
-        public LocalEndPoint(Communicator.CommonCommunicator communicator)
+        public LocalEndPoint(ICommunicator communicator)
         {
             _communicator = communicator;
             _communicator.RegisterReceiver(this);
@@ -55,7 +55,7 @@ namespace CoAP.EndPoint
             AddResource(new DiscoveryResource(_root));
         }
 
-        public Communicator.CommonCommunicator Communicator
+        public ICommunicator Communicator
         {
             get { return _communicator; }
         }

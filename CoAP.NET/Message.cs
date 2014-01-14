@@ -48,7 +48,7 @@ namespace CoAP
         private EndpointAddress _peerAddress;
         private Boolean _cancelled = false;
         private Boolean _complete = false;
-        private ILayer _communicator;
+        private ICommunicator _communicator;
 
         /// <summary>
         /// Initializes a message.
@@ -462,12 +462,12 @@ namespace CoAP
 
         #region Properties
 
-        public ILayer Communicator
+        public ICommunicator Communicator
         {
             get
             {
                 if (_communicator == null)
-                    _communicator = CoAP.Communicator.Default;
+                    _communicator = CommunicatorFactory.Default;
                 return _communicator;
             }
             set { _communicator = value; }
