@@ -46,11 +46,7 @@ namespace CoAP
         public const Int32 DefaultBlockSize = 512;
         public const Int32 MessageCacheSize = 32;
         public const Int32 ReceiveBufferSize = 4096;
-        /// <summary>
-        /// Default timeout (ms) of transactions
-        /// </summary>
-        public const Int32 DefaultTransactionTimeout = 100000;
-        public const Int32 DefaultOverallTimeout = 60000;
+        public const Int32 DefaultOverallTimeout = 100000;
         /// <summary>
         /// Default URI for wellknown resource
         /// </summary>
