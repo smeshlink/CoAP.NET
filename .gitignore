@@ -1,8 +1,14 @@
 # Build Folders (you can keep bin if you'd like, to store dlls and pdbs)
-bin
-obj
+[Bb]in/
+[Oo]bj/
 .svn
 Apps
 
-# mstest test results
-TestResults
+# User-specific files
+*.suo
+*.user
+*.sln.docstates
+
+# MSTest test Results
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
