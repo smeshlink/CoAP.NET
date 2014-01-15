@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2011-2013, Longxiang He <helongxiang@smeshlink.com>,
+ * Copyright (c) 2011-2014, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
  * This program is distributed in the hope that it will be useful,
@@ -117,7 +117,7 @@ namespace CoAP
 #if COAPALL
                             instance = Draft13;
 #else
-                            instance = new CommonCommunicator(0, 0);
+                            instance = CreateCommunicator(0, 0);
 #endif
                         }
                     }
@@ -128,18 +128,37 @@ namespace CoAP
 
         public static ICommunicator CreateCommunicator(Int32 port, Int32 transferBlockSize)
         {
-            return new CommonCommunicator(port, transferBlockSize);
+            CoapConfig config = new CoapConfig();
+            config.Port = port;
+            config.TransferBlockSize = transferBlockSize;
+            return CreateCommunicator(config);
         }
 
         public static ICommunicator CreateCommunicator(Int32 port, Int32 httpPort, Int32 transferBlockSize)
         {
-            return new ProxyCommunicator(port, httpPort, transferBlockSize);
+            CoapConfig config = new CoapConfig();
+            config.Port = port;
+            config.HttpPort = httpPort;
+            config.TransferBlockSize = transferBlockSize;
+            return CreateCommunicator(config);
+        }
+
+        public static ICommunicator CreateCommunicator(ICoapConfig config)
+        {
+            if (config.HttpPort > 0)
+                return new ProxyCommunicator(config);
+            else
+                return new CommonCommunicator(config);
         }
 
 #if COAPALL
         public static ICommunicator CreateCommunicator(Int32 port, Int32 transferBlockSize, ISpec spec)
         {
-            return new CommonCommunicator(port, transferBlockSize, spec);
+            CoapConfig config = new CoapConfig();
+            config.Port = port;
+            config.TransferBlockSize = transferBlockSize;
+            config.Spec = spec;
+            return CreateCommunicator(config);
         }
 #endif
 
@@ -147,17 +166,9 @@ namespace CoAP
         {
             private readonly CoapStack _coapStack;
 
-#if COAPALL
-            public CommonCommunicator(Int32 port, Int32 transferBlockSize, ISpec spec)
+            public CommonCommunicator(ICoapConfig config)
             {
-                _coapStack = new CoapStack(port, transferBlockSize, spec);
-                LowerLayer = _coapStack;
-            }
-#endif
-
-            public CommonCommunicator(Int32 port, Int32 transferBlockSize)
-            {
-                _coapStack = new CoapStack(port, transferBlockSize);
+                _coapStack = new CoapStack(config);
                 LowerLayer = _coapStack;
             }
 
@@ -200,10 +211,10 @@ namespace CoAP
             private readonly CoapStack _coapStack;
             private readonly HttpStack _httpStack;
 
-            public ProxyCommunicator(Int32 udpPort, Int32 httpPort, Int32 transferBlockSize)
+            public ProxyCommunicator(ICoapConfig config)
             {
-                _coapStack = new CoapStack(udpPort, transferBlockSize);
-                _httpStack = new HttpStack(httpPort);
+                _coapStack = new CoapStack(config);
+                _httpStack = new HttpStack(config.HttpPort);
 
                 _coapStack.RegisterReceiver(this);
                 _httpStack.RegisterReceiver(this);

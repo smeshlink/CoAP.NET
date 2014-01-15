@@ -38,6 +38,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BlockOption.cs" />
+    <Compile Include="CoapConfig.cs" />
     <Compile Include="CoapConstants.cs" />
     <Compile Include="Code.cs" />
     <Compile Include="Communicator.cs" />
@@ -59,6 +60,7 @@
     <Compile Include="Http\IServiceProvider.cs" />
     <Compile Include="Http\RemotingHttpRequest.cs" />
     <Compile Include="Http\WebServer.cs" />
+    <Compile Include="ICoapConfig.cs" />
     <Compile Include="IMessageHandler.cs" />
     <Compile Include="IRequestHandler.cs" />
     <Compile Include="IMessageReceiver.cs" />

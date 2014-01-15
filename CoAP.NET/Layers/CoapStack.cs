@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2011-2013, Longxiang He <helongxiang@smeshlink.com>,
+ * Copyright (c) 2011-2014, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
  * This program is distributed in the hope that it will be useful,
@@ -20,17 +20,13 @@ namespace CoAP.Layers
     {
         private UDPLayer _udpLayer;
 
-#if COAPALL
-        public CoapStack(Int32 port, Int32 transferBlockSize, ISpec spec)
-            : this(port, transferBlockSize)
-        {
-            _udpLayer.Spec = spec;
-        }
-#endif
-
         public CoapStack(Int32 port, Int32 transferBlockSize)
+            : this(port, transferBlockSize, CoapConstants.DefaultOverallTimeout)
+        { }
+
+        public CoapStack(Int32 port, Int32 transferBlockSize, Int32 sequenceTimeout)
         {
-            TokenLayer tokenLayer = new TokenLayer();
+            TokenLayer tokenLayer = new TokenLayer(sequenceTimeout);
             TransferLayer transferLayer = new TransferLayer(transferBlockSize);
             MatchingLayer matchingLayer = new MatchingLayer();
             MessageLayer messageLayer = new MessageLayer();
@@ -41,6 +37,15 @@ namespace CoAP.Layers
             transferLayer.LowerLayer = matchingLayer;
             matchingLayer.LowerLayer = messageLayer;
             messageLayer.LowerLayer = _udpLayer;
+        }
+
+        public CoapStack(ICoapConfig config)
+            : this(config.Port, config.TransferBlockSize, config.SequenceTimeout)
+        {
+#if COAPALL
+            if (config.Spec != null)
+                _udpLayer.Spec = config.Spec;
+#endif
         }
 
         public Int32 Port
