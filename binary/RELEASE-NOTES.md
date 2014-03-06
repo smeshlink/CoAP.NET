@@ -1,6 +1,13 @@
 CoAP.NET Release Notes
 ======================
 
+changes in 0.13.3
+-----------------
+
+* [added] Request.SequenceTimeout to override overall timeout in
+  TokenLayer
+* [fixed] incorrect match of tokens in TokenManager
+
 changes in 0.13.2
 -----------------
 
