@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2011-2013, Longxiang He <helongxiang@smeshlink.com>,
+ * Copyright (c) 2011-2014, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
  * This program is distributed in the hope that it will be useful,
@@ -30,7 +30,7 @@ namespace CoAP
         private static TokenManager instance = new TokenManager();
 
         private UInt64 _currentToken;
-        private List<Byte[]> _acquiredTokens = new List<Byte[]>();
+        private HashSet<Byte[]> _acquiredTokens = new HashSet<Byte[]>(ArrayEqualityComparer<Byte>.Default);
 
         private TokenManager()
         {

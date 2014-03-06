@@ -97,6 +97,7 @@
     <Compile Include="Response.cs" />
     <Compile Include="ResponseEventArgs.cs" />
     <Compile Include="Spec.cs" />
+    <Compile Include="Util\ArrayEqualityComparer.cs" />
     <Compile Include="Util\ThrowHelper.cs" />
     <Compile Include="TokenManager.cs" />
     <Compile Include="Util\ByteArrayUtils.cs" />
