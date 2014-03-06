@@ -132,8 +132,10 @@ namespace CoAP.Layers
                 _exchanges[sequence.key] = sequence;
             }
 
-            if (_sequenceTimeout >= 0)
-                sequence.Start(_sequenceTimeout);
+            Int32 timeout = request.SequenceTimeout == 0 ? _sequenceTimeout : request.SequenceTimeout;
+
+            if (timeout >= 0)
+                sequence.Start(timeout);
 
             if (log.IsDebugEnabled)
                 log.Debug("TokenLayer - Stored new exchange: " + sequence.key);

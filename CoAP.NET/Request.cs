@@ -36,6 +36,7 @@ namespace CoAP
         private Response _currentResponse;
         private LocalResource _resource;
         private readonly DateTime _startTime = DateTime.Now;
+        private Int32 _sequenceTimeout;
 
         /// <summary>
         /// Fired when a response arrives.
@@ -58,6 +59,17 @@ namespace CoAP
         public Request(Int32 method, Boolean confirmable)
             : base(confirmable ? MessageType.CON : MessageType.NON, method)
         {
+        }
+
+        /// <summary>
+        /// Gets or sets the amount of time in milliseconds after which this request will time out.
+        /// If not set, the timeout in <see cref="Layers.TokenLayer"/> will be used.
+        /// A value less than 0 indicates an infinite time-out period.
+        /// </summary>
+        public Int32 SequenceTimeout
+        {
+            get { return _sequenceTimeout; }
+            set { _sequenceTimeout = value; }
         }
 
         /// <summary>
