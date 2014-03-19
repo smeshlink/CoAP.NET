@@ -1,0 +1,8 @@
+name: CoAP.NET
+highlighter: pygments
+relative_permalinks: false
+pygments: true
+permalink: /:categories/:title/
+repository: https://github.com/smeshlink/CoAP.NET
+
+version: 0.13.3

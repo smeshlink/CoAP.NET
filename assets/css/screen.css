@@ -1,0 +1,18 @@
+---
+---
+
+{% capture screen %}
+{% include css/bootstrap.min.css %}
+{% include css/bootstrap-responsive.min.css %}
+{% include css/todc-bootstrap.css %}
+/* pygments.css */
+{% include css/pygments.css %}
+/* style.css */
+{% include css/style.css %}
+{% endcapture %}
+
+{% if site.GH_ENV %}
+  {{ screen | strip_newlines | remove: '  ' }}
+{% else %}
+  {{ screen }}
+{% endif %}

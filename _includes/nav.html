@@ -1,0 +1,11 @@
+						<ul class="nav">
+							<li class="{% if page.home %}active{% endif %}">
+								<a href="{{ site.url }}/">Home</a>
+							</li>
+							<li class="{% if page.started %}active{% endif %}">
+								<a href="{{ site.url }}/getting-started/">Getting started</a>
+							</li>
+							<li>
+								<a href="{{ site.url }}/zh{{ page.url }}">中文</a>
+							</li>
+						</ul>
