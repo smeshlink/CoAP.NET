@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="Coap.net : A C# implementation of the CoAP protocol" />
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>Coap.net</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/smeshlink/CoAP.NET">View on GitHub</a>
+
+          <h1 id="project_title">Coap.net</h1>
+          <h2 id="project_tagline">A C# implementation of the CoAP protocol</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/smeshlink/CoAP.NET/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/smeshlink/CoAP.NET/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h1>
+<a name="coapnet---a-coap-framework-in-c" class="anchor" href="#coapnet---a-coap-framework-in-c"><span class="octicon octicon-link"></span></a>CoAP.NET - A CoAP framework in C#</h1>
+
+<p>The Constrained Application Protocol (CoAP) (<a href="https://datatracker.ietf.org/doc/draft-ietf-core-coap/">https://datatracker.ietf.org/doc/draft-ietf-core-coap/</a>)
+is a RESTful web transfer protocol for resource-constrained networks and nodes.
+CoAP.NET is an implementation in C# providing CoAP-based services to .NET applications. 
+Reviews and suggestions would be appreciated.</p>
+
+<h2>
+<a name="content" class="anchor" href="#content"><span class="octicon octicon-link"></span></a>Content</h2>
+
+<ul>
+<li><a href="#quick-start">Quick Start</a></li>
+<li><a href="#build">Build</a></li>
+<li><a href="#license">License</a></li>
+<li><a href="#acknowledgements">Acknowledgements</a></li>
+</ul><h2>
+<a name="quick-start" class="anchor" href="#quick-start"><span class="octicon octicon-link"></span></a>Quick Start</h2>
+
+<p>CoAP sessions are considered as request-response pair.</p>
+
+<h3>
+<a name="coap-client" class="anchor" href="#coap-client"><span class="octicon octicon-link"></span></a>CoAP Client</h3>
+
+<p>Access remote CoAP resources by issuing a <strong><a href="CoAP.NET/Request.cs">Request</a></strong>
+and receive its <strong><a href="CoAP.NET/Request.cs">Response</a></strong>(s).</p>
+
+<div class="highlight highlight-csharp"><pre>  <span class="c1">// new a GET request</span>
+  <span class="n">Request</span> <span class="n">request</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Request</span><span class="p">(</span><span class="n">Code</span><span class="p">.</span><span class="n">GET</span><span class="p">);</span>
+  <span class="n">request</span><span class="p">.</span><span class="n">URI</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Uri</span><span class="p">(</span><span class="s">"coap://[::1]/hello-world"</span><span class="p">);</span>
+  <span class="n">request</span><span class="p">.</span><span class="n">Execute</span><span class="p">();</span>
+
+  <span class="c1">// receive one response</span>
+  <span class="n">Response</span> <span class="n">response</span> <span class="p">=</span> <span class="n">request</span><span class="p">.</span><span class="n">ReceiveResponse</span><span class="p">();</span>
+</pre></div>
+
+<p>There are 4 types of request: GET, POST, PUT, DELETE, defined as
+<code>Code.GET</code>, <code>Code.POST</code>, <code>Code.PUT</code>,
+<code>Code.DELETE</code>.</p>
+
+<p>Responses can be received in two ways. By calling <code>request.ReceiveResponse()</code>
+a response will be received synchronously, which means it will 
+block until timeout or a response is arrived. If more responses
+are expected, call <code>ReceiveResponse()</code> again.</p>
+
+<p>To receive responses asynchronously, register a event handler to
+the event <code>request.Responded</code> before executing.</p>
+
+<blockquote>
+<h4>
+<a name="parsing-link-format" class="anchor" href="#parsing-link-format"><span class="octicon octicon-link"></span></a>Parsing Link Format</h4>
+
+<p>Use <code>RemoteResource.NewRoot()</code> to parse a link-format
+  response. The returned root resource contains all resources stated
+  in the given link-format string.</p>
+
+<div class="highlight highlight-csharp"><pre>  <span class="n">Request</span> <span class="n">request</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Request</span><span class="p">(</span><span class="n">Code</span><span class="p">.</span><span class="n">GET</span><span class="p">);</span>
+  <span class="n">request</span><span class="p">.</span><span class="n">URI</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Uri</span><span class="p">(</span><span class="s">"coap://[::1]/.well-known/core"</span><span class="p">);</span>
+  <span class="n">request</span><span class="p">.</span><span class="n">Execute</span><span class="p">();</span>
+  <span class="n">Response</span> <span class="n">response</span> <span class="p">=</span> <span class="n">request</span><span class="p">.</span><span class="n">ReceiveResponse</span><span class="p">();</span>
+  <span class="n">Resource</span> <span class="n">root</span> <span class="p">=</span> <span class="n">RemoteResource</span><span class="p">.</span><span class="n">NewRoot</span><span class="p">(</span><span class="n">response</span><span class="p">.</span><span class="n">PayloadString</span><span class="p">);</span>
+</pre></div>
+</blockquote>
+
+<p>See <a href="CoAP.Client">CoAP Example Client</a> for more.</p>
+
+<h3>
+<a name="coap-server" class="anchor" href="#coap-server"><span class="octicon octicon-link"></span></a>CoAP Server</h3>
+
+<p>A new CoAP server can be easily built by just inheriting the class
+<a href="CoAP.NET/EndPoint/LocalEndPoint.cs"><strong>LocalEndPoint</strong></a></p>
+
+<div class="highlight highlight-csharp"><pre>  <span class="k">class</span> <span class="nc">CoAPServer</span> <span class="p">:</span> <span class="n">LocalEndPoint</span>
+  <span class="p">{</span>
+  <span class="p">}</span>
+
+  <span class="k">static</span> <span class="k">void</span> <span class="nf">Main</span><span class="p">(</span><span class="n">String</span><span class="p">[]</span> <span class="n">args</span><span class="p">)</span>
+  <span class="p">{</span>
+    <span class="n">CoAPServer</span> <span class="n">server</span> <span class="p">=</span> <span class="k">new</span> <span class="n">CoAPServer</span><span class="p">();</span>
+    <span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="s">"CoAP server started on port {0}"</span><span class="p">,</span> <span class="n">server</span><span class="p">.</span><span class="n">Communicator</span><span class="p">.</span><span class="n">Port</span><span class="p">);</span>
+  <span class="p">}</span>
+</pre></div>
+
+<p>See <a href="CoAP.Server">CoAP Example Server</a> for more.</p>
+
+<h3>
+<a name="coap-resource" class="anchor" href="#coap-resource"><span class="octicon octicon-link"></span></a>CoAP Resource</h3>
+
+<p>CoAP resources are classes that can be accessed by a URI via CoAP.
+In CoAP.NET, a resource is defined as a subclass of <a href="CoAP.NET/EndPoint/LocalResource.cs"><strong>LocalResource</strong></a>.
+By overriding methods <code>DoGet</code>, <code>DoPost</code>,
+<code>DoPut</code> or <code>DoDelete</code>, one resource accepts
+GET, POST, PUT or DELETE requests.</p>
+
+<p>The following code gives an example of HelloWorldResource, which
+can be visited by sending a GET request to "/hello-world", and
+respones a plain string in code "2.05 Content".</p>
+
+<div class="highlight highlight-csharp"><pre>  <span class="k">class</span> <span class="nc">HelloWorldResource</span> <span class="p">:</span> <span class="n">LocalResource</span>
+  <span class="p">{</span>
+      <span class="k">public</span> <span class="nf">HelloWorldResource</span><span class="p">()</span>
+          <span class="p">:</span> <span class="k">base</span><span class="p">(</span><span class="s">"hello-world"</span><span class="p">)</span>
+      <span class="p">{</span>
+      <span class="p">}</span>
+
+      <span class="k">public</span> <span class="k">override</span> <span class="k">void</span> <span class="nf">DoGet</span><span class="p">(</span><span class="n">Request</span> <span class="n">request</span><span class="p">)</span>
+      <span class="p">{</span>
+          <span class="n">Response</span> <span class="n">response</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Response</span><span class="p">(</span><span class="n">Code</span><span class="p">.</span><span class="n">Content</span><span class="p">);</span>
+          <span class="n">response</span><span class="p">.</span><span class="n">PayloadString</span> <span class="p">=</span> <span class="s">"Hello World from CoAP.NET!"</span><span class="p">;</span>
+          <span class="n">request</span><span class="p">.</span><span class="n">Respond</span><span class="p">(</span><span class="n">response</span><span class="p">);</span>
+      <span class="p">}</span>
+  <span class="p">}</span>
+
+  <span class="k">class</span> <span class="nc">CoAPServer</span> <span class="p">:</span> <span class="n">LocalEndPoint</span>
+  <span class="p">{</span>
+      <span class="k">public</span> <span class="nf">CoAPServer</span><span class="p">()</span>
+      <span class="p">{</span>
+          <span class="n">AddResource</span><span class="p">(</span><span class="k">new</span> <span class="n">HelloWorldResource</span><span class="p">());</span>
+      <span class="p">}</span>
+  <span class="p">}</span>
+</pre></div>
+
+<p>See <a href="CoAP.Server">CoAP Example Server</a> for more.</p>
+
+<h2>
+<a name="build" class="anchor" href="#build"><span class="octicon octicon-link"></span></a>Build</h2>
+
+<p>A few compile symbols are introduced to build for different drafts of
+CoAP:</p>
+
+<ul>
+<li>COAPALL -- all supported drafts below</li>
+<li>COAP03  -- <a href="http://tools.ietf.org/html/draft-ietf-core-coap-03">draft-ietf-core-coap-03</a>
+</li>
+<li>COAP08  -- <a href="http://tools.ietf.org/html/draft-ietf-core-coap-08">draft-ietf-core-coap-08</a>
+</li>
+<li>COAP12  -- <a href="http://tools.ietf.org/html/draft-ietf-core-coap-12">draft-ietf-core-coap-12</a>
+</li>
+<li>COAP13  -- <a href="http://tools.ietf.org/html/draft-ietf-core-coap-13">draft-ietf-core-coap-13</a>
+</li>
+</ul><p>With COAPALL defined, all supported drafts will be available in class
+<a href="CoAP.NET/Spec.cs"><strong>Spec</strong></a>:</p>
+
+<div class="highlight highlight-csharp"><pre>  <span class="k">public</span> <span class="k">static</span> <span class="k">class</span> <span class="nc">Spec</span>
+  <span class="p">{</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="k">readonly</span> <span class="n">ISpec</span> <span class="n">Draft03</span><span class="p">;</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="k">readonly</span> <span class="n">ISpec</span> <span class="n">Draft08</span><span class="p">;</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="k">readonly</span> <span class="n">ISpec</span> <span class="n">Draft12</span><span class="p">;</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="k">readonly</span> <span class="n">ISpec</span> <span class="n">Draft13</span><span class="p">;</span>
+  <span class="p">}</span>
+</pre></div>
+
+<p>With one of the other symbols defined (i.e. COAP08), only a specific
+version of draft will be compiled as the class <a href="CoAP.NET/Spec.cs"><strong>Spec</strong></a>,
+with constants and static methods instead of various drafts:</p>
+
+<div class="highlight highlight-csharp"><pre>  <span class="k">public</span> <span class="k">static</span> <span class="k">class</span> <span class="nc">Spec</span>
+  <span class="p">{</span>
+    <span class="k">public</span> <span class="k">const</span> <span class="n">String</span> <span class="n">Name</span> <span class="p">=</span> <span class="s">"draft-ietf-core-coap-08"</span><span class="p">;</span>
+    <span class="k">public</span> <span class="k">const</span> <span class="n">Int32</span> <span class="n">DefaultPort</span> <span class="p">=</span> <span class="m">5683</span><span class="p">;</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="n">Byte</span><span class="p">[]</span> <span class="nf">Encode</span><span class="p">(</span><span class="n">Message</span> <span class="n">msg</span><span class="p">);</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="n">Message</span> <span class="nf">Decode</span><span class="p">(</span><span class="n">Byte</span><span class="p">[]</span> <span class="n">bytes</span><span class="p">);</span>
+  <span class="p">}</span>
+</pre></div>
+
+<h2>
+<a name="license" class="anchor" href="#license"><span class="octicon octicon-link"></span></a>License</h2>
+
+<p>See <a href="LICENSE">LICENSE</a> for more info.</p>
+
+<h2>
+<a name="acknowledgements" class="anchor" href="#acknowledgements"><span class="octicon octicon-link"></span></a>Acknowledgements</h2>
+
+<p>CoAP.NET is based on <a href="https://github.com/mkovatsc/Californium"><strong>Californium</strong></a>,
+a CoAP framework in Java by Matthias Kovatsch, Dominique Im Obersteg,
+and Daniel Pauli, ETH Zurich. See <a href="http://people.inf.ethz.ch/mkovatsc/californium.php">http://people.inf.ethz.ch/mkovatsc/californium.php</a>.
+Thanks to the authors and their great job.</p>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Coap.net maintained by <a href="https://github.com/smeshlink">smeshlink</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+              <script type="text/javascript">
+            var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+          </script>
+          <script type="text/javascript">
+            try {
+              var pageTracker = _gat._getTracker("UA-44050658-4");
+            pageTracker._trackPageview();
+            } catch(err) {}
+          </script>
+
+
+  </body>
+</html>
