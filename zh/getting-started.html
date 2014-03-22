@@ -1,7 +1,7 @@
 ---
 layout: default
-title: Getting started
-excerpt: An overview of CoAP.NET, how to download and use.
+title: 开始
+excerpt: CoAP.NET简介、下载与使用。
 started: true
 permalink: /zh/getting-started/
 zh: true
@@ -11,31 +11,31 @@ zh: true
 			<div class="row">
 				<div class="span9">
 					<section>
-						<h1 id="download" class="page-header">Download</h1>
+						<h1 id="download" class="page-header">下载</h1>
 						<ul class="unstyled row">
 							<li class="span4">
-								<h2>Binary</h2>
-								<p>Compiled dlls, including various drafts implementation for .NET Framework 2.0/4.0.</p>
-								<a class="btn btn-large" href="https://github.com/smeshlink/CoAP.NET/releases/download/0.13.3/CoAP.NET-0.13.3-binaries.zip">Download CoAP.NET</a>
+								<h2>库文件</h2>
+								<p>为 .NET Framework 2.0/4.0 编译的DLL文件，包含各个不同的CoAP版本。</p>
+								<a class="btn btn-large" href="https://github.com/smeshlink/CoAP.NET/releases/download/0.13.3/CoAP.NET-0.13.3-binaries.zip">下载 CoAP.NET</a>
 							</li>
 							<li class="span4">
-								<h2>Source</h2>
-								<p>Source codes and examples.<br />See <a href="#build">Build</a> to build the library.</p>
-								<a class="btn btn-large" href="https://github.com/smeshlink/CoAP.NET/archive/0.13.3.zip">Download source</a>
+								<h2>源代码</h2>
+								<p>CoAP.NET 的源码与示例。<br />请查看 <a href="#build">构建</a>部分进行编译。</p>
+								<a class="btn btn-large" href="https://github.com/smeshlink/CoAP.NET/archive/0.13.3.zip">下载源代码</a>
 							</li>
 						</ul>
-						<p class="muted">Currently v0.13.3.</p>
+						<p class="muted">当前版本为 v0.13.3 。</p>
 					</section>
 					<section>
-						<h1 id="build" class="page-header">Build</h1>
-						<p>CoAP.NET currently supports various versions of drafts of CoAP. Define one of the following compile symbols to build specific draft of CoAP library:</p>
+						<h1 id="build" class="page-header">构建</h1>
+						<p>CoAP.NET 目前支持不同版本的 CoAP 草案，编译时请定义下列编译符号之一，选择 CoAP 版本：</p>
 						<ul>
 							<li><code>COAP03</code> -- <a href="http://tools.ietf.org/html/draft-ietf-core-coap-03">draft-ietf-core-coap-03</a></li>
 							<li><code>COAP08</code> -- <a href="http://tools.ietf.org/html/draft-ietf-core-coap-08">draft-ietf-core-coap-08</a></li>
 							<li><code>COAP12</code> -- <a href="http://tools.ietf.org/html/draft-ietf-core-coap-12">draft-ietf-core-coap-12</a></li>
 							<li><code>COAP13</code> -- <a href="http://tools.ietf.org/html/draft-ietf-core-coap-13">draft-ietf-core-coap-13</a></li>
 						</ul>
-						<p>Define <code>COAPALL</code> to have all supported drafts together. In this case, all supported drafts will be available in class <code>Spec</code>:</p>
+						<p>使用 <code>COAPALL</code> 可以包含所有支持的 CoAP 草案，各版本的草案实现都可以在 <code>Spec</code> 类中找到：</p>
 {% highlight csharp %}public static class Spec
 {
 	public static readonly ISpec Draft03;
@@ -45,23 +45,23 @@ zh: true
 }{% endhighlight %}
 					</section>
 					<section>
-						<h1 id="examples" class="page-header">Examples</h1>
+						<h1 id="examples" class="page-header">示例</h1>
 						<ul>
-							<li><a href="{{ site.url }}/examples/client/">CoAP Client</a></li>
-							<li><a href="{{ site.url }}/examples/server/">CoAP Server</a></li>
+							<li><a href="{{ site.url }}/examples/client/">CoAP 客户端</a></li>
+							<li><a href="{{ site.url }}/examples/server/">CoAP 服务端</a></li>
 						</ul>
 					</section>
 					<section>
-						<h1 id="thanks" class="page-header">Thanks to</h1>
-						<p><a href="https://github.com/mkovatsc/Californium">Californium</a>, which CoAP.NET is based on, a CoAP framework in Java by <a href="http://people.inf.ethz.ch/mkovatsc/californium.php">Matthias Kovatsch</a>, Dominique Im Obersteg, and Daniel Pauli, ETH Zurich.</p>
+						<h1 id="thanks" class="page-header">致谢</h1>
+						<p>CoAP.NET 是基于 <a href="https://github.com/mkovatsc/Californium">Californium</a> 项目实现，这是一个使用 Java 实现的 CoAP 框架，作者是 <a href="http://people.inf.ethz.ch/mkovatsc/californium.php">Matthias Kovatsch</a> ， Dominique Im Obersteg ，和 Daniel Pauli, ETH Zurich 。</p>
 					</section>
 				</div>
 				<div class="span3" role="complementary">
 					<ul class="nav nav-list sidenav">
-						<li><a href="#download">Download</a></li>
-						<li><a href="#build">Build</a></li>
-						<li><a href="#examples">Examples</a></li>
-						<li><a href="#thanks">Thanks</a></li>
+						<li><a href="#download">下载</a></li>
+						<li><a href="#build">构建</a></li>
+						<li><a href="#examples">示例</a></li>
+						<li><a href="#thanks">致谢</a></li>
 					</ul>
 				</div>
 			</div>
