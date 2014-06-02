@@ -44,9 +44,10 @@ namespace CoAP.Layers
             // use overall timeout for clients (e.g., server crash after separate response ACK)
             if (msg is Request)
             {
+                Request req = msg as Request;
                 if (log.IsDebugEnabled)
-                    log.Debug(String.Format("TokenLayer - Requesting response for {0}: {1}", msg.UriPath, msg.SequenceKey));
-                AddExchange((Request)msg);
+                    log.Debug(String.Format("TokenLayer - Requesting response for {0}: {1}", req.UriPath, msg.SequenceKey));
+                AddExchange(req);
             }
             else if (msg.Code == Code.Empty)
             {

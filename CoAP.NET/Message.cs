@@ -315,8 +315,13 @@ namespace CoAP
         /// <returns></returns>
         public Message NewReply(Boolean ack)
         {
+            return NewReply(CoAP.Code.Empty, ack);
+        }
+
+        public Message NewReply(Int32 code, Boolean ack)
+        {
             Message reply = new Message(_type == MessageType.CON ?
-                (ack ? MessageType.ACK : MessageType.RST) : MessageType.NON, CoAP.Code.Empty);
+                (ack ? MessageType.ACK : MessageType.RST) : MessageType.NON, code);
 
             // echo ID
             reply._id = this._id;

@@ -120,7 +120,7 @@ namespace CoAP.Layers
                     if (log.IsInfoEnabled)
                         log.Info(String.Format("TransferLayer - Rejecting initial out-of-scope request: {0} | NUM: {1}, SZX: {2} ({3} bytes), M: n/a, {4} bytes available",
                             msg.SequenceKey, sendNUM, sendSZX, BlockOption.DecodeSZX(sendSZX), msg.PayloadSize));
-                    HandleOutOfScopeError(msg.NewReply(true));
+                    HandleOutOfScopeError(msg.NewReply(Code.BadRequest, true));
                 }
             }
             else
@@ -176,7 +176,8 @@ namespace CoAP.Layers
                 TransferContext transfer = _outgoing[msg.SequenceKey];
                 if (transfer != null)
                 {
-                    if (msg is Request && (!msg.UriPath.Equals(transfer.uriPath) || !msg.UriQuery.Equals(transfer.uriQuery)))
+                    Request req = msg as Request;
+                    if (req != null && (!req.UriPath.Equals(transfer.uriPath) || !req.UriQuery.Equals(transfer.uriQuery)))
                     {
                         _outgoing.Remove(msg.SequenceKey);
                         if (log.IsDebugEnabled)
@@ -184,7 +185,7 @@ namespace CoAP.Layers
                     }
                     else
                     {
-                        if (msg is Request)
+                        if (req != null)
                             UpdateCache(transfer, msg);
 
                         // use cached representation
@@ -227,7 +228,7 @@ namespace CoAP.Layers
                                 log.Warn(String.Format("TransferLayer - Rejecting out-of-scope demand for cached transfer (freed): {0} | {1}, {2} bytes available",
                                     msg.SequenceKey, blockOut, transfer.cache.PayloadSize));
                             _outgoing.Remove(msg.SequenceKey);
-                            HandleOutOfScopeError(msg.NewReply(true));
+                            HandleOutOfScopeError(msg.NewReply(Code.BadRequest, true));
                             return;
                         }
                     }
@@ -309,7 +310,7 @@ namespace CoAP.Layers
             {
                 if (log.IsDebugEnabled)
                     log.Debug(String.Format("TransferLayer - Rejecting out-of-order block: {0} | {1}", msg.SequenceKey, blockOpt));
-                HandleIncompleteError(msg.NewReply(true));
+                HandleIncompleteError(msg.NewReply(Code.RequestEntityIncomplete, true));
                 return;
             }
 
@@ -338,10 +339,11 @@ namespace CoAP.Layers
 
                 if (msg is Response)
                 {
-                    reply = new Request(Code.GET, !msg.IsNonConfirmable); // msg could be ACK or CON
-                    reply.PeerAddress = msg.PeerAddress;
-                    reply.UriPath = transfer.uriPath;
-                    reply.UriQuery = transfer.uriQuery;
+                    Request request = new Request(Code.GET, !msg.IsNonConfirmable); // msg could be ACK or CON
+                    request.PeerAddress = msg.PeerAddress;
+                    request.UriPath = transfer.uriPath;
+                    request.UriQuery = transfer.uriQuery;
+                    reply = request;
 
                     // get next block
                     demandNUM++;
@@ -398,7 +400,6 @@ namespace CoAP.Layers
 
         private void HandleOutOfScopeError(Message resp)
         {
-            resp.Code = Code.BadRequest;
             resp.PayloadString = "BlockOutOfScope";
             try
             {
@@ -413,7 +414,6 @@ namespace CoAP.Layers
 
         private void HandleIncompleteError(Message resp)
         {
-            resp.Code = Code.RequestEntityIncomplete;
             resp.PayloadString = "Start with block num 0";
             try
             {
@@ -495,9 +495,10 @@ namespace CoAP.Layers
             {
                 if (msg is Request)
                 {
-                    cache = msg;
-                    uriPath = msg.UriPath;
-                    uriQuery = msg.UriQuery;
+                    Request request = msg as Request;
+                    cache = request;
+                    uriPath = request.UriPath;
+                    uriQuery = request.UriQuery;
                     current = (BlockOption)msg.GetFirstOption(OptionType.Block1);
                 }
                 else if (msg is Response)

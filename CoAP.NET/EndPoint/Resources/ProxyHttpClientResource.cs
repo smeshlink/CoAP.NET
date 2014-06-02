@@ -69,7 +69,7 @@ namespace CoAP.EndPoint.Resources
             incomingCoapRequest.Accept();
 
             HttpWebResponse httpResponse = (HttpWebResponse)httpRequest.GetResponse();
-            Int64 timestamp = DateTime.Now.Ticks;
+            DateTime timestamp = DateTime.Now;
             try
             {
                 Response coapResponse = HttpTranslator.GetCoapResponse(httpResponse, incomingCoapRequest);

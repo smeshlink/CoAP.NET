@@ -79,8 +79,7 @@ namespace CoAP.Layers
             // check for support
             if (msg is UnsupportedRequest)
             {
-                Message reply = msg.NewReply(msg.IsConfirmable);
-                reply.Code = Code.MethodNotAllowed;
+                Message reply = msg.NewReply(Code.MethodNotAllowed, msg.IsConfirmable);
                 reply.SetPayload(String.Format("MessageLayer - Method code {0} not supported", msg.Code));
 
                 try

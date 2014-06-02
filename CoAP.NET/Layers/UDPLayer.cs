@@ -195,7 +195,7 @@ namespace CoAP.Layers
                 else
                 {
                     // remember when this message was received
-                    msg.Timestamp = DateTime.Now.Ticks;
+                    msg.Timestamp = DateTime.Now;
                     
                     IPEndPoint ipe = (IPEndPoint)remoteEP;
                     if (ipe.AddressFamily == AddressFamily.InterNetworkV6)
