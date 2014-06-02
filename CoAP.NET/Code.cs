@@ -69,6 +69,10 @@ namespace CoAP
         /// </summary>
         public const Int32 Content = 69;
         /// <summary>
+        /// 2.?? Continue
+        /// </summary>
+        public const Int32 Continue = 95;
+        /// <summary>
         /// 4.00 Bad Request
         /// </summary>
         public const Int32 BadRequest = 128;

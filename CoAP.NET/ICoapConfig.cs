@@ -40,5 +40,15 @@ namespace CoAP
         /// </summary>
         ISpec Spec { get; }
 #endif
+        Boolean UseRandomIDStart { get; }
+        Boolean UseRandomTokenStart { get; }
+        Int32 MaxMessageSize { get; }
+        Int32 DefaultBlockSize { get; }
+        Int32 NotificationReregistrationBackoff { get; }
+
+        String Deduplicator { get; }
+        Int32 CropRotationPeriod { get; }
+        Int32 ExchangeLifecycle { get; }
+        Int32 MarkAndSweepInterval { get; }
     }
 }

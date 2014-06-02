@@ -13,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using CoAP.Log;
 using CoAP.Util;
+using CoAP.Codec;
 
 namespace CoAP
 {
@@ -36,6 +37,8 @@ namespace CoAP
         Byte[] Encode(Message msg);
         Message Decode(Byte[] bytes);
         OptionType GetOptionType(Int32 optionNumber);
+        IMessageDecoder NewDataParser(Byte[] data);
+        IMessageEncoder NewDataSerializer();
     }
 #endif
 
