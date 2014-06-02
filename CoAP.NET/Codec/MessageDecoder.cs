@@ -15,12 +15,12 @@ namespace CoAP.Codec
 {
     public abstract class MessageDecoder : IMessageDecoder
     {
-        private DatagramReader _reader;
-        private Int32 _version;
-        private MessageType _type;
-        private Int32 _tokenlength;
-        private Int32 _code;
-        private Int32 _mid;
+        protected DatagramReader _reader;
+        protected Int32 _version;
+        protected MessageType _type;
+        protected Int32 _tokenLength;
+        protected Int32 _code;
+        protected Int32 _id;
 
         public MessageDecoder(Byte[] data)
         {
@@ -73,11 +73,11 @@ namespace CoAP.Codec
         /// <inheritdoc/>
         public Int32 ID
         {
-            get { return _mid; }
+            get { return _id; }
         }
 
         /// <inheritdoc/>
-        public Request ParseRequest()
+        public Request DecodeRequest()
         {
             System.Diagnostics.Debug.Assert(IsRequest);
             Request request = new Request(_code);
@@ -86,7 +86,7 @@ namespace CoAP.Codec
         }
 
         /// <inheritdoc/>
-        public Response ParseResponse()
+        public Response DecodeResponse()
         {
             System.Diagnostics.Debug.Assert(IsResponse);
             Response response = new Response(_code);
@@ -95,7 +95,7 @@ namespace CoAP.Codec
         }
 
         /// <inheritdoc/>
-        public EmptyMessage ParseEmptyMessage()
+        public EmptyMessage DecodeEmptyMessage()
         {
             System.Diagnostics.Debug.Assert(!IsRequest && !IsResponse);
             EmptyMessage message = new EmptyMessage(_type);

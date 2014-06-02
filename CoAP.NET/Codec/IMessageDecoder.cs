@@ -25,8 +25,8 @@ namespace CoAP.Codec
         Boolean IsEmpty { get; }
         Int32 Version { get; }
         Int32 ID { get; }
-        Request ParseRequest();
-        Response ParseResponse();
-        EmptyMessage ParseEmptyMessage();
+        Request DecodeRequest();
+        Response DecodeResponse();
+        EmptyMessage DecodeEmptyMessage();
     }
 }

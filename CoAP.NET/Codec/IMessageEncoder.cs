@@ -18,8 +18,8 @@ namespace CoAP.Codec
     /// </summary>
     public interface IMessageEncoder
     {
-        Byte[] Serialize(Request request);
-        Byte[] Serialize(Response response);
-        Byte[] Serialize(EmptyMessage message);
+        Byte[] Encode(Request request);
+        Byte[] Encode(Response response);
+        Byte[] Encode(EmptyMessage message);
     }
 }

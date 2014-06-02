@@ -16,7 +16,7 @@ namespace CoAP.Codec
     public abstract class MessageEncoder : IMessageEncoder
     {
         /// <inheritdoc/>
-        public Byte[] Serialize(Request request)
+        public Byte[] Encode(Request request)
         {
             DatagramWriter writer = new DatagramWriter();
             Serialize(writer, request, request.Code);
@@ -24,7 +24,7 @@ namespace CoAP.Codec
         }
 
         /// <inheritdoc/>
-        public Byte[] Serialize(Response response)
+        public Byte[] Encode(Response response)
         {
             DatagramWriter writer = new DatagramWriter();
             Serialize(writer, response, response.Code);
@@ -32,7 +32,7 @@ namespace CoAP.Codec
         }
 
         /// <inheritdoc/>
-        public Byte[] Serialize(EmptyMessage message)
+        public Byte[] Encode(EmptyMessage message)
         {
             DatagramWriter writer = new DatagramWriter();
             Serialize(writer, message, Code.Empty);
