@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2011-2013, Longxiang He <helongxiang@smeshlink.com>,
+ * Copyright (c) 2011-2014, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
  * This program is distributed in the hope that it will be useful,
@@ -15,7 +15,9 @@ using System.Text;
 using System.Text.RegularExpressions;
 using CoAP.EndPoint.Resources;
 using CoAP.Log;
+using CoAP.Server.Resources;
 using CoAP.Util;
+using Resource = CoAP.EndPoint.Resources.Resource;
 
 namespace CoAP
 {
@@ -72,6 +74,109 @@ namespace CoAP
         public static readonly Regex Cardinal = new Regex("\\G\\d+");
 
         private static ILogger log = LogManager.GetLogger(typeof(LinkFormat));
+
+        public static String Serialize(IResource root, IEnumerable<Option> queries)
+        {
+            StringBuilder linkFormat = new StringBuilder();
+
+            Boolean append = false;
+            foreach (IResource child in root.Children)
+            {
+                if (append)
+                    linkFormat.Append(Delimiter);
+                append = SerializeTree(child, queries, linkFormat);
+            }
+
+            return linkFormat.ToString();
+        }
+
+        private static Boolean SerializeTree(IResource resource, IEnumerable<Option> queries, StringBuilder sb)
+        {
+            Boolean append = false;
+
+            if (resource.Visible && Matches(resource, queries))
+            {
+                SerializeResource(resource, sb);
+                append = true;
+            }
+
+            foreach (IResource child in resource.Children)
+            {
+                if (append)
+                    sb.Append(Delimiter);
+                append = SerializeTree(child, queries, sb);
+            }
+
+            return append;
+        }
+
+        private static void SerializeResource(IResource resource, StringBuilder sb)
+        {
+            sb.Append("<")
+                .Append(resource.Path)
+                .Append(resource.Name)
+                .Append(">");
+            SerializeAttributes(resource.Attributes, sb);
+        }
+
+        private static void SerializeAttributes(ResourceAttributes attributes, StringBuilder sb)
+        {
+            foreach (String name in attributes.Keys)
+            {
+                List<String> values = new List<String>(attributes.GetValues(name));
+                if (values.Count == 0)
+                    continue;
+                sb.Append(Separator);
+                SerializeAttribute(name, values, sb);
+            }
+        }
+
+        private static void SerializeAttribute(String name, IEnumerable<String> values, StringBuilder sb)
+        {
+            String delimiter = "=";
+            Boolean quotes = false;
+
+            sb.Append(name);
+
+            using (IEnumerator<String> it = values.GetEnumerator())
+            {
+                if (!it.MoveNext() || String.IsNullOrEmpty(it.Current))
+                    return;
+
+                sb.Append(delimiter);
+
+                String first = it.Current;
+                Boolean more = it.MoveNext();
+                if (more || !IsNumber(first))
+                {
+                    sb.Append('"');
+                    quotes = true;
+                }
+
+                sb.Append(first);
+                while (more)
+                {
+                    sb.Append(' ');
+                    sb.Append(it.Current);
+                    more = it.MoveNext();
+                }
+
+                if (quotes)
+                    sb.Append('"');
+            }
+        }
+
+        private static Boolean IsNumber(String value)
+        {
+            if (String.IsNullOrEmpty(value))
+                return false;
+            foreach (Char c in value)
+            {
+                if (!Char.IsNumber(c))
+                    return false;
+            }
+            return true;
+        }
 
         public static String Serialize(Resource resource, IEnumerable<Option> query, Boolean recursive)
         {
@@ -217,6 +322,73 @@ namespace CoAP
 
                         if (expected.Equals(actual))
                             return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        private static Boolean Matches(IResource resource, IEnumerable<Option> query)
+        {
+            if (resource == null)
+                return false;
+            if (query == null)
+                return true;
+
+            ResourceAttributes attributes = resource.Attributes;
+            String path = resource.Path + resource.Name;
+
+            foreach (Option q in query)
+            {
+                String s = q.StringValue;
+                Int32 delim = s.IndexOf('=');
+                if (delim == -1)
+                {
+                    // flag attribute
+                    if (attributes.Contains(s))
+                        return true;
+                }
+                else
+                {
+                    String attrName = s.Substring(0, delim);
+                    String expected = s.Substring(delim + 1);
+
+                    if (attrName.Equals(LinkFormat.Link))
+                    {
+                        if (expected.EndsWith("*"))
+                            return resource.Path.StartsWith(expected.Substring(0, expected.Length - 1));
+                        else
+                            return resource.Path.Equals(expected);
+                    }
+                    else if (attributes.Contains(attrName))
+                    {
+                        // lookup attribute value
+                        foreach (String value in attributes.GetValues(attrName))
+                        {
+                            String actual = value;
+                            // get prefix length according to "*"
+                            Int32 prefixLength = expected.IndexOf('*');
+                            if (prefixLength >= 0 && prefixLength < actual.Length)
+                            {
+                                // reduce to prefixes
+                                expected = expected.Substring(0, prefixLength);
+                                actual = actual.Substring(0, prefixLength);
+                            }
+
+                            // handle case like rt=[Type1 Type2]
+                            if (actual.IndexOf(' ') > -1)
+                            {
+                                foreach (String part in actual.Split(' '))
+                                {
+                                    if (part.Equals(expected))
+                                        return true;
+                                }
+                            }
+
+                            if (expected.Equals(actual))
+                                return true;
+                        }
                     }
                 }
             }
