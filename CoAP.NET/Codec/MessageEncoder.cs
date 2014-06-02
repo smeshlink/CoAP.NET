@@ -39,6 +39,19 @@ namespace CoAP.Codec
             return writer.ToByteArray();
         }
 
-        protected abstract Byte[] Serialize(DatagramWriter writer, Message message, Int32 code);
+        /// <inheritdoc/>
+        public Byte[] Encode(Message message)
+        {
+            if (message.IsRequest)
+                return Encode((Request)message);
+            else if (message.IsResponse)
+                return Encode((Response)message);
+            else if (message is EmptyMessage)
+                return Encode((EmptyMessage)message);
+            else
+                return null;
+        }
+
+        protected abstract void Serialize(DatagramWriter writer, Message message, Int32 code);
     }
 }

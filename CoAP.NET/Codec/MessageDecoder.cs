@@ -81,6 +81,8 @@ namespace CoAP.Codec
         {
             System.Diagnostics.Debug.Assert(IsRequest);
             Request request = new Request(_code);
+            request.Type = _type;
+            request.ID = _id;
             ParseMessage(request);
             return request;
         }
@@ -90,6 +92,8 @@ namespace CoAP.Codec
         {
             System.Diagnostics.Debug.Assert(IsResponse);
             Response response = new Response(_code);
+            response.Type = _type;
+            response.ID = _id;
             ParseMessage(response);
             return response;
         }
@@ -99,8 +103,23 @@ namespace CoAP.Codec
         {
             System.Diagnostics.Debug.Assert(!IsRequest && !IsResponse);
             EmptyMessage message = new EmptyMessage(_type);
+            message.Type = _type;
+            message.ID = _id;
             ParseMessage(message);
             return message;
+        }
+
+        /// <inheritdoc/>
+        public Message Decode()
+        {
+            if (IsRequest)
+                return DecodeRequest();
+            else if (IsResponse)
+                return DecodeResponse();
+            else if (IsEmpty)
+                return DecodeEmptyMessage();
+            else
+                return null;
         }
 
         protected abstract void ParseMessage(Message message);

@@ -21,5 +21,6 @@ namespace CoAP.Codec
         Byte[] Encode(Request request);
         Byte[] Encode(Response response);
         Byte[] Encode(EmptyMessage message);
+        Byte[] Encode(Message message);
     }
 }

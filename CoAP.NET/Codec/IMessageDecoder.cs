@@ -28,5 +28,6 @@ namespace CoAP.Codec
         Request DecodeRequest();
         Response DecodeResponse();
         EmptyMessage DecodeEmptyMessage();
+        Message Decode();
     }
 }
