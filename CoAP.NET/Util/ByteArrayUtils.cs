@@ -66,5 +66,15 @@ namespace CoAP.Util
             }
             catch { return null; }
         }
+
+        public static Boolean Equals(Byte[] bytes1, Byte[] bytes2)
+        {
+            if (bytes1 == null && bytes2 == null)
+                return true;
+            else if (bytes1 == null || bytes2 == null)
+                return false;
+            else
+                return bytes1.GetHashCode() == bytes2.GetHashCode();
+        }
     }
 }
