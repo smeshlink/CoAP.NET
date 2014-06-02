@@ -1,10 +1,19 @@
 ﻿using System;
-using CoAP.Util;
+using System.Linq;
+#if !NETFX_CORE
+using NUnit.Framework;
+using TestClass = NUnit.Framework.TestFixtureAttribute;
+using TestMethod = NUnit.Framework.TestAttribute;
+#else
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+#endif
 
-namespace CoAP.Test
+namespace CoAP.Codec
 {
-    class DatagramReadWriteTest
+    [TestClass]
+    public class DatagramReadWriteTest
     {
+        [TestMethod]
         public void Test32BitInt()
         {
             unchecked
@@ -17,10 +26,11 @@ namespace CoAP.Test
                 DatagramReader reader = new DatagramReader(writer.ToByteArray());
                 Int32 intOut = reader.Read(32);
 
-                Assert.IsEqualTo(intIn, intOut);
+                Assert.AreEqual(intIn, intOut);
             }
         }
 
+        [TestMethod]
         public void Test32BitIntZero()
         {
             Int32 intIn = (Int32)0x00000000;
@@ -31,9 +41,10 @@ namespace CoAP.Test
             DatagramReader reader = new DatagramReader(writer.ToByteArray());
             Int32 intOut = reader.Read(32);
 
-            Assert.IsEqualTo(intIn, intOut);
+            Assert.AreEqual(intIn, intOut);
         }
 
+        [TestMethod]
         public void Test32BitIntOne()
         {
             unchecked
@@ -46,10 +57,11 @@ namespace CoAP.Test
                 DatagramReader reader = new DatagramReader(writer.ToByteArray());
                 Int32 intOut = reader.Read(32);
 
-                Assert.IsEqualTo(intIn, intOut);
+                Assert.AreEqual(intIn, intOut);
             }
         }
 
+        [TestMethod]
         public void Test16BitInt()
         {
             Int32 intIn = (Int32)0x00004321;
@@ -60,9 +72,10 @@ namespace CoAP.Test
             DatagramReader reader = new DatagramReader(writer.ToByteArray());
             Int32 intOut = reader.Read(16);
 
-            Assert.IsEqualTo(intIn, intOut);
+            Assert.AreEqual(intIn, intOut);
         }
 
+        [TestMethod]
         public void Test8BitInt()
         {
             Int32 intIn = 0x00000021;
@@ -73,9 +86,10 @@ namespace CoAP.Test
             DatagramReader reader = new DatagramReader(writer.ToByteArray());
             Int32 intOut = reader.Read(8);
 
-            Assert.IsEqualTo(intIn, intOut);
+            Assert.AreEqual(intIn, intOut);
         }
 
+        [TestMethod]
         public void Test4BitInt()
         {
             Int32 intIn = 0x0000005;
@@ -86,9 +100,10 @@ namespace CoAP.Test
             DatagramReader reader = new DatagramReader(writer.ToByteArray());
             Int32 intOut = reader.Read(4);
 
-            Assert.IsEqualTo(intIn, intOut);
+            Assert.AreEqual(intIn, intOut);
         }
 
+        [TestMethod]
         public void Test2BitInt()
         {
             Int32 intIn = 0x00000002;
@@ -99,9 +114,10 @@ namespace CoAP.Test
             DatagramReader reader = new DatagramReader(writer.ToByteArray());
             Int32 intOut = reader.Read(2);
 
-            Assert.IsEqualTo(intIn, intOut);
+            Assert.AreEqual(intIn, intOut);
         }
 
+        [TestMethod]
         public void Test1BitInt()
         {
             Int32 intIn = 0x00000001;
@@ -112,9 +128,10 @@ namespace CoAP.Test
             DatagramReader reader = new DatagramReader(writer.ToByteArray());
             Int32 intOut = reader.Read(1);
 
-            Assert.IsEqualTo(intIn, intOut);
+            Assert.AreEqual(intIn, intOut);
         }
 
+        [TestMethod]
         public void TestByteOrder()
         {
             Int32 intIn = 1234567890;
@@ -125,14 +142,15 @@ namespace CoAP.Test
             Byte[] data = writer.ToByteArray();
             Int32 intTrans = System.Net.IPAddress.HostToNetworkOrder(BitConverter.ToInt32(data, 0));
 
-            Assert.IsEqualTo(intIn, intTrans);
+            Assert.AreEqual(intIn, intTrans);
 
             DatagramReader reader = new DatagramReader(data);
             Int32 intOut = reader.Read(32);
 
-            Assert.IsEqualTo(intIn, intOut);
+            Assert.AreEqual(intIn, intOut);
         }
 
+        [TestMethod]
         public void TestAlignedBytes()
         {
             Byte[] bytesIn = System.Text.Encoding.UTF8.GetBytes("Some aligned bytes");
@@ -143,9 +161,10 @@ namespace CoAP.Test
             DatagramReader reader = new DatagramReader(writer.ToByteArray());
             Byte[] bytesOut = reader.ReadBytesLeft();
 
-            Assert.IsSequenceEqualTo(bytesIn, bytesOut);
+            Assert.IsTrue(bytesIn.SequenceEqual(bytesOut));
         }
 
+        [TestMethod]
         public void TestUnalignedBytes1()
         {
             Int32 bitCount = 1;
@@ -160,10 +179,11 @@ namespace CoAP.Test
             Int32 bitsOut = reader.Read(bitCount);
             Byte[] bytesOut = reader.ReadBytes(bytesIn.Length);
 
-            Assert.IsEqualTo(bitsIn, bitsOut);
-            Assert.IsSequenceEqualTo(bytesIn, bytesOut);
+            Assert.AreEqual(bitsIn, bitsOut);
+            Assert.IsTrue(bytesIn.SequenceEqual(bytesOut));
         }
 
+        [TestMethod]
         public void TestUnalignedBytes3()
         {
             Int32 bitCount = 3;
@@ -178,10 +198,11 @@ namespace CoAP.Test
             Int32 bitsOut = reader.Read(bitCount);
             Byte[] bytesOut = reader.ReadBytes(bytesIn.Length);
 
-            Assert.IsEqualTo(bitsIn, bitsOut);
-            Assert.IsSequenceEqualTo(bytesIn, bytesOut);
+            Assert.AreEqual(bitsIn, bitsOut);
+            Assert.IsTrue(bytesIn.SequenceEqual(bytesOut));
         }
 
+        [TestMethod]
         public void TestUnalignedBytes7()
         {
             Int32 bitCount = 7;
@@ -196,10 +217,11 @@ namespace CoAP.Test
             Int32 bitsOut = reader.Read(bitCount);
             Byte[] bytesOut = reader.ReadBytes(bytesIn.Length);
 
-            Assert.IsEqualTo(bitsIn, bitsOut);
-            Assert.IsSequenceEqualTo(bytesIn, bytesOut);
+            Assert.AreEqual(bitsIn, bitsOut);
+            Assert.IsTrue(bytesIn.SequenceEqual(bytesOut));
         }
 
+        [TestMethod]
         public void TestBytesLeft()
         {
             Int32 bitCount = 8;
@@ -214,10 +236,11 @@ namespace CoAP.Test
             Int32 bitsOut = reader.Read(bitCount);
             Byte[] bytesOut = reader.ReadBytesLeft();
 
-            Assert.IsEqualTo(bitsIn, bitsOut);
-            Assert.IsSequenceEqualTo(bytesIn, bytesOut);
+            Assert.AreEqual(bitsIn, bitsOut);
+            Assert.IsTrue(bytesIn.SequenceEqual(bytesOut));
         }
 
+        [TestMethod]
         public void TestBytesLeftUnaligned()
         {
             Int32 bitCount = 7;
@@ -232,10 +255,11 @@ namespace CoAP.Test
             Int32 bitsOut = reader.Read(bitCount);
             Byte[] bytesOut = reader.ReadBytesLeft();
 
-            Assert.IsEqualTo(bitsIn, bitsOut);
-            Assert.IsSequenceEqualTo(bytesIn, bytesOut);
+            Assert.AreEqual(bitsIn, bitsOut);
+            Assert.IsTrue(bytesIn.SequenceEqual(bytesOut));
         }
 
+        [TestMethod]
         public void TestGETRequestHeader()
         {
             Int32 versionIn = 1;
@@ -259,7 +283,7 @@ namespace CoAP.Test
             Byte[] data = writer.ToByteArray();
             Byte[] dataRef = { 0x41, 0x01, 0x12, 0x34 };
 
-            Assert.IsSequenceEqualTo(dataRef, data);
+            Assert.IsTrue(dataRef.SequenceEqual(data));
 
             DatagramReader reader = new DatagramReader(data);
             Int32 versionOut = reader.Read(versionSz);
@@ -268,11 +292,11 @@ namespace CoAP.Test
             Int32 codeOut = reader.Read(codeSz);
             Int32 msgIdOut = reader.Read(msgIdSz);
 
-            Assert.IsEqualTo(versionIn, versionOut);
-            Assert.IsEqualTo(typeIn, typeOut);
-            Assert.IsEqualTo(optionCntIn, optionCntOut);
-            Assert.IsEqualTo(codeIn, codeOut);
-            Assert.IsEqualTo(msgIdIn, msgIdOut);
+            Assert.AreEqual(versionIn, versionOut);
+            Assert.AreEqual(typeIn, typeOut);
+            Assert.AreEqual(optionCntIn, optionCntOut);
+            Assert.AreEqual(codeIn, codeOut);
+            Assert.AreEqual(msgIdIn, msgIdOut);
         }
     }
 }

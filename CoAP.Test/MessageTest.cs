@@ -10,10 +10,8 @@ namespace CoAP.Test
 
         public void TestMessage()
         {
-            Message msg = new Message();
+            Message msg = new Message(MessageType.CON, Code.GET);
 
-            msg.Code = Code.GET;
-            msg.Type = MessageType.CON;
             msg.ID = 12345;
             msg.Payload = System.Text.Encoding.UTF8.GetBytes("payload");
 
@@ -29,10 +27,8 @@ namespace CoAP.Test
 
         public void TestMessageWithOptions()
         {
-            Message msg = new Message();
+            Message msg = new Message(MessageType.CON, Code.GET);
 
-            msg.Code = Code.GET;
-            msg.Type = MessageType.CON;
             msg.ID = 12345;
             msg.Payload = System.Text.Encoding.UTF8.GetBytes("payload");
             msg.AddOption(Option.Create(OptionType.ContentType, "text/plain"));
@@ -51,12 +47,10 @@ namespace CoAP.Test
 
         public void TestMessageWithExtendedOption()
         {
-            Message msg = new Message();
+            Message msg = new Message(MessageType.CON, Code.GET);
 
-            msg.Code = Code.GET;
-            msg.Type = MessageType.CON;
             msg.ID = 12345;
-            msg.AddOption(Option.Create(Spec.GetOptionType(1), "a"));
+            msg.AddOption(Option.Create((OptionType)1, "a"));
             msg.AddOption(Option.Create((OptionType)197, "extend option"));
             msg.Payload = System.Text.Encoding.UTF8.GetBytes("payload");
 

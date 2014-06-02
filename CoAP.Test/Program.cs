@@ -7,7 +7,7 @@ namespace CoAP.Test
     class Program
     {
         static Type[] testTypes = new Type[] { 
-            typeof(DatagramReadWriteTest),
+            //typeof(DatagramReadWriteTest),
             typeof(MessageTest),
             typeof(OptionTest),
             typeof(ResourceTest)
