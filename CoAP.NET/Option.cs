@@ -21,8 +21,9 @@ namespace CoAP
     /// </summary>
     public class Option
     {
-        private static readonly IConvertor int32Convertor = new Int32Convertor();
-        private static readonly IConvertor stringConvertor = new StringConvertor();
+        private static readonly IConvertor<Int32> int32Convertor = new Int32Convertor();
+        private static readonly IConvertor<Int64> int64Convertor = new Int64Convertor();
+        private static readonly IConvertor<String> stringConvertor = new StringConvertor();
 
         private OptionType _type;
         /// <summary>
@@ -83,8 +84,9 @@ namespace CoAP
             }
             set
             {
-                if (!String.IsNullOrEmpty(value))
-                    this._valueBytes = stringConvertor.Encode(value);
+                if (value == null)
+                    ThrowHelper.ArgumentNullException("value");
+                _valueBytes = stringConvertor.Encode(value);
             }
         }
 
@@ -100,6 +102,21 @@ namespace CoAP
             set
             {
                 this._valueBytes = int32Convertor.Encode(value);
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets long value of the option.
+        /// </summary>
+        public Int64 LongValue
+        {
+            get
+            {
+                return (Int64)int64Convertor.Decode(_valueBytes);
+            }
+            set
+            {
+                _valueBytes = int64Convertor.Encode(value);
             }
         }
 
@@ -455,13 +472,17 @@ namespace CoAP
         interface IConvertor
         {
             Object Decode(Byte[] bytes);
-            Byte[] Encode(Int32 value);
-            Byte[] Encode(String value);
         }
 
-        class Int32Convertor : IConvertor
+        interface IConvertor<T> : IConvertor
         {
-            public Object Decode(Byte[] bytes)
+            new T Decode(Byte[] bytes);
+            Byte[] Encode(T value);
+        }
+
+        class Int32Convertor : IConvertor<Int32>
+        {
+            public Int32 Decode(Byte[] bytes)
             {
                 if (null == bytes)
                     return 0;
@@ -480,46 +501,73 @@ namespace CoAP
 
             public Byte[] Encode(Int32 value)
             {
-                Byte[] ret;
-
-                if (value == 0)
+                Int32 len = 0;
+                for (Int32 i = 0; i < 4; i++)
                 {
-                    ret = new Byte[1];
-                    ret[0] = 0;
-                    return ret;
-                }
-
-                Int32 val = System.Net.IPAddress.HostToNetworkOrder(value);
-                Byte[] allBytes = BitConverter.GetBytes(val);
-                Int32 neededBytes = allBytes.Length;
-                //for (Int32 i = allBytes.Length - 1; i >= 0; i--)
-                for (Int32 i = 0; i < allBytes.Length; i++)
-                {
-                    if (allBytes[i] == 0x00)
-                        neededBytes--;
+                    if (value >= 1 << (i * 8) || value < 0)
+                        len++;
                     else
                         break;
                 }
-                if (neededBytes == allBytes.Length)
-                    ret = allBytes;
-                else
+                Byte[] ret = new Byte[len];
+                for (Int32 i = 0; i < len; i++)
                 {
-                    ret = new Byte[neededBytes];
-                    Array.Copy(allBytes, allBytes.Length - neededBytes, ret, 0, neededBytes);
+                    ret[len - i - 1] = (Byte)(value >> i * 8);
                 }
-
                 return ret;
             }
 
-            public Byte[] Encode(String value)
+            Object IConvertor.Decode(Byte[] bytes)
             {
-                throw new NotSupportedException();
+                return Decode(bytes);
             }
         }
 
-        class StringConvertor : IConvertor
+        class Int64Convertor : IConvertor<Int64>
         {
-            public Object Decode(Byte[] bytes)
+            public Int64 Decode(Byte[] bytes)
+            {
+                if (null == bytes)
+                    return 0;
+
+                Int64 iOutcome = 0;
+                Byte bLoop;
+                for (Int32 i = 0; i < bytes.Length; i++)
+                {
+                    bLoop = bytes[i];
+                    iOutcome <<= 8;
+                    iOutcome |= (bLoop & 0xFFU);
+                }
+                return iOutcome;
+            }
+
+            public Byte[] Encode(Int64 value)
+            {
+                Int32 len = 0;
+                for (Int32 i = 0; i < 8; i++)
+                {
+                    if (value >= 1L << (i * 8) || value < 0L)
+                        len++;
+                    else
+                        break;
+                }
+                Byte[] ret = new Byte[len];
+                for (Int32 i = 0; i < len; i++)
+                {
+                    ret[len - i - 1] = (Byte)(value >> i * 8);
+                }
+                return ret;
+            }
+
+            Object IConvertor.Decode(Byte[] bytes)
+            {
+                return Decode(bytes);
+            }
+        }
+
+        class StringConvertor : IConvertor<String>
+        {
+            public String Decode(Byte[] bytes)
             {
                 return null == bytes ? null : System.Text.Encoding.UTF8.GetString(bytes);
             }
@@ -529,9 +577,9 @@ namespace CoAP
                 return System.Text.Encoding.UTF8.GetBytes(value);
             }
 
-            public Byte[] Encode(Int32 value)
+            Object IConvertor.Decode(Byte[] bytes)
             {
-                throw new NotSupportedException();
+                return Decode(bytes);
             }
         }
     }
