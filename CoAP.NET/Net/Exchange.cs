@@ -29,6 +29,7 @@ namespace CoAP.Net
     {
         private readonly ConcurrentDictionary<Object, Object> _attributes = new ConcurrentDictionary<Object, Object>();
         private readonly Origin _origin;
+        private Boolean _timedOut;
         private Request _request;
         private Request _currentRequest;
         private BlockwiseStatus _requestBlockStatus;
@@ -39,6 +40,7 @@ namespace CoAP.Net
         private BlockOption _block1ToAck;
         private DateTime _timestamp;
         private Boolean _complete;
+        private IEndPoint _endpoint;
         private IExchangeForwarder _forwarder;
         private IMessageDeliverer _deliverer;
 
@@ -53,6 +55,26 @@ namespace CoAP.Net
         public Origin Origin
         {
             get { return _origin; }
+        }
+
+        /// <summary>
+        /// Gets or sets the endpoint which has created and processed this exchange.
+        /// </summary>
+        public IEndPoint EndPoint
+        {
+            get { return _endpoint; }
+            set { _endpoint = value; }
+        }
+
+        public Boolean TimedOut
+        {
+            get { return _timedOut; }
+            set
+            {
+                _timedOut = value;
+                if (value)
+                    Complete = true;
+            }
         }
 
         public Request Request
@@ -146,6 +168,45 @@ namespace CoAP.Net
                         h(this, EventArgs.Empty);
                 }
             }
+        }
+
+        /// <summary>
+        /// Reject this exchange and therefore the request.
+        /// Sends an RST back to the client.
+        /// </summary>
+        public void SendReject()
+        {
+            System.Diagnostics.Debug.Assert(_origin == Origin.Remote);
+            _request.Rejected = true;
+            EmptyMessage rst = EmptyMessage.NewRST(_request);
+            _endpoint.SendEmptyMessage(this, rst);
+        }
+
+        /// <summary>
+        /// Accept this exchange and therefore the request. Only if the request's
+        /// type was a <code>CON</code> and the request has not been acknowledged
+        /// yet, it sends an ACK to the client.
+        /// </summary>
+        public void SendAccept()
+        {
+            System.Diagnostics.Debug.Assert(_origin == Origin.Remote);
+            if (_request.Type == MessageType.CON && !_request.Acknowledged)
+            {
+                _request.Acknowledged = true;
+                EmptyMessage ack = EmptyMessage.NewACK(_request);
+                _endpoint.SendEmptyMessage(this, ack);
+            }
+        }
+
+        /// <summary>
+        /// Sends the specified response over the same endpoint
+        /// as the request has arrived.
+        /// </summary>
+        public void SendResponse(Response response)
+        {
+            response.Destination = _request.Source;
+            Response = response;
+            _endpoint.SendResponse(this, response);
         }
 
         public T Get<T>(Object key)

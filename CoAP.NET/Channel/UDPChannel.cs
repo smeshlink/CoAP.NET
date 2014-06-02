@@ -63,6 +63,17 @@ namespace CoAP.Channel
             _localEP = localEP;
         }
 
+        /// <inheritdoc/>
+        public System.Net.EndPoint LocalEndPoint
+        {
+            get
+            {
+                return _socket == null
+                    ? (_localEP ?? new IPEndPoint(IPAddress.IPv6Any, _port))
+                    : _socket.Socket.LocalEndPoint;
+            }
+        }
+
         public Int32 ReceiveBufferSize
         {
             get { return _receiveBufferSize; }

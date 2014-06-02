@@ -19,6 +19,10 @@ namespace CoAP.Channel
     public interface IChannel : IDisposable
     {
         /// <summary>
+        /// Gets the local endpoint of this channel.
+        /// </summary>
+        System.Net.EndPoint LocalEndPoint { get; }
+        /// <summary>
         /// Occurs when some bytes are received in this channel.
         /// </summary>
         event EventHandler<DataReceivedEventArgs> DataReceived;

@@ -11,25 +11,30 @@
 
 using System;
 using CoAP.Channel;
-using CoAP.Log;
 using CoAP.Codec;
+using CoAP.Log;
 using CoAP.Stack;
 
 namespace CoAP.Net
 {
-    public class CoAPEndpoint : IEndPoint, IExchangeForwarder
+    /// <summary>
+    /// EndPoint encapsulates the stack that executes the CoAP protocol.
+    /// </summary>
+    public class CoAPEndPoint : IEndPoint, IExchangeForwarder
     {
-        static readonly ILogger log = LogManager.GetLogger(typeof(CoAPEndpoint));
+        static readonly ILogger log = LogManager.GetLogger(typeof(CoAPEndPoint));
 
         readonly ICoapConfig _config;
         readonly IChannel _channel;
         readonly CoapStack _coapStack;
         private IMatcher _matcher;
+        private Int32 _running;
+        private System.Net.EndPoint _localEP;
 
         /// <summary>
         /// Instantiates a new endpoint.
         /// </summary>
-        public CoAPEndpoint()
+        public CoAPEndPoint()
             : this(0, new CoapConfig())
         { }
 
@@ -37,7 +42,7 @@ namespace CoAP.Net
         /// Instantiates a new endpoint with the
         /// specified port and configuration.
         /// </summary>
-        public CoAPEndpoint(Int32 port, ICoapConfig config)
+        public CoAPEndPoint(Int32 port, ICoapConfig config)
             : this(NewUDPChannel(port, config), config)
         { }
 
@@ -45,7 +50,7 @@ namespace CoAP.Net
         /// Instantiates a new endpoint with the
         /// specified <see cref="System.Net.EndPoint"/> and configuration.
         /// </summary>
-        public CoAPEndpoint(System.Net.EndPoint localEP, ICoapConfig config)
+        public CoAPEndPoint(System.Net.EndPoint localEP, ICoapConfig config)
             : this(NewUDPChannel(localEP, config), config)
         { }
 
@@ -53,7 +58,7 @@ namespace CoAP.Net
         /// Instantiates a new endpoint with the
         /// specified channel and configuration.
         /// </summary>
-        public CoAPEndpoint(IChannel channel, ICoapConfig config)
+        public CoAPEndPoint(IChannel channel, ICoapConfig config)
         {
             _config = config;
             _channel = channel;
@@ -75,22 +80,113 @@ namespace CoAP.Net
         }
 #endif
 
+        /// <inheritdoc/>
+        public ICoapConfig Config
+        {
+            get { return _config; }
+        }
+
+        /// <inheritdoc/>
+        public System.Net.EndPoint LocalEndPoint
+        {
+            get { return _localEP; }
+        }
+
+        /// <inheritdoc/>
+        public Boolean Running
+        {
+            get { return _running > 0; }
+        }
+
+        /// <inheritdoc/>
+        public void Start()
+        {
+            if (System.Threading.Interlocked.CompareExchange(ref _running, 1, 0) > 0)
+                return;
+            _localEP = _channel.LocalEndPoint;
+            try
+            {
+                _matcher.Start();
+                _channel.Start();
+                _localEP = _channel.LocalEndPoint;
+            }
+            catch
+            {
+                if (log.IsWarnEnabled)
+                    log.Warn("Cannot start endpoint at " + _localEP);
+                Stop();
+                throw;
+            }
+            if (log.IsDebugEnabled)
+                log.Debug("Starting endpoint bound to " + _localEP);
+        }
+
+        /// <inheritdoc/>
+        public void Stop()
+        {
+            if (System.Threading.Interlocked.Exchange(ref _running, 0) == 0)
+                return;
+            if (log.IsDebugEnabled)
+                log.Debug("Stopping endpoint bound to " + _localEP);
+            _channel.Stop();
+            _matcher.Stop();
+            _matcher.Clear();
+        }
+
+        /// <inheritdoc/>
+        public void Clear()
+        {
+            _matcher.Clear();
+        }
+
+        /// <inheritdoc/>
+        public void Dispose()
+        {
+            if (Running)
+                Stop();
+            _channel.Dispose();
+            IDisposable d = _matcher as IDisposable;
+            if (d != null)
+                d.Dispose();
+        }
+
+        /// <inheritdoc/>
+        public void SendRequest(Request request)
+        {
+            // TODO thread
+            _coapStack.SendRequest(request);
+        }
+
+        /// <inheritdoc/>
+        public void SendResponse(Exchange exchange, Response response)
+        {
+            // TODO thread
+            _coapStack.SendResponse(exchange, response);
+        }
+
+        /// <inheritdoc/>
+        public void SendEmptyMessage(Exchange exchange, EmptyMessage message)
+        {
+            // TODO thread
+            _coapStack.SendEmptyMessage(exchange, message);
+        }
+
         private void ReceiveData(Object sender, DataReceivedEventArgs e)
         {
             // TODO new thread
             // TODO may have more or less than one message in the incoming bytes
 
-            IMessageDecoder parser = Spec.NewDataParser(e.Data);
-            if (parser.IsRequest)
+            IMessageDecoder decoder = Spec.NewMessageDecoder(e.Data);
+            if (decoder.IsRequest)
             {
                 Request request;
                 try
                 {
-                    request = parser.ParseRequest();
+                    request = decoder.DecodeRequest();
                 }
                 catch (InvalidOperationException)
                 {
-                    if (parser.IsReply)
+                    if (decoder.IsReply)
                     {
                         if (log.IsWarnEnabled)
                             log.Warn("Message format error caused by " + e.EndPoint);
@@ -100,7 +196,7 @@ namespace CoAP.Net
                         // manually build RST from raw information
                         EmptyMessage rst = new EmptyMessage(MessageType.RST);
                         rst.Destination = e.EndPoint;
-                        rst.ID = parser.ID;
+                        rst.ID = decoder.ID;
                         _channel.Send(Serialize(rst), rst.Destination);
 
                         if (log.IsWarnEnabled)
@@ -117,9 +213,9 @@ namespace CoAP.Net
                     _coapStack.ReceiveRequest(null, request);
                 }
             }
-            else if (parser.IsResponse)
+            else if (decoder.IsResponse)
             {
-                Response response = parser.ParseResponse();
+                Response response = decoder.DecodeResponse();
 				response.Source = e.EndPoint;
 
 				// TODO response.setRTT(System.currentTimeMillis() - exchange.getTimestamp());
@@ -130,9 +226,9 @@ namespace CoAP.Net
                     _coapStack.ReceiveResponse(null, response);
                 }
             }
-            else if (parser.IsEmpty)
+            else if (decoder.IsEmpty)
             {
-                EmptyMessage message = parser.ParseEmptyMessage();
+                EmptyMessage message = decoder.DecodeEmptyMessage();
                 message.Source = e.EndPoint;
 
                 // CoAP Ping
@@ -166,7 +262,7 @@ namespace CoAP.Net
             Byte[] bytes = message.Bytes;
             if (bytes == null)
             {
-                bytes = Spec.NewDataSerializer().Serialize(message);
+                bytes = Spec.NewMessageEncoder().Encode(message);
                 message.Bytes = bytes;
             }
             return bytes;
@@ -177,7 +273,7 @@ namespace CoAP.Net
             Byte[] bytes = request.Bytes;
             if (bytes == null)
             {
-                bytes = Spec.NewDataSerializer().Serialize(request);
+                bytes = Spec.NewMessageEncoder().Encode(request);
                 request.Bytes = bytes;
             }
             return bytes;
@@ -188,7 +284,7 @@ namespace CoAP.Net
             Byte[] bytes = response.Bytes;
             if (bytes == null)
             {
-                bytes = Spec.NewDataSerializer().Serialize(response);
+                bytes = Spec.NewMessageEncoder().Encode(response);
                 response.Bytes = bytes;
             }
             return bytes;

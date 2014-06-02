@@ -83,7 +83,7 @@ namespace CoAP.Stack
             public override void ReceiveResponse(INextLayer nextLayer, Exchange exchange, Response response)
             {
                 if (!response.HasOption(OptionType.Observe))
-                    exchange.Complete();
+                    exchange.Complete = true;
                 if (exchange.Deliverer != null)
                     // notify request that response has arrived
                     exchange.Deliverer.DeliverResponse(exchange, response);
