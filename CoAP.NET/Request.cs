@@ -11,6 +11,8 @@
 
 using System;
 using System.Collections;
+using System.Net;
+using System.Text.RegularExpressions;
 using CoAP.EndPoint.Resources;
 using CoAP.Log;
 
@@ -25,6 +27,9 @@ namespace CoAP
     public class Request : Message
     {
         private static readonly ILogger log = LogManager.GetLogger(typeof(Request));
+
+        private Boolean _multicast;
+        private Uri _uri;
         
         private static readonly Response timeoutResponse = new Response();
         private static readonly Int64 startTime = DateTime.Now.Ticks;
@@ -58,7 +63,140 @@ namespace CoAP
         /// <param name="confirmable">True if the request is Confirmable</param>
         public Request(Int32 method, Boolean confirmable)
             : base(confirmable ? MessageType.CON : MessageType.NON, method)
+        { }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether this request is a multicast request or not.
+        /// </summary>
+        public Boolean Multicast
         {
+            get { return _multicast; }
+            set { _multicast = value; }
+        }
+
+        static readonly Regex regIP = new Regex("(\\[[0-9a-f:]+\\]|[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3})", RegexOptions.IgnoreCase);
+
+        /// <summary>
+        /// Gets or sets the URI of this CoAP message.
+        /// </summary>
+        public Uri URI
+        {
+            get { return _uri; }
+            set
+            {
+                if (null != value)
+                {
+                    String host = value.Host;
+                    Int32 port = value.Port;
+
+                    // set Uri-Host option if not IP literal
+                    if (host != null && !regIP.IsMatch(host)
+                        && !host.Equals("localhost", StringComparison.OrdinalIgnoreCase))
+                        UriHost = host;
+
+                    if (port >= 0)
+                    {
+                        if (port != CoapConstants.DefaultPort)
+                            UriPort = port;
+                    }
+
+                    Destination = new IPEndPoint(Dns.GetHostAddresses(host)[0], port);
+
+                    UriPath = value.AbsolutePath;
+                    UriQuery = value.Query;
+                    PeerAddress = new EndpointAddress(value);
+                }
+                _uri = value;
+            }
+        }
+
+        public String UriHost
+        {
+            get
+            {
+                Option host = GetFirstOption(OptionType.UriHost);
+                if (host == null)
+                {
+                    if (Destination != null)
+                    {
+                        return Destination.ToString();
+                    }
+                    else
+                        return "localhost";
+                }
+                else
+                {
+                    return host.StringValue;
+                }
+            }
+            set
+            {
+                if (value == null)
+                    throw new ArgumentNullException("value");
+                else if (value.Length < 1 || value.Length > 255)
+                    throw new ArgumentException("URI-Host option's length must be between 1 and 255 inclusive", "value");
+                SetOption(Option.Create(OptionType.UriHost, value));
+            }
+        }
+
+        public String UriPath
+        {
+            get { return "/" + Option.Join(GetOptions(OptionType.UriPath), "/"); }
+            set { SetOptions(Option.Split(OptionType.UriPath, value, "/")); }
+        }
+
+        public String UriQuery
+        {
+            get { return Option.Join(GetOptions(OptionType.UriQuery), "&"); }
+            set
+            {
+                if (!String.IsNullOrEmpty(value) && value.StartsWith("?"))
+                    value = value.Substring(1);
+                SetOptions(Option.Split(OptionType.UriQuery, value, "&"));
+            }
+        }
+
+        public Int32 UriPort
+        {
+            get
+            {
+                Option opt = GetFirstOption(OptionType.UriPort);
+                return opt == null ? 0 : opt.IntValue;
+            }
+            set
+            {
+                if (value == 0)
+                    RemoveOptions(OptionType.UriPort);
+                else
+                    SetOption(Option.Create(OptionType.UriPort, value));
+            }
+        }
+
+        public void SetUri(String uri)
+        {
+            if (!uri.StartsWith("coap://") && !uri.StartsWith("coaps://"))
+                uri = "coap://" + uri;
+            URI = new Uri(uri);
+        }
+
+        /// <summary>
+        /// Sets CoAP's observe option. If the target resource of this request
+	    /// responds with a success code and also sets the observe option, it will
+        /// send more responses in the future whenever the resource's state changes.
+        /// </summary>
+        public Request SetObserve()
+        {
+            SetOption(Option.Create(OptionType.Observe, 0));
+            return this;
+        }
+
+        /// <summary>
+        /// Sets CoAP's observe option to the value of 1 to proactively cancel.
+        /// </summary>
+        public Request SetObserveCancel()
+        {
+            SetOption(Option.Create(OptionType.Observe, 1));
+            return this;
         }
 
         /// <summary>
@@ -187,15 +325,6 @@ namespace CoAP
         public void Execute()
         {
             Send();
-        }
-
-        /// <summary>
-        /// Cancels the request.
-        /// </summary>
-        public void Cancel()
-        {
-            Canceled = true;
-            //HandleTimeout();
         }
 
         /// <summary>
@@ -414,6 +543,38 @@ namespace CoAP
         internal void ResponsePayloadAppended(Response response, Byte[] block)
         {
             OnResponding(response);
+        }
+
+        /// <summary>
+        /// Construct a GET request.
+        /// </summary>
+        public static Request NewGet()
+        {
+            return new Request(CoAP.Code.GET);
+        }
+
+        /// <summary>
+        /// Construct a POST request.
+        /// </summary>
+        public static Request NewPost()
+        {
+            return new Request(CoAP.Code.POST);
+        }
+
+        /// <summary>
+        /// Construct a PUT request.
+        /// </summary>
+        public static Request NewPut()
+        {
+            return new Request(CoAP.Code.PUT);
+        }
+
+        /// <summary>
+        /// Construct a DELETE request.
+        /// </summary>
+        public static Request NewDelete()
+        {
+            return new Request(CoAP.Code.DELETE);
         }
 
         /// <summary>

@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2011-2013, Longxiang He <helongxiang@smeshlink.com>,
+ * Copyright (c) 2011-2014, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
  * This program is distributed in the hope that it will be useful,
@@ -16,6 +16,10 @@ namespace CoAP
     /// </summary>
     public enum MessageType
     {
+        /// <summary>
+        /// Unknown type.
+        /// </summary>
+        Unknown = -1,
         /// <summary>
         /// Confirmable messages require an acknowledgement.
         /// </summary>

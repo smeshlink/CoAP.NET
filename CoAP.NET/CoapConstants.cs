@@ -21,11 +21,16 @@ namespace CoAP
         /// <summary>
         /// The URI scheme for identifying CoAP resources
         /// </summary>
-        public const String UriSchemeName = "coap";
+        public const String UriScheme = "coap";
+        public const String SecureUriScheme = "coaps";
         /// <summary>
-        /// The default port for CoAP server
+        /// The default CoAP port for normal CoAP communication (not secure).
         /// </summary>
         public const Int32 DefaultPort = 5683;
+        /// <summary>
+        /// The default CoAP port for secure CoAP communication (coaps).
+        /// </summary>
+        public const Int32 DefaultSecurePort = 5684;
         /// <summary>
         /// The initial time (ms) for a CoAP message
         /// </summary>
@@ -57,5 +62,27 @@ namespace CoAP
         /// The number of notifications until a CON notification will be used.
         /// </summary>
         public const Int32 ObservingRefreshInterval = 10;
+
+        public static readonly Byte[] EmptyToken = new Byte[0];
+
+        /// <summary>
+        /// The lowest value of a request code.
+        /// </summary>
+        public const Int32 RequestCodeLowerBound = 1;
+
+        /// <summary>
+        /// The highest value of a request code.
+        /// </summary>
+        public const Int32 RequestCodeUpperBound = 31;
+
+        /// <summary>
+        /// The lowest value of a response code.
+        /// </summary>
+        public const Int32 ResponseCodeLowerBound = 64;
+
+        /// <summary>
+        /// The highest value of a response code.
+        /// </summary>
+        public const Int32 ResponseCodeUpperBound = 191;
     }
 }

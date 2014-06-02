@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2011-2012, Longxiang He <helongxiang@smeshlink.com>,
+ * Copyright (c) 2011-2014, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
  * This program is distributed in the hope that it will be useful,
@@ -14,12 +14,15 @@ using System;
 namespace CoAP
 {
     /// <summary>
-    /// This class describes the functionality of a CoAP Response as
-    /// a subclass of a CoAP Message.
+    /// Represents a CoAP response to a CoAP request.
+    /// A response is either a piggy-backed response with type ACK
+    /// or a separate response with type CON or NON.
     /// </summary>
     public class Response : Message
     {
         private Request _request;
+        private Double _rtt;
+        private Boolean _last = true;
 
         /// <summary>
         /// Initializes a response message with default code.
@@ -33,9 +36,8 @@ namespace CoAP
         /// </summary>
         /// <param name="code">The code of this response</param>
         public Response(Int32 code)
-        {
-            Code = code;
-        }
+            : base(MessageType.Unknown, code)
+        { }
 
         /// <summary>
         /// Gets or sets the request related to this response.
@@ -51,15 +53,8 @@ namespace CoAP
         /// </summary>
         public Double RTT
         {
-            get
-            {
-                if (null == _request)
-                    return -1D;
-                else
-                {
-                    return new TimeSpan(Timestamp - _request.Timestamp).TotalMilliseconds;
-                }
-            }
+            get { return _rtt; }
+            set { _rtt = value; }
         }
 
         /// <summary>
@@ -74,6 +69,15 @@ namespace CoAP
             }
         }
 
+        /// <summary>
+        /// Gets or sets a value indicating whether this response is the last response of an exchange.
+        /// </summary>
+        public Boolean Last
+        {
+            get { return _last; }
+            set { _last = value; }
+        }
+
         protected override void DoHandleBy(IMessageHandler handler)
         {
             handler.HandleMessage(this);
@@ -83,6 +87,34 @@ namespace CoAP
         {
             if (null != _request)
                 _request.ResponsePayloadAppended(this, block);
+        }
+
+        /// <summary>
+        /// Creates a piggy-backed response with the specified response code
+        /// to the specified request.
+        /// </summary>
+        public static Response CreatePiggybackedResponse(Request request, Int32 code)
+        {
+            Response response = new Response(code);
+            response.ID = request.ID;
+            response.Type = MessageType.ACK;
+            response.Destination = request.Source;
+            response.Token = request.Token;
+            return response;
+        }
+
+        /// <summary>
+        /// Creates a separate response with the specified response code to the
+	    /// specified request. The destination address of the response is the source
+	    /// address of the request. The response has the same token as the request
+        /// but needs another MID from the CoAP network stack.
+        /// </summary>
+        public static Response CreateSeparateResponse(Request request, Int32 code)
+        {
+            Response response = new Response(code);
+            response.Destination = request.Source;
+            response.Token = request.Token;
+            return response;
         }
     }
 }

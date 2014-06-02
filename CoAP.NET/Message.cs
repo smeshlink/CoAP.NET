@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2011-2013, Longxiang He <helongxiang@smeshlink.com>,
+ * Copyright (c) 2011-2014, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
  * This program is distributed in the hope that it will be useful,
@@ -20,64 +20,291 @@ using CoAP.Util;
 namespace CoAP
 {
     /// <summary>
-    /// This class describes the functionality of a CoAP message.
+    /// The class Message models the base class of all CoAP messages.
+    /// CoAP messages are of type <see cref="Request"/>, <see cref="Response"/>
+    /// or <see cref="EmptyMessage"/>, each of which has a <see cref="MessageType"/>,
+    /// a message identifier <see cref="Message.ID"/>, a token (0-8 bytes),
+    /// a  collection of <see cref="Option"/>s and a payload.
     /// </summary>
     public class Message
     {
         /// <summary>
         /// Invalid message ID.
         /// </summary>
-        public const Int32 InvalidID = -1;
+        [Obsolete("Use Message.None instead.")]
+        public const Int32 InvalidID = None;
+        /// <summary>
+        /// Indicates that no ID has been set.
+        /// </summary>
+        public const Int32 None = -1;
 
         private static readonly ILogger log = LogManager.GetLogger(typeof(Message));
 
         private Int32 _version = Spec.SupportedVersion;
-        private MessageType _type;
+        private MessageType _type = MessageType.Unknown;
         private Int32 _code;
-        private Int32 _id = InvalidID;
+        private Int32 _id = None;
         private Byte[] _token;
         private Byte[] _payLoadBytes;
         private Boolean _requiresToken = true;
         private Boolean _requiresBlockwise = false;
         private SortedDictionary<OptionType, IList<Option>> _optionMap = new SortedDictionary<OptionType, IList<Option>>();
-        private Int64 _timestamp;
-        private Uri _uri;
+        private DateTime _timestamp;
         private Int32 _retransmissioned;
         private Int32 _maxRetransmit = CoapConstants.MaxRetransmit;
         private Int32 _responseTimeout = CoapConstants.ResponseTimeout;
         private EndpointAddress _peerAddress;
-        private Boolean _cancelled = false;
-        private Boolean _complete = false;
+        private System.Net.EndPoint _source;
+        private System.Net.EndPoint _destination;
+        private Boolean _acknowledged;
+        private Boolean _rejected;
+        private Boolean _cancelled;
+        private Boolean _timedOut;
+        private Boolean _duplicate;
+        private Boolean _complete;
+        private Byte[] _bytes;
         private ICommunicator _communicator;
 
         /// <summary>
-        /// Initializes a message.
+        /// Occurs when this message is retransmitting.
+        /// </summary>
+        public event EventHandler Retransmitting;
+
+        /// <summary>
+        /// Occurs when this message has been acknowledged by the remote endpoint.
+        /// </summary>
+        public event EventHandler Acknowledge;
+
+        /// <summary>
+        /// Occurs when this message has been rejected by the remote endpoint.
+        /// </summary>
+        public event EventHandler Reject;
+
+        /// <summary>
+        /// Occurs when the client stops retransmitting the message and still has
+        /// not received anything from the remote endpoint.
+        /// </summary>
+        public event EventHandler Timeout;
+
+        /// <summary>
+        /// Occurs when this message has been canceled.
+        /// </summary>
+        public event EventHandler Cancel;
+
+        /// <summary>
+        /// Instantiates a message.
         /// </summary>
         public Message()
+        { }
+
+        /// <summary>
+        /// Instantiates a message with the given type.
+        /// </summary>
+        /// <param name="type">the message type</param>
+        public Message(MessageType type)
         {
+            _type = type;
         }
 
         /// <summary>
-        /// Initializes a message.
+        /// Instantiates a message with the given type and code.
         /// </summary>
-        /// <param name="type">The message type</param>
-        /// <param name="code">The message code</param>
+        /// <param name="type">the message type</param>
+        /// <param name="code">the message code</param>
         public Message(MessageType type, Int32 code)
         {
-            this._type = type;
-            this._code = code;
+            _type = type;
+            _code = code;
         }
 
         /// <summary>
-        /// Initializes a message.
+        /// Gets or sets the type of this CoAP message.
         /// </summary>
-        public Message(Uri uri, MessageType type, Int32 code, Int32 id, Byte[] payload)
+        public MessageType Type
         {
-            URI = uri;
-            _type = type;
-            _code = code;
-            _id = id;
-            _payLoadBytes = payload;
+            get { return _type; }
+            set { _type = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets the ID of this CoAP message.
+        /// </summary>
+        public Int32 ID
+        {
+            get { return _id; }
+            set { _id = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets the 0-8 byte token.
+        /// </summary>
+        public Byte[] Token
+        {
+            get { return _token; }
+            set
+            {
+                if (value != null && value.Length > 8)
+                    throw new ArgumentException("Token length must be between 0 and 8 inclusive.", "value");
+
+                _token = value;
+
+                if (value != null && value.Length > 0)
+                {
+                    // for compatibility with CoAP 13-
+                    // do not call SetOption() to avoid loop
+                    List<Option> list = new List<Option>(1);
+                    list.Add(Option.Create(OptionType.Token, value));
+                    _optionMap[OptionType.Token] = list;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets the token represented as a string.
+        /// </summary>
+        public String TokenString
+        {
+            get { return _token == null ? null : ByteArrayUtils.ToHexString(_token); }
+        }
+
+        /// <summary>
+        /// Gets the size of the payload of this CoAP message.
+        /// </summary>
+        public Int32 PayloadSize
+        {
+            get { return (null == _payLoadBytes) ? 0 : _payLoadBytes.Length; }
+        }
+
+        /// <summary>
+        /// Gets or sets the payload of this CoAP message.
+        /// </summary>
+        public Byte[] Payload
+        {
+            get { return _payLoadBytes; }
+            set { _payLoadBytes = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets the payload of this CoAP message in string representation.
+        /// </summary>
+        public String PayloadString
+        {
+            get { return (null == _payLoadBytes) ? null : System.Text.Encoding.UTF8.GetString(_payLoadBytes); }
+            set { SetPayload(value, MediaType.TextPlain); }
+        }
+
+        /// <summary>
+        /// Gets or sets the destination endpoint.
+        /// </summary>
+        public System.Net.EndPoint Destination
+        {
+            get { return _destination; }
+            set { _destination = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets the source endpoint.
+        /// </summary>
+        public System.Net.EndPoint Source
+        {
+            get { return _source; }
+            set { _source = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether this message has been acknowledged.
+        /// </summary>
+        public Boolean Acknowledged
+        {
+            get { return _acknowledged; }
+            set
+            {
+                _acknowledged = value;
+                if (value)
+                    Fire(Acknowledge);
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether this message has been rejected.
+        /// </summary>
+        public Boolean Rejected
+        {
+            get { return _rejected; }
+            set
+            {
+                _rejected = value;
+                if (value)
+                    Fire(Reject);
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets a value that indicates whether this CoAP message has timed out.
+        /// Confirmable messages in particular might timeout.
+        /// </summary>
+        public Boolean TimedOut
+        {
+            get { return _timedOut; }
+            set
+            {
+                _timedOut = value;
+                if (value)
+                    Fire(Timeout);
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets a value that indicates whether this CoAP message is canceled.
+        /// </summary>
+        public Boolean Canceled
+        {
+            get { return _cancelled; }
+            set
+            {
+                _cancelled = value;
+                if (value)
+                    Fire(Cancel);
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether this message is a duplicate.
+        /// </summary>
+        public Boolean Duplicate
+        {
+            get { return _duplicate; }
+            set { _duplicate = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets the serialized message as byte array, or null if not serialized yet.
+        /// </summary>
+        public Byte[] Bytes
+        {
+            get { return _bytes; }
+            set { _bytes = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets the timestamp when this message has been received or sent,
+        /// or <see cref="DateTime.MinValue"/> if neither has happened yet.
+        /// </summary>
+        public DateTime Timestamp
+        {
+            get { return _timestamp; }
+            set { _timestamp = value; }
+        }
+
+        internal void FireRetransmitting()
+        {
+            Fire(Retransmitting);
+        }
+
+        private void Fire(EventHandler handler)
+        {
+            if (handler != null)
+                handler(this, EventArgs.Empty);
         }
 
         /// <summary>
@@ -88,16 +315,8 @@ namespace CoAP
         /// <returns></returns>
         public Message NewReply(Boolean ack)
         {
-            Message reply = new Message();
-
-            if (this._type == MessageType.CON)
-            {
-                reply._type = ack ? MessageType.ACK : MessageType.RST;
-            }
-            else
-            {
-                reply._type = MessageType.NON;
-            }
+            Message reply = new Message(_type == MessageType.CON ?
+                (ack ? MessageType.ACK : MessageType.RST) : MessageType.NON, CoAP.Code.Empty);
 
             // echo ID
             reply._id = this._id;
@@ -107,8 +326,6 @@ namespace CoAP
             // echo token
             reply.Token = Token;
             reply.RequiresToken = this.RequiresToken;
-            // create an empty reply by default
-            reply.Code = CoAP.Code.Empty;
 
             return reply;
         }
@@ -157,7 +374,7 @@ namespace CoAP
         /// application level, as the RST will be sent through the whole stack.
         /// Within the stack use NewReject() and send it through the corresponding lower layer.
         /// </summary>
-        public void Reject()
+        public void Reject0()
         {
             Message msg = NewReject();
             msg.Communicator = this.Communicator;
@@ -474,32 +691,6 @@ namespace CoAP
         }
 
         /// <summary>
-        /// Gets the size of the payload of this CoAP message.
-        /// </summary>
-        public Int32 PayloadSize
-        {
-            get { return (null == this._payLoadBytes) ? 0 : this._payLoadBytes.Length; }
-        }
-
-        /// <summary>
-        /// Gets or sets the payload of this CoAP message.
-        /// </summary>
-        public Byte[] Payload
-        {
-            get { return this._payLoadBytes; }
-            set { this._payLoadBytes = value; }
-        }
-
-        /// <summary>
-        /// Gets or sets the payload of this CoAP message in string representation.
-        /// </summary>
-        public String PayloadString
-        {
-            get { return (null == this._payLoadBytes) ? null : System.Text.Encoding.UTF8.GetString(this._payLoadBytes); }
-            set { SetPayload(value, MediaType.TextPlain); }
-        }
-
-        /// <summary>
         /// Gets or sets a value that indicates whether a generated token is needed.
         /// </summary>
         public Boolean RequiresToken
@@ -512,15 +703,6 @@ namespace CoAP
         {
             get { return this._requiresBlockwise; }
             set { this._requiresBlockwise = value; }
-        }
-
-        /// <summary>
-        /// Gets or sets the timestamp related to this CoAP message.
-        /// </summary>
-        public Int64 Timestamp
-        {
-            get { return _timestamp; }
-            set { _timestamp = value; }
         }
 
         /// <summary>
@@ -552,85 +734,6 @@ namespace CoAP
         {
             get { return _responseTimeout; }
             set { _responseTimeout = value; }
-        }
-
-        /// <summary>
-        /// Gets or sets the URI of this CoAP message.
-        /// </summary>
-        public Uri URI
-        {
-            get { return this._uri; }
-            set
-            {
-                if (null != value)
-                {
-                    // TODO Uri-Host option
-
-                    UriPath = value.AbsolutePath;
-                    UriQuery = value.Query;
-                    PeerAddress = new EndpointAddress(value);
-                }
-                this._uri = value;
-            }
-        }
-
-        public String UriHost
-        {
-            get
-            {
-                Option host = GetFirstOption(OptionType.UriHost);
-                if (host == null)
-                {
-                    if (_peerAddress != null && _peerAddress.Address != null)
-                    {
-                        return _peerAddress.Address.ToString();
-                    }
-                    else
-                        return "localhost";
-                }
-                else
-                {
-                    return host.StringValue;
-                }
-            }
-        }
-
-        public String UriPath
-        {
-            get { return "/" + Option.Join(GetOptions(OptionType.UriPath), "/"); }
-            set { SetOptions(Option.Split(OptionType.UriPath, value, "/")); }
-        }
-
-        public String UriQuery
-        {
-            get { return Option.Join(GetOptions(OptionType.UriQuery), "&"); }
-            set
-            {
-                if (!String.IsNullOrEmpty(value) && value.StartsWith("?"))
-                    value = value.Substring(1);
-                SetOptions(Option.Split(OptionType.UriQuery, value, "&"));
-            }
-        }
-
-        public Byte[] Token
-        {
-            get { return _token == null ? TokenManager.EmptyToken : _token; }
-            set
-            {
-                if (value != null && value != TokenManager.EmptyToken)
-                    _token = (Byte[])value.Clone();
-                RequiresToken = false;
-
-                // for compatibility with CoAP 13-
-                List<Option> list = new List<Option>(1);
-                list.Add(Option.Create(OptionType.Token, value));
-                _optionMap[OptionType.Token] = list;
-            }
-        }
-
-        public String TokenString
-        {
-            get { return ByteArrayUtils.ToHexString(Token); }
         }
 
         /// <summary>
@@ -724,12 +827,11 @@ namespace CoAP
         }
 
         /// <summary>
-        /// Gets or sets the code of this CoAP message.
+        /// Gets the code of this CoAP message.
         /// </summary>
         public Int32 Code
         {
-            get { return this._code; }
-            set { this._code = value; }
+            get { return _code; }
         }
 
         /// <summary>
@@ -737,7 +839,7 @@ namespace CoAP
         /// </summary>
         public String CodeString
         {
-            get { return CoAP.Code.ToString(this._code); }
+            get { return CoAP.Code.ToString(_code); }
         }
 
         /// <summary>
@@ -746,33 +848,6 @@ namespace CoAP
         public Int32 Version
         {
             get { return _version; }
-        }
-
-        /// <summary>
-        /// Gets or sets the ID of this CoAP message.
-        /// </summary>
-        public Int32 ID
-        {
-            get { return _id; }
-            set { _id = value; }
-        }
-
-        /// <summary>
-        /// Gets or sets a value that indicates whether this CoAP message is canceled.
-        /// </summary>
-        public Boolean Canceled
-        {
-            get { return _cancelled; }
-            set { _cancelled = value; }
-        }
-
-        /// <summary>
-        /// Gets or sets the type of this CoAP message.
-        /// </summary>
-        public MessageType Type
-        {
-            get { return _type; }
-            set { _type = value; }
         }
 
         /// <summary>
@@ -867,46 +942,10 @@ namespace CoAP
             }
         }
 
-        public Int32 Port
-        {
-            get { return null == this._uri ? CoapConstants.DefaultPort : this._uri.Port; }
-        }
-
-        /// <summary>
-        /// Gets the IP address of the URI of this CoAP message.
-        /// </summary>
-        public IPAddress Address
-        {
-            get
-            {
-                if (null == this._uri)
-                    return null;
-                else
-                {
-                    IPAddress[] addrs = Dns.GetHostAddresses(this._uri.Host);
-                    return addrs[0];
-                }
-            }
-        }
-
         public EndpointAddress PeerAddress
         {
             get { return _peerAddress; }
             set { _peerAddress = value; }
-        }
-
-        /// <summary>
-        /// Gets the endpoint ID of this CoAP message, including ip address and port.
-        /// </summary>
-        public String EndPointID
-        {
-            get
-            {
-                IPAddress addr = Address;
-
-                // TODO 检查IP地址是否需要[]
-                return String.Format("[{0}]:{1}", addr, Port);
-            }
         }
 
         #endregion

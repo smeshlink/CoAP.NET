@@ -104,8 +104,8 @@ namespace CoAP.Layers
             // remember when this message was sent for the first time
             // set timestamp only once in order
             // to handle retransmissions correctly
-            if (msg.Timestamp == 0)
-                msg.Timestamp = DateTime.Now.Ticks;
+            if (msg.Timestamp == DateTime.MinValue)
+                msg.Timestamp = DateTime.Now;
 
             IPEndPoint remoteEP = new IPEndPoint(msg.PeerAddress.Address, msg.PeerAddress.Port);
             Byte[] data = Spec.Encode(msg);
