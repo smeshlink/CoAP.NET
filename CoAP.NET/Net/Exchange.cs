@@ -150,7 +150,7 @@ namespace CoAP.Net
 
         public IMessageDeliverer Deliverer
         {
-            get { return _deliverer; }
+            get { return _deliverer ?? (_endpoint == null ? null : _endpoint.MessageDeliverer); }
             set { _deliverer = value; }
         }
 

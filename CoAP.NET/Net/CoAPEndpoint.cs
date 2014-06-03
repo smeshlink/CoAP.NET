@@ -223,19 +223,21 @@ namespace CoAP.Net
                 if (exchange != null)
                 {
                     exchange.Forwarder = this;
+                    exchange.EndPoint = this;
                     _coapStack.ReceiveRequest(exchange, request);
                 }
             }
             else if (decoder.IsResponse)
             {
                 Response response = decoder.DecodeResponse();
-				response.Source = e.EndPoint;
+                response.Source = e.EndPoint;
 
-				// TODO response.setRTT(System.currentTimeMillis() - exchange.getTimestamp());
                 Exchange exchange = _matcher.ReceiveResponse(response);
                 if (exchange != null)
                 {
+                    response.RTT = (DateTime.Now - exchange.Timestamp).TotalMilliseconds;
                     exchange.Forwarder = this;
+                    exchange.EndPoint = this;
                     _coapStack.ReceiveResponse(exchange, response);
                 }
             }
@@ -260,6 +262,7 @@ namespace CoAP.Net
                     if (exchange != null)
                     {
                         exchange.Forwarder = this;
+                        exchange.EndPoint = this;
                         _coapStack.ReceiveEmptyMessage(exchange, message);
                     }
                 }
@@ -321,15 +324,15 @@ namespace CoAP.Net
         {
             _matcher.SendRequest(exchange, request);
 
-			if (!request.Canceled)
-				_channel.Send(Serialize(request), request.Destination);
+            if (!request.Canceled)
+                _channel.Send(Serialize(request), request.Destination);
         }
 
         void IExchangeForwarder.SendResponse(Exchange exchange, Response response)
         {
             _matcher.SendResponse(exchange, response);
 
-			if (!response.Canceled)
+            if (!response.Canceled)
                 _channel.Send(Serialize(response), response.Destination);
         }
 
@@ -337,7 +340,7 @@ namespace CoAP.Net
         {
             _matcher.SendEmptyMessage(exchange, message);
 
-			if (!message.Canceled)
+            if (!message.Canceled)
                 _channel.Send(Serialize(message), message.Destination);
         }
     }

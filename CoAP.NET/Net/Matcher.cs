@@ -199,7 +199,6 @@ namespace CoAP.Net
             }
             else
             {
-
                 Exchange.KeyUri keyUri = new Exchange.KeyUri(request.URI, request.Source);
 
                 if (log.IsDebugEnabled)

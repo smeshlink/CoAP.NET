@@ -104,6 +104,7 @@
     <Compile Include="MediaType.cs" />
     <Compile Include="Message.cs" />
     <Compile Include="MessageType.cs" />
+    <Compile Include="Net\ClientMessageDeliverer.cs" />
     <Compile Include="Net\CoAPEndPoint.cs" />
     <Compile Include="Net\Exchange.cs" />
     <Compile Include="Net\IEndPoint.cs" />
@@ -120,12 +121,15 @@
     <Compile Include="Request.cs" />
     <Compile Include="Response.cs" />
     <Compile Include="ResponseEventArgs.cs" />
-    <Compile Include="Server\IMessageDeliverer.cs" />
+    <Compile Include="Server\CoapServer.cs" />
+    <Compile Include="Net\IMessageDeliverer.cs" />
+    <Compile Include="Server\IServer.cs" />
     <Compile Include="Server\Resources\CoapExchange.cs" />
     <Compile Include="Server\Resources\DiscoveryResource.cs" />
     <Compile Include="Server\Resources\IResource.cs" />
     <Compile Include="Server\Resources\Resource.cs" />
     <Compile Include="Server\Resources\ResourceAttributes.cs" />
+    <Compile Include="Server\ServerMessageDeliverer.cs" />
     <Compile Include="Spec.cs" />
     <Compile Include="Stack\AbstractLayer.cs" />
     <Compile Include="Stack\BlockwiseLayer.cs" />

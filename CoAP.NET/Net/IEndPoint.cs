@@ -34,7 +34,7 @@ namespace CoAP.Net
         /// <summary>
         /// Sets the message deliverer.
         /// </summary>
-        IMessageDeliverer MessageDeliverer { set; }
+        IMessageDeliverer MessageDeliverer { get; set; }
         /// <summary>
         /// Starts this endpoint and all its components.
         /// </summary>

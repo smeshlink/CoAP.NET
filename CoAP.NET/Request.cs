@@ -82,7 +82,20 @@ namespace CoAP
         /// </summary>
         public Uri URI
         {
-            get { return _uri; }
+            get
+            {
+                if (_uri == null)
+                {
+                    UriBuilder ub = new UriBuilder();
+                    ub.Scheme = CoapConstants.UriScheme;
+                    ub.Host = UriHost ?? "localhost";
+                    ub.Port = UriPort;
+                    ub.Path = UriPath;
+                    ub.Query = UriQuery;
+                    _uri = ub.Uri;
+                }
+                return _uri;
+            }
             set
             {
                 if (null != value)
