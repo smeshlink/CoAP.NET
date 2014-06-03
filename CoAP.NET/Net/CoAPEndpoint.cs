@@ -27,6 +27,7 @@ namespace CoAP.Net
         readonly ICoapConfig _config;
         readonly IChannel _channel;
         readonly CoapStack _coapStack;
+        private IMessageDeliverer _deliverer;
         private IMatcher _matcher;
         private Int32 _running;
         private System.Net.EndPoint _localEP;
@@ -93,6 +94,18 @@ namespace CoAP.Net
         }
 
         /// <inheritdoc/>
+        public IMessageDeliverer MessageDeliverer
+        {
+            set { _deliverer = value; }
+            get
+            {
+                if (_deliverer == null)
+                    _deliverer = new ClientMessageDeliverer();
+                return _deliverer;
+            }
+        }
+
+        /// <inheritdoc/>
         public Boolean Running
         {
             get { return _running > 0; }
@@ -154,7 +167,7 @@ namespace CoAP.Net
         public void SendRequest(Request request)
         {
             // TODO thread
-            _coapStack.SendRequest(request);
+            _coapStack.SendRequest(request, MessageDeliverer);
         }
 
         /// <inheritdoc/>
@@ -210,7 +223,7 @@ namespace CoAP.Net
                 if (exchange != null)
                 {
                     exchange.Forwarder = this;
-                    _coapStack.ReceiveRequest(null, request);
+                    _coapStack.ReceiveRequest(exchange, request);
                 }
             }
             else if (decoder.IsResponse)
@@ -223,7 +236,7 @@ namespace CoAP.Net
                 if (exchange != null)
                 {
                     exchange.Forwarder = this;
-                    _coapStack.ReceiveResponse(null, response);
+                    _coapStack.ReceiveResponse(exchange, response);
                 }
             }
             else if (decoder.IsEmpty)
@@ -247,7 +260,7 @@ namespace CoAP.Net
                     if (exchange != null)
                     {
                         exchange.Forwarder = this;
-                        _coapStack.ReceiveEmptyMessage(null, message);
+                        _coapStack.ReceiveEmptyMessage(exchange, message);
                     }
                 }
             }

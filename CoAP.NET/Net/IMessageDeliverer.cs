@@ -9,9 +9,7 @@
  * Please see README for more information.
  */
 
-using CoAP.Net;
-
-namespace CoAP.Server
+namespace CoAP.Net
 {
     /// <summary>
     /// Provides methods for delivering inbound CoAP messages to an appropriate processor.

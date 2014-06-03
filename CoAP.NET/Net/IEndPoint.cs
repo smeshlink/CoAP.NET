@@ -32,6 +32,10 @@ namespace CoAP.Net
         /// </summary>
         Boolean Running { get; }
         /// <summary>
+        /// Sets the message deliverer.
+        /// </summary>
+        IMessageDeliverer MessageDeliverer { set; }
+        /// <summary>
         /// Starts this endpoint and all its components.
         /// </summary>
         void Start();

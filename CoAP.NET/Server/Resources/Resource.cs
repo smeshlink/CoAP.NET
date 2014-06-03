@@ -44,7 +44,7 @@ namespace CoAP.Server.Resources
         /// Constructs a new resource with the specified name.
         /// </summary>
         /// <param name="name">the name</param>
-        protected Resource(String name)
+        public Resource(String name)
             : this(name, true)
         { }
 
@@ -234,16 +234,16 @@ namespace CoAP.Server.Resources
             switch (exchange.Request.Code)
             {
                 case Code.GET:
-                    HandleGET(ce);
+                    DoGet(ce);
                     break;
                 case Code.POST:
-                    HandlePOST(ce);
+                    DoPost(ce);
                     break;
                 case Code.PUT:
-                    HandlePUT(ce);
+                    DoPut(ce);
                     break;
                 case Code.DELETE:
-                    HandleDELETE(ce);
+                    DoDelete(ce);
                     break;
                 default:
                     break;
@@ -253,7 +253,7 @@ namespace CoAP.Server.Resources
         /// <summary>
         /// Handles the GET request in the given CoAPExchange.
         /// </summary>
-        protected virtual void HandleGET(CoapExchange exchange)
+        protected virtual void DoGet(CoapExchange exchange)
         {
             exchange.Respond(Code.MethodNotAllowed);
         }
@@ -261,7 +261,7 @@ namespace CoAP.Server.Resources
         /// <summary>
         /// Handles the POST request in the given CoAPExchange.
         /// </summary>
-        protected virtual void HandlePOST(CoapExchange exchange)
+        protected virtual void DoPost(CoapExchange exchange)
         {
             exchange.Respond(Code.MethodNotAllowed);
         }
@@ -269,7 +269,7 @@ namespace CoAP.Server.Resources
         /// <summary>
         /// Handles the PUT request in the given CoAPExchange.
         /// </summary>
-        protected virtual void HandlePUT(CoapExchange exchange)
+        protected virtual void DoPut(CoapExchange exchange)
         {
             exchange.Respond(Code.MethodNotAllowed);
         }
@@ -277,7 +277,7 @@ namespace CoAP.Server.Resources
         /// <summary>
         /// Handles the DELETE request in the given CoAPExchange.
         /// </summary>
-        protected virtual void HandleDELETE(CoapExchange exchange)
+        protected virtual void DoDelete(CoapExchange exchange)
         {
             exchange.Respond(Code.MethodNotAllowed);
         }

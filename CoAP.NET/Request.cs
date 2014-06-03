@@ -11,6 +11,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Net;
 using System.Text.RegularExpressions;
 using CoAP.EndPoint.Resources;
@@ -145,6 +146,22 @@ namespace CoAP
             set { SetOptions(Option.Split(OptionType.UriPath, value, "/")); }
         }
 
+        public IEnumerable<String> UriPaths
+        {
+            get
+            {
+                IEnumerable<Option> opts = GetOptions(OptionType.UriPath);
+                if (opts != null)
+                {
+                    foreach (Option opt in opts)
+                    {
+                        yield return opt.StringValue;
+                    }
+                }
+                yield break;
+            }
+        }
+
         public String UriQuery
         {
             get { return Option.Join(GetOptions(OptionType.UriQuery), "&"); }
@@ -170,6 +187,16 @@ namespace CoAP
                 else
                     SetOption(Option.Create(OptionType.UriPort, value));
             }
+        }
+
+        public Boolean HasObserve
+        {
+            get { return HasOption(OptionType.Observe); }
+        }
+
+        public Int32 Observe
+        {
+            get { return GetFirstOption(OptionType.Observe).IntValue; }
         }
 
         public void SetUri(String uri)

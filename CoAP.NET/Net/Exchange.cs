@@ -13,7 +13,6 @@ using System;
 using System.Collections.Concurrent;
 using CoAP.Observe;
 using CoAP.Stack;
-using CoAP.Server;
 
 namespace CoAP.Net
 {
