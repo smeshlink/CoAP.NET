@@ -19,26 +19,26 @@ namespace CoAP.Server.Resources
     public class DiscoveryResource : Resource
     {
         public static readonly String Core = "core";
-        readonly Resource _root;
+        readonly IResource _root;
 
         /// <summary>
         /// Instantiates a new discovery resource.
         /// </summary>
-        public DiscoveryResource(Resource root)
+        public DiscoveryResource(IResource root)
             : this(Core, root)
         { }
 
         /// <summary>
         /// Instantiates a new discovery resource with the specified name.
         /// </summary>
-        public DiscoveryResource(String name, Resource root)
+        public DiscoveryResource(String name, IResource root)
             : base(name)
         {
             _root = root;
         }
 
         /// <inheritdoc/>
-        protected override void HandleGET(CoapExchange exchange)
+        protected override void DoGet(CoapExchange exchange)
         {
             exchange.Respond(Code.Content,
                 LinkFormat.Serialize(_root, exchange.Request.GetOptions(OptionType.UriQuery)),

@@ -25,9 +25,11 @@ namespace CoAP.Stack
             )
         { }
 
-        public void SendRequest(Request request)
+        public void SendRequest(Request request, IMessageDeliverer deliverer)
         {
-            Head.Filter.SendRequest(Head.NextFilter, null, request);
+            Exchange exchange = new Exchange(request, Origin.Local);
+            exchange.Deliverer = deliverer;
+            Head.Filter.SendRequest(Head.NextFilter, exchange, request);
         }
 
         public void SendResponse(Exchange exchange, Response response)
@@ -42,17 +44,17 @@ namespace CoAP.Stack
 
         public void ReceiveRequest(Exchange exchange, Request request)
         {
-            Tail.Filter.ReceiveRequest(Head.NextFilter, exchange, request);
+            Tail.Filter.ReceiveRequest(Tail.NextFilter, exchange, request);
         }
 
         public void ReceiveResponse(Exchange exchange, Response response)
         {
-            Tail.Filter.ReceiveResponse(Head.NextFilter, exchange, response);
+            Tail.Filter.ReceiveResponse(Tail.NextFilter, exchange, response);
         }
 
         public void ReceiveEmptyMessage(Exchange exchange, EmptyMessage message)
         {
-            Tail.Filter.ReceiveEmptyMessage(Head.NextFilter, exchange, message);
+            Tail.Filter.ReceiveEmptyMessage(Tail.NextFilter, exchange, message);
         }
 
         class StackTopLayer : AbstractLayer

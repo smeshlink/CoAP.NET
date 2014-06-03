@@ -30,7 +30,7 @@ namespace CoAP.Deduplication
         public SweepDeduplicator(ICoapConfig config)
         {
             _lifecycle = config.ExchangeLifecycle;
-            _timer.Interval = config.MarkAndSweepInterval;
+            _timer = new Timer(config.MarkAndSweepInterval);
             _timer.Elapsed += Sweep;
         }
 

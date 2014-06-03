@@ -34,7 +34,7 @@ namespace CoAP.Deduplication
             _maps[2] = new ConcurrentDictionary<Exchange.KeyID, Exchange>();
             _first = 0;
             _second = 1;
-            _timer.Interval = config.CropRotationPeriod;
+            _timer = new Timer(config.CropRotationPeriod);
             _timer.Elapsed += Rotation;
         }
 
