@@ -69,9 +69,11 @@ namespace CoAP
         public static readonly Regex SeparatorRegex = new Regex("\\s*" + Separator + "+\\s*");
 
         public static readonly Regex ResourceNameRegex = new Regex("</[^>]*>");
-        public static readonly Regex AttributeNameRegex = new Regex("\\w+");
+        public static readonly Regex WordRegex = new Regex("\\w+");
         public static readonly Regex QuotedString = new Regex("\\G\".*?\"");
         public static readonly Regex Cardinal = new Regex("\\G\\d+");
+        static readonly Regex EqualRegex = new Regex("=");
+        static readonly Regex BlankRegex = new Regex("\\s");
 
         private static ILogger log = LogManager.GetLogger(typeof(LinkFormat));
 
@@ -88,6 +90,57 @@ namespace CoAP
             }
 
             return linkFormat.ToString();
+        }
+
+        public static IEnumerable<WebLink> Parse(String linkFormat)
+        {
+            if (!String.IsNullOrEmpty(linkFormat))
+            {
+                Scanner scanner = new Scanner(linkFormat);
+                String path = null;
+                while ((path = scanner.Find(ResourceNameRegex)) != null)
+                {
+                    path = path.Substring(2, path.Length - 3);
+                    WebLink link = new WebLink(path);
+
+                    String attr = null;
+                    while (scanner.Find(DelimiterRegex, 1) == null &&
+                        (attr = scanner.Find(WordRegex)) != null)
+                    {
+                        if (scanner.Find(EqualRegex, 1) == null)
+                        {
+                            // flag attribute without value
+                            link.Attributes.Add(attr);
+                        }
+                        else
+                        {
+                            String value = null;
+                            if ((value = scanner.Find(QuotedString)) != null)
+                            {
+                                // trim " "
+                                value = value.Substring(1, value.Length - 2);
+                                if (Title.Equals(attr))
+                                    link.Attributes.Add(attr, value);
+                                else
+                                    foreach (String part in BlankRegex.Split(value))
+                                        link.Attributes.Add(attr, part);
+                            }
+                            else if ((value = scanner.Find(WordRegex)) != null)
+                            {
+                                link.Attributes.Set(attr, value);
+                            }
+                            else if ((value = scanner.Find(Cardinal)) != null)
+                            {
+                                link.Attributes.Set(attr, value);
+                            }
+                        }
+                    }
+
+                    yield return link;
+                }
+            }
+
+            yield break;
         }
 
         private static Boolean SerializeTree(IResource resource, IEnumerable<Option> queries, StringBuilder sb)
@@ -242,7 +295,7 @@ namespace CoAP
 
         private static LinkAttribute ParseAttribute(Scanner scanner)
         {
-            String name = scanner.Find(AttributeNameRegex);
+            String name = scanner.Find(WordRegex);
             if (name == null)
                 return null;
             else

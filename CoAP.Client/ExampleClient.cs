@@ -1,10 +1,11 @@
 ﻿using System;
 using CoAP.EndPoint;
 using CoAP.EndPoint.Resources;
+using System.Collections.Generic;
 
 namespace CoAP.Examples
 {
-    class CoAPClient
+    class ExampleClient
     {
         static void Main(String[] args)
         {
@@ -12,9 +13,9 @@ namespace CoAP.Examples
             Uri uri = null;
             String payload = null;
             Boolean loop = false;
-            Boolean byEvent = true;
+            Boolean byEvent = false;
 
-            args = new String[] { "GET", "coap://127.0.0.1" };
+            args = new String[] { "DISCOVER", "coap://127.0.0.1" };
 
             if (args.Length == 0)
                 PrintUsage();
@@ -63,7 +64,7 @@ namespace CoAP.Examples
             if (method == null || uri == null)
                 PrintUsage();
 
-            Request request = CreateRequest(method);
+            Request request = NewRequest(method);
             if (request == null)
             {
                 Console.WriteLine("Unknown method: " + method);
@@ -72,21 +73,17 @@ namespace CoAP.Examples
 
             if ("OBSERVE".Equals(method))
             {
-                request.SetOption(Option.Create(OptionType.Observe, 0));
+                request.SetObserve();
                 loop = true;
             }
-
-            if ("DISCOVER".Equals(method) &&
+            else if ("DISCOVER".Equals(method) &&
                 (String.IsNullOrEmpty(uri.AbsolutePath) || uri.AbsolutePath.Equals("/")))
             {
                 uri = new Uri(uri, "/.well-known/core");
             }
 
             request.URI = uri;
-            request.SetPayload(payload);
-            request.Token = TokenManager.Instance.AcquireToken();
-            request.ResponseQueueEnabled = true;
-            request.SeparateResponseEnabled = true;
+            request.SetPayload(payload, MediaType.TextPlain);
 
             Console.WriteLine(request);
 
@@ -117,28 +114,30 @@ namespace CoAP.Examples
                 }
                 else
                 {
-                    request.Execute();
+                    request.AckTimeout = -1;
+                    request.Send();
 
                     do
                     {
                         Console.WriteLine("Receiving response...");
 
                         Response response = null;
-                        response = request.ReceiveResponse();
+                        response = request.WaitForResponse();
 
                         if (response == null)
                         {
                             Console.WriteLine("Request timeout");
+                            break;
                         }
                         else
                         {
                             Console.WriteLine(response);
-                            Console.WriteLine("Time (ms): " + response.RTT);
+                            Console.WriteLine("Time elapsed (ms): " + response.RTT);
 
                             if (response.ContentType == MediaType.ApplicationLinkFormat)
                             {
-                                Resource root = RemoteResource.NewRoot(response.PayloadString);
-                                if (root == null)
+                                IEnumerable<WebLink> links = LinkFormat.Parse(response.PayloadString);
+                                if (links == null)
                                 {
                                     Console.WriteLine("Failed parsing link format");
                                     Environment.Exit(1);
@@ -146,7 +145,10 @@ namespace CoAP.Examples
                                 else
                                 {
                                     Console.WriteLine("Discovered resources:");
-                                    Console.WriteLine(root);
+                                    foreach (var link in links)
+                                    {
+                                        Console.WriteLine(link);
+                                    }
                                 }
                             }
                         }
@@ -156,24 +158,25 @@ namespace CoAP.Examples
             catch (Exception ex)
             {
                 Console.WriteLine("Failed executing request: " + ex.Message);
+                Console.WriteLine(ex);
                 Environment.Exit(1);
             }
         }
 
-        private static Request CreateRequest(String method)
+        private static Request NewRequest(String method)
         {
             switch (method)
             {
                 case "POST":
-                    return new Request(Code.POST);
+                    return Request.NewPost();
                 case "PUT":
-                    return new Request(Code.PUT);
+                    return Request.NewPut();
                 case "DELETE":
-                    return new Request(Code.DELETE);
+                    return Request.NewDelete();
                 case "GET":
                 case "DISCOVER":
                 case "OBSERVE":
-                    return new Request(Code.GET);
+                    return Request.NewGet();
                 default:
                     return null;
             }

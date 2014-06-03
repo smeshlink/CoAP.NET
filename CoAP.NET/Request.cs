@@ -16,6 +16,7 @@ using System.Net;
 using System.Text.RegularExpressions;
 using CoAP.EndPoint.Resources;
 using CoAP.Log;
+using CoAP.Net;
 
 namespace CoAP
 {
@@ -43,6 +44,7 @@ namespace CoAP
         private LocalResource _resource;
         private readonly DateTime _startTime = DateTime.Now;
         private Int32 _sequenceTimeout;
+        private Object _sync = new Byte[0];
 
         /// <summary>
         /// Fired when a response arrives.
@@ -64,7 +66,11 @@ namespace CoAP
         /// <param name="confirmable">True if the request is Confirmable</param>
         public Request(Int32 method, Boolean confirmable)
             : base(confirmable ? MessageType.CON : MessageType.NON, method)
-        { }
+        {
+            this.Reject += (o, e) => NotifyResponse();
+            this.Timeout += (o, e) => NotifyResponse();
+            this.Cancel += (o, e) => NotifyResponse();
+        }
 
         /// <summary>
         /// Gets or sets a value indicating whether this request is a multicast request or not.
@@ -112,6 +118,14 @@ namespace CoAP
                     {
                         if (port != CoapConstants.DefaultPort)
                             UriPort = port;
+                    }
+                    else
+                    {
+                        if (String.IsNullOrEmpty(value.Scheme) ||
+                            String.Equals(value.Scheme, CoapConstants.UriScheme))
+                            port = CoapConstants.DefaultPort;
+                        else if (String.Equals(value.Scheme, CoapConstants.SecureUriScheme))
+                            port = CoapConstants.DefaultSecurePort;
                     }
 
                     Destination = new IPEndPoint(Dns.GetHostAddresses(host)[0], port);
@@ -313,28 +327,8 @@ namespace CoAP
             get { return _currentResponse; }
             set
             {
-                // check for valid CoAP message
-                if (value != null && value.PayloadSize > 0)
-                {
-                    if (CoAP.Code.IsSuccess(value.Code))
-                    {
-                        if (value.Code == CoAP.Code.Valid || value.Code == CoAP.Code.Deleted)
-                        {
-                            if (log.IsWarnEnabled)
-                                log.Warn(String.Format("Removing payload of {0} response: {1}",
-                                    CoAP.Code.ToString(value.Code), value.Key));
-                            value.SetPayload(String.Empty, MediaType.Undefined);
-                        }
-                    }
-                    else if (value.ContentType == MediaType.Undefined)
-                    {
-                        if (log.IsWarnEnabled)
-                            log.Warn(String.Format("Removing Content-Format of {0} response: {1}",
-                                    CoAP.Code.ToString(value.Code), value.Key));
-                        value.ContentType = MediaType.Undefined;
-                    }
-                }
                 _currentResponse = value;
+                NotifyResponse();
             }
         }
 
@@ -552,6 +546,78 @@ namespace CoAP
             }
         }
 
+        private IEndPoint _endPoint;
+
+        public IEndPoint EndPoint
+        {
+            get
+            {
+                if (_endPoint == null)
+                    _endPoint = EndPointManager.Default;
+                return _endPoint;
+            }
+            set { _endPoint = value; }
+        }
+
+        /// <summary>
+        /// Sends this message.
+        /// </summary>
+        public Request Send()
+        {
+            ValidateBeforeSending();
+            EndPoint.SendRequest(this);
+            return this;
+        }
+
+        /// <summary>
+        /// Sends the request over the specified endpoint.
+        /// </summary>
+        public Request Send(IEndPoint endpoint)
+        {
+            ValidateBeforeSending();
+            _endPoint = endpoint;
+            endpoint.SendRequest(this);
+            return this;
+        }
+
+        /// <summary>
+        /// Wait for a response.
+        /// </summary>
+        /// <exception cref="System.Threading.ThreadInterruptedException"></exception>
+        public Response WaitForResponse()
+        {
+            return WaitForResponse(System.Threading.Timeout.Infinite);
+        }
+
+        /// <summary>
+        /// Wait for a response.
+        /// </summary>
+        /// <param name="millisecondsTimeout">the maximum time to wait in milliseconds</param>
+        /// <returns>the response, or null if timeout occured</returns>
+        /// <exception cref="System.Threading.ThreadInterruptedException"></exception>
+        public Response WaitForResponse(Int32 millisecondsTimeout)
+        {
+            lock (_sync)
+            {
+                if (_currentResponse == null &&
+                    !Canceled && !TimedOut && !Rejected)
+                {
+                    System.Threading.Monitor.Wait(_sync, millisecondsTimeout);
+                }
+                Response resp = _currentResponse;
+                _currentResponse = null;
+                return resp;
+            }
+        }
+
+        private void NotifyResponse()
+        {
+            lock (_sync)
+            {
+                System.Threading.Monitor.PulseAll(_sync);
+            }
+        }
+
         /// <summary>
         /// Dispatches this request to the handler.
         /// </summary>
@@ -675,6 +741,14 @@ namespace CoAP
             /// DELETE method
             /// </summary>
             DELETE
+        }
+
+
+
+        private void ValidateBeforeSending()
+        {
+            if (Destination == null)
+                throw new InvalidOperationException("Missing Destination");
         }
     }
 

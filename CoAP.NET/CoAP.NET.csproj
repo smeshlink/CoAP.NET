@@ -47,6 +47,7 @@
     <Compile Include="Channel\DataReceivedEventArgs.cs" />
     <Compile Include="Channel\IChannel.cs" />
     <Compile Include="Channel\UDPChannel.cs" />
+    <Compile Include="CoapClient.cs" />
     <Compile Include="CoapConfig.cs" />
     <Compile Include="CoapConstants.cs" />
     <Compile Include="Code.cs" />
@@ -106,6 +107,7 @@
     <Compile Include="MessageType.cs" />
     <Compile Include="Net\ClientMessageDeliverer.cs" />
     <Compile Include="Net\CoAPEndPoint.cs" />
+    <Compile Include="Net\EndPointManager.cs" />
     <Compile Include="Net\Exchange.cs" />
     <Compile Include="Net\IEndPoint.cs" />
     <Compile Include="Net\IMatcher.cs" />
@@ -161,6 +163,7 @@
     <Compile Include="Util\System.Collections.Generic\SynchronizedCollection.cs" />
     <Compile Include="Util\ThrowHelper.cs" />
     <Compile Include="Util\TranslationException.cs" />
+    <Compile Include="WebLink.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="coapnet.snk" />
