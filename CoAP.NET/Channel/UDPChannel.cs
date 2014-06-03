@@ -217,6 +217,12 @@ namespace CoAP.Channel
             {
                 Byte[] bytes = new Byte[count];
                 Buffer.BlockCopy(socket.Buffer, 0, bytes, 0, count);
+                if (remoteEP.AddressFamily == AddressFamily.InterNetworkV6)
+                {
+                    IPEndPoint ipep = (IPEndPoint)remoteEP;
+                    if (IsIPv4MappedToIPv6(ipep.Address))
+                        ipep.Address = MapToIPv4(ipep.Address);
+                }
                 FireDataReceived(bytes, remoteEP);
             }
 
@@ -254,12 +260,7 @@ namespace CoAP.Channel
                 }
                 else if (_socket.Socket.AddressFamily == AddressFamily.InterNetworkV6)
                 {
-                    // build IPv4 mapped address, i.e. ::ffff:127.0.0.1
-                    Byte[] addrBytes = new Byte[16];
-                    addrBytes[10] = addrBytes[11] = 0xFF;
-                    Array.Copy(remoteEP.Address.GetAddressBytes(), 0, addrBytes, 12, 4);
-                    IPAddress addr = new IPAddress(addrBytes);
-                    remoteEP = new IPEndPoint(addr, remoteEP.Port);
+                    remoteEP = new IPEndPoint(MapToIPv6(remoteEP.Address), remoteEP.Port);
                 }
             }
 
@@ -271,6 +272,37 @@ namespace CoAP.Channel
             UDPSocket socket = (UDPSocket)ar.AsyncState;
             socket.Socket.EndSendTo(ar);
             BeginSend();
+        }
+
+        static Boolean IsIPv4MappedToIPv6(IPAddress address)
+        {
+            if (address.AddressFamily != AddressFamily.InterNetworkV6)
+                return false;
+            Byte[] bytes = address.GetAddressBytes();
+            for (Int32 i = 0; i < 10; i++)
+            {
+                if (bytes[i] != 0)
+                    return false;
+            }
+            return bytes[10] == 0xFF && bytes[11] == 0xFF;
+        }
+
+        static IPAddress MapToIPv4(IPAddress address)
+        {
+            if (address.AddressFamily == AddressFamily.InterNetwork)
+                return address;
+            Byte[] bytes = address.GetAddressBytes();
+            Int64 newAddress = (bytes[12] & 0xff) | (bytes[13] & 0xff) << 8 | (bytes[14] & 0xff) << 16 | (bytes[15] & 0xff) << 24;
+            return new IPAddress(newAddress);
+        }
+
+        static IPAddress MapToIPv6(IPAddress address)
+        {
+            if (address.AddressFamily == AddressFamily.InterNetworkV6)
+                return address;
+            Byte[] bytes = address.GetAddressBytes();
+            Byte[] newAddress = new Byte[16] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xff, 0xff, bytes[0], bytes[1], bytes[2], bytes[3] };
+            return new IPAddress(newAddress);
         }
 
         class UDPSocket
