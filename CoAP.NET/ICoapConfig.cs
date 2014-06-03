@@ -50,5 +50,7 @@ namespace CoAP
         Int32 CropRotationPeriod { get; }
         Int32 ExchangeLifecycle { get; }
         Int32 MarkAndSweepInterval { get; }
+
+        int DefaultPort { get; set; }
     }
 }
