@@ -37,7 +37,7 @@ namespace CoAP.Server.Resources
         /// <summary>
         /// Gets the uri of the resource.
         /// </summary>
-        Uri Uri { get; }
+        String Uri { get; }
         /// <summary>
         /// Checks if the resource is visible to remote CoAP clients.
         /// </summary>

@@ -1,19 +1,19 @@
 ﻿using System;
 using System.Threading;
-using CoAP.EndPoint.Resources;
+using CoAP.Server.Resources;
 
 namespace CoAP.Examples.Resources
 {
-    class TimeResource : LocalResource
+    class TimeResource : Resource
     {
         private Timer _timer;
         private DateTime _now;
 
-        public TimeResource()
-            : base("time")
+        public TimeResource(String name)
+            : base(name)
         {
-            Title = "GET the current time";
-            ResourceType = "CurrentTime";
+            Attributes.Title = "GET the current time";
+            Attributes.AddResourceType("CurrentTime");
             Observable = true;
 
             _timer = new Timer(Timed, null, 0, 2000);
@@ -25,9 +25,9 @@ namespace CoAP.Examples.Resources
             Changed();
         }
 
-        public override void DoGet(Request request)
+        protected override void DoGet(CoapExchange exchange)
         {
-            request.Respond(Code.Content, _now.ToString(), MediaType.TextPlain);
+            exchange.Respond(Code.Content, _now.ToString(), MediaType.TextPlain);
         }
     }
 }

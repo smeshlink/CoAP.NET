@@ -97,9 +97,9 @@ namespace CoAP.Server.Resources
         }
 
         /// <inheritdoc/>
-        public Uri Uri
+        public String Uri
         {
-            get { throw new NotImplementedException(); }
+            get { return Path + Name; }
         }
 
         /// <summary>
@@ -215,6 +215,18 @@ namespace CoAP.Server.Resources
             return child;
         }
 
+        public void Delete()
+        {
+            lock (this)
+            {
+                IResource parent = Parent;
+                if (parent != null)
+                    parent.Remove(this);
+                if (Observable)
+                    ClearAndNotifyObserveRelations(Code.NotFound);
+            }
+        }
+
         /// <inheritdoc/>
         public void AddObserveRelation(ObserveRelation relation)
         {
@@ -227,8 +239,41 @@ namespace CoAP.Server.Resources
             _observeRelations.Remove(relation);
         }
 
+        /// <summary>
+        /// Cancel all observe relations to CoAP clients.
+        /// </summary>
+        public void clearObserveRelations()
+        {
+            foreach (ObserveRelation relation in _observeRelations.Keys)
+            {
+                relation.Cancel();
+            }
+        }
+
+        /// <summary>
+        /// Remove all observe relations to CoAP clients and notify them that the
+        /// observe relation has been canceled.
+        /// </summary>
+        public void ClearAndNotifyObserveRelations(Int32 code)
+        {
+            /*
+             * draft-ietf-core-observe-08, chapter 3.2 Notification states:
+             * In the event that the resource changes in a way that would cause
+             * a normal GET request at that time to return a non-2.xx response
+             * (for example, when the resource is deleted), the server sends a
+             * notification with a matching response code and removes the client
+             * from the list of observers.
+             * This method is called, when the resource is deleted.
+             */
+            foreach (ObserveRelation relation in _observeRelations.Keys)
+            {
+                relation.Cancel();
+                relation.Exchange.SendResponse(new Response(code));
+            }
+        }
+
         /// <inheritdoc/>
-        public void HandleRequest(Exchange exchange)
+        public virtual void HandleRequest(Exchange exchange)
         {
             CoapExchange ce = new CoapExchange(exchange, this);
             switch (exchange.Request.Code)
@@ -280,6 +325,29 @@ namespace CoAP.Server.Resources
         protected virtual void DoDelete(CoapExchange exchange)
         {
             exchange.Respond(Code.MethodNotAllowed);
+        }
+
+        /// <summary>
+        /// Notifies all CoAP clients that have established an observe relation with
+        /// this resource that the state has changed by reprocessing their original
+        /// request that has established the relation. The notification is done by
+        /// the executor of this resource or on the executor of its parent or
+        /// transitively ancestor. If no ancestor defines its own executor, the
+        /// thread that has called this method performs the notification.
+        /// </summary>
+        public void Changed()
+        {
+            // TODO threading
+            NotifyObserverRelations();
+        }
+
+        private void NotifyObserverRelations()
+        {
+            _notificationOrderer.GetNextObserveNumber();
+            foreach (ObserveRelation relation in _observeRelations.Keys)
+            {
+                relation.NotifyObservers();
+            }
         }
 
         internal void CheckObserveRelation(Exchange exchange, Response response)

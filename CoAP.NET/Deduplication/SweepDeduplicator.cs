@@ -36,6 +36,9 @@ namespace CoAP.Deduplication
 
         private void Sweep(Object sender, ElapsedEventArgs e)
         {
+            if (log.IsDebugEnabled)
+                log.Debug("Start Mark-And-Sweep with " + _incommingMessages.Count + " entries");
+
             DateTime oldestAllowed = DateTime.Now.AddMilliseconds(-_lifecycle);
             List<Exchange.KeyID> keysToRemove = new List<Exchange.KeyID>();
             foreach (KeyValuePair<Exchange.KeyID, Exchange> pair in _incommingMessages)

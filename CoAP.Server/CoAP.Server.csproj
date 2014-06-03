@@ -36,12 +36,16 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CoAPServer.cs" />
+    <Compile Include="ExampleServer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Resources\CarelessResource.cs" />
+    <Compile Include="Resources\FibonacciResource.cs" />
     <Compile Include="Resources\HelloWorldResource.cs" />
     <Compile Include="Resources\ImageResource.cs" />
+    <Compile Include="Resources\LargeResource.cs" />
+    <Compile Include="Resources\MirrorResource.cs" />
     <Compile Include="Resources\SeparateResource.cs" />
+    <Compile Include="Resources\StorageResource.cs" />
     <Compile Include="Resources\TimeResource.cs" />
   </ItemGroup>
   <ItemGroup>

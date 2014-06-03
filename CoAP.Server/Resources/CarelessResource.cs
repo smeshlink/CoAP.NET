@@ -1,23 +1,24 @@
-﻿using CoAP.EndPoint.Resources;
+﻿using System;
+using CoAP.Server.Resources;
 
 namespace CoAP.Examples.Resources
 {
     /// <summary>
     /// Represents a resource that forgets to return a separate response.
     /// </summary>
-    class CarelessResource : LocalResource
+    class CarelessResource : Resource
     {
-        public CarelessResource()
-            : base("careless")
+        public CarelessResource(String name)
+            : base(name)
         {
-            Title = "This resource will ACK anything, but never send a separate response";
-            ResourceType = "SepararateResponseTester";
+            Attributes.Title = "This resource will ACK anything, but never send a separate response";
+            Attributes.AddResourceType("SepararateResponseTester");
         }
 
-        public override void DoGet(Request request)
+        protected override void DoGet(CoapExchange exchange)
         {
             // Accept the request to promise the client this request will be acted.
-            request.Accept();
+            exchange.Accept();
             
             // ... and then do nothing. Pretty mean...
         }

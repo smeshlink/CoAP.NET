@@ -1,21 +1,23 @@
-﻿using CoAP.EndPoint.Resources;
+﻿using System;
+using CoAP.Server.Resources;
 
 namespace CoAP.Examples.Resources
 {
-    class HelloWorldResource : LocalResource
+    /// <summary>
+    /// This resource responds with a kind "hello world" to GET requests.
+    /// </summary>
+    class HelloWorldResource : Resource
     {
-        public HelloWorldResource()
-            : base("helloWorld")
+        public HelloWorldResource(String name)
+            : base(name)
         {
-            Title = "GET a friendly greeting!";
-            ResourceType = "HelloWorldDisplayer";
+            Attributes.Title = "GET a friendly greeting!";
+            Attributes.AddResourceType("HelloWorldDisplayer");
         }
 
-        public override void DoGet(Request request)
+        protected override void DoGet(CoapExchange exchange)
         {
-            Response response = new Response(Code.Content);
-            response.PayloadString = "Hello World!";
-            request.Respond(response);
+            exchange.Respond("Hello World!");
         }
     }
 }

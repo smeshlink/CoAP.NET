@@ -65,6 +65,11 @@ namespace CoAP.Server
             }
         }
 
+        public ICoapConfig Config
+        {
+            get { return _config; }
+        }
+
         private void Bind(Int32 port)
         {
             AddEndPoint(new CoAPEndPoint(port, _config));

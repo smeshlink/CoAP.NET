@@ -1,34 +1,35 @@
-﻿using System.Threading;
-using CoAP.EndPoint.Resources;
+﻿using System;
+using System.Threading;
+using CoAP.Server.Resources;
 
 namespace CoAP.Examples.Resources
 {
     /// <summary>
     /// Represents a resource that returns a response in a separate CoAP message.
     /// </summary>
-    class SeparateResource : LocalResource
+    class SeparateResource : Resource
     {
-        public SeparateResource()
-            : base("separate")
+        public SeparateResource(String name)
+            : base(name)
         {
-            Title = "GET a response in a separate CoAP Message";
-            ResourceType = "SepararateResponseTester";
+            Attributes.Title = "GET a response in a separate CoAP Message";
+            Attributes.AddResourceType("SepararateResponseTester");
         }
 
-        public override void DoGet(Request request)
+        protected override void DoGet(CoapExchange exchange)
         {
             // Accept the request to promise the client this request will be acted.
-            request.Accept();
+            exchange.Accept();
 
             // Do sth. time-consuming
-            Thread.Sleep(1000);
+            Thread.Sleep(2000);
 
             // Now respond the previous request.
             Response response = new Response(Code.Content);
             response.PayloadString = "This message was sent by a separate response.\n" +
                 "Your client will need to acknowledge it, otherwise it will be retransmitted.";
 
-            request.Respond(response);
+            exchange.Respond(response);
         }
     }
 }

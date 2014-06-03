@@ -186,6 +186,22 @@ namespace CoAP
             }
         }
 
+        public IEnumerable<String> UriQueries
+        {
+            get
+            {
+                IEnumerable<Option> opts = GetOptions(OptionType.UriQuery);
+                if (opts != null)
+                {
+                    foreach (Option opt in opts)
+                    {
+                        yield return opt.StringValue;
+                    }
+                }
+                yield break;
+            }
+        }
+
         public Int32 UriPort
         {
             get

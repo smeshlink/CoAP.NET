@@ -1,38 +1,40 @@
 ﻿using System;
 using System.IO;
-using CoAP.EndPoint.Resources;
+using CoAP.Server.Resources;
 
 namespace CoAP.Examples.Resources
 {
-    class ImageResource : LocalResource
+    class ImageResource : Resource
     {
         private Int32[] _supported = new Int32[] {
-            MediaType.ImageJpeg
+            MediaType.ImageJpeg,
+            MediaType.ImagePng
         };
 
-        public ImageResource()
-            : base("image")
+        public ImageResource(String name)
+            : base(name)
         {
-            Title = "GET an image with different content-types";
-            ResourceType = "Image";
+            Attributes.Title = "GET an image with different content-types";
+            Attributes.AddResourceType("Image");
 
             foreach (Int32 item in _supported)
             {
-                ContentTypeCode = item;
+                Attributes.AddContentType(item);
             }
 
-            MaximumSizeEstimate = 18029;
+            Attributes.MaximumSizeEstimate = 18029;
         }
 
-        public override void DoGet(Request request)
+        protected override void DoGet(CoapExchange exchange)
         {
             String file = "data\\image\\";
             Int32 ct = MediaType.ImagePng;
+            Request request = exchange.Request;
 
             if ((ct = MediaType.NegotiationContent(ct, _supported, request.GetOptions(OptionType.Accept)))
                 == MediaType.Undefined)
             {
-                request.Respond(Code.NotAcceptable, "Accept only gif, jpeg or png");
+                exchange.Respond(Code.NotAcceptable);
             }
             else
             {
@@ -47,18 +49,18 @@ namespace CoAP.Examples.Resources
                     }
                     catch (Exception ex)
                     {
-                        request.Respond(Code.InternalServerError, "IO error");
+                        exchange.Respond(Code.InternalServerError, "IO error");
                         Console.WriteLine(ex.Message);
                     }
 
                     Response response = new Response(Code.Content);
                     response.Payload = data;
                     response.ContentType = ct;
-                    request.Respond(response);
+                    exchange.Respond(response);
                 }
                 else
                 {
-                    request.Respond(Code.InternalServerError, "Representation not found");
+                    exchange.Respond(Code.InternalServerError, "Image file not found");
                 }
             }
         }

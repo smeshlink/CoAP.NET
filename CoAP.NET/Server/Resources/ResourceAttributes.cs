@@ -66,20 +66,20 @@ namespace CoAP.Server.Resources
         /// <summary>
         /// Gets or sets the maximum size estimate.
         /// </summary>
-        public Int32 MaxSizeEstimate
+        public Int32 MaximumSizeEstimate
         {
             get
             {
-                String value = MaxSizeEstimateString;
+                String value = MaximumSizeEstimateString;
                 return String.IsNullOrEmpty(value) ? 0 : Int32.Parse(value);
             }
-            set { MaxSizeEstimateString = value.ToString(); }
+            set { MaximumSizeEstimateString = value.ToString(); }
         }
 
         /// <summary>
         /// Gets or sets the maximum size estimate.
         /// </summary>
-        public String MaxSizeEstimateString
+        public String MaximumSizeEstimateString
         {
             get { return FirstOrDefault(GetValues(LinkFormat.MaxSizeEstimate)); }
             set { Set(LinkFormat.MaxSizeEstimate, value); }
