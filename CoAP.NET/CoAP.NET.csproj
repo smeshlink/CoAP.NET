@@ -136,7 +136,6 @@
     <Compile Include="Stack\BlockwiseStatus.cs" />
     <Compile Include="Stack\Chain.cs" />
     <Compile Include="Stack\CoapStack.cs" />
-    <Compile Include="Stack\Delegates.cs" />
     <Compile Include="Stack\IEntry.cs" />
     <Compile Include="Stack\IExchangeForwarder.cs" />
     <Compile Include="Stack\ILayer.cs" />
@@ -148,6 +147,7 @@
     <Compile Include="Util\ArrayEqualityComparer.cs" />
     <Compile Include="Util\ByteArrayUtils.cs" />
     <Compile Include="Util\CoapTranslator.cs" />
+    <Compile Include="Util\Delegates.cs" />
     <Compile Include="Util\HashMap.cs" />
     <Compile Include="Util\HashSet.cs" />
     <Compile Include="Util\HttpTranslator.cs" />

@@ -49,6 +49,7 @@ namespace CoAP.Net
         {
             _origin = origin;
             _request = request;
+            _timestamp = DateTime.Now;
         }
 
         public Origin Origin
@@ -230,14 +231,14 @@ namespace CoAP.Net
             return (T)GetOrAdd(key, value);
         }
 
-        public Object GetOrAdd(Object key, CoAP.Stack.Func<Object, Object> valueFactory)
+        public Object GetOrAdd(Object key, Func<Object, Object> valueFactory)
         {
-            return _attributes.GetOrAdd(key, valueFactory);
+            return _attributes.GetOrAdd(key, o => valueFactory(o));
         }
 
-        public T GetOrAdd<T>(Object key, CoAP.Stack.Func<Object, Object> valueFactory)
+        public T GetOrAdd<T>(Object key, Func<Object, Object> valueFactory)
         {
-            return (T)GetOrAdd(key, valueFactory);
+            return (T)GetOrAdd(key, o => valueFactory(o));
         }
 
         public Object Set(Object key, Object value)
