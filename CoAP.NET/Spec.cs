@@ -427,6 +427,9 @@ namespace CoAP
                     }
                 }
 
+                if (msg.Token == null)
+                    msg.Token = CoapConstants.EmptyToken;
+
                 msg.Payload = _reader.ReadBytesLeft();
             }
         }
@@ -775,6 +778,9 @@ namespace CoAP
                     }
                 }
 
+                if (msg.Token == null)
+                    msg.Token = CoapConstants.EmptyToken;
+
                 msg.Payload = _reader.ReadBytesLeft();
             }
         }
@@ -1081,6 +1087,9 @@ namespace CoAP
                     msg.AddOption(opt);
                 }
 
+                if (msg.Token == null)
+                    msg.Token = CoapConstants.EmptyToken;
+
                 msg.Payload = _reader.ReadBytesLeft();
             }
         }
@@ -1329,7 +1338,7 @@ namespace CoAP
                 if (_tokenLength > 0)
                     msg.Token = _reader.ReadBytes(_tokenLength);
                 else
-                    msg.RequiresToken = false;
+                    msg.Token = CoapConstants.EmptyToken;
 
                 // read options
                 Int32 currentOption = 0;
