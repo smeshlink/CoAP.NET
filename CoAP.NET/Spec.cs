@@ -814,7 +814,7 @@ namespace CoAP
         public Int32 DefaultBlockSize { get { return 512; } }
 #endif
 
-#if COAP08
+#if COAP12
         public static IMessageEncoder NewMessageEncoder()
 #else
         public IMessageEncoder NewMessageEncoder()
@@ -823,7 +823,7 @@ namespace CoAP
             return new MessageEncoder12();
         }
 
-#if COAP08
+#if COAP12
         public static IMessageDecoder NewMessageDecoder(Byte[] data)
 #else
         public IMessageDecoder NewMessageDecoder(Byte[] data)
@@ -1119,22 +1119,22 @@ namespace CoAP
         public Int32 DefaultBlockSize { get { return 512; } }
 #endif
 
-#if COAP08
+#if COAP13
         public static IMessageEncoder NewMessageEncoder()
 #else
         public IMessageEncoder NewMessageEncoder()
 #endif
         {
-            return new MessageEncoder12();
+            return new MessageEncoder13();
         }
 
-#if COAP08
+#if COAP13
         public static IMessageDecoder NewMessageDecoder(Byte[] data)
 #else
         public IMessageDecoder NewMessageDecoder(Byte[] data)
 #endif
         {
-            return new MessageDecoder12(data);
+            return new MessageDecoder13(data);
         }
 
 #if COAP13
@@ -1223,7 +1223,7 @@ namespace CoAP
             }
         }
 
-        class MessageEncoder12 : MessageEncoder
+        class MessageEncoder13 : MessageEncoder
         {
             protected override void Serialize(DatagramWriter writer, Message msg, Int32 code)
             {
@@ -1300,9 +1300,9 @@ namespace CoAP
             }
         }
 
-        class MessageDecoder12 : MessageDecoder
+        class MessageDecoder13 : MessageDecoder
         {
-            public MessageDecoder12(Byte[] data)
+            public MessageDecoder13(Byte[] data)
                 : base(data)
             {
                 ReadProtocol();
