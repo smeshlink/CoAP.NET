@@ -10,6 +10,7 @@
  */
 
 using System;
+using CoAP.Stack;
 
 namespace CoAP.Net
 {
@@ -32,9 +33,13 @@ namespace CoAP.Net
         /// </summary>
         Boolean Running { get; }
         /// <summary>
-        /// Sets the message deliverer.
+        /// Gets or sets the message deliverer.
         /// </summary>
         IMessageDeliverer MessageDeliverer { get; set; }
+        /// <summary>
+        /// Gets the exchange forwarder.
+        /// </summary>
+        IExchangeForwarder ExchangeForwarder { get; }
         /// <summary>
         /// Starts this endpoint and all its components.
         /// </summary>

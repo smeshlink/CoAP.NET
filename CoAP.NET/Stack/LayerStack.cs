@@ -25,10 +25,9 @@ namespace CoAP.Stack
             )
         { }
 
-        public void SendRequest(Request request, IMessageDeliverer deliverer)
+        public void SendRequest(Request request)
         {
             Exchange exchange = new Exchange(request, Origin.Local);
-            exchange.Deliverer = deliverer;
             Head.Filter.SendRequest(Head.NextFilter, exchange, request);
         }
 

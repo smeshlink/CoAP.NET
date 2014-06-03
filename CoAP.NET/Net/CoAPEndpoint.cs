@@ -40,6 +40,21 @@ namespace CoAP.Net
         { }
 
         /// <summary>
+        /// Instantiates a new endpoint with the specified port.
+        /// </summary>
+        public CoAPEndPoint(Int32 port)
+            : this(port, CoapConfig.Default)
+        { }
+
+        /// <summary>
+        /// Instantiates a new endpoint with the
+        /// specified <see cref="System.Net.EndPoint"/>.
+        /// </summary>
+        public CoAPEndPoint(System.Net.EndPoint localEP)
+            : this(localEP, CoapConfig.Default)
+        { }
+
+        /// <summary>
         /// Instantiates a new endpoint with the
         /// specified port and configuration.
         /// </summary>
@@ -106,6 +121,12 @@ namespace CoAP.Net
         }
 
         /// <inheritdoc/>
+        public IExchangeForwarder ExchangeForwarder
+        {
+            get { return this; }
+        }
+
+        /// <inheritdoc/>
         public Boolean Running
         {
             get { return _running > 0; }
@@ -167,7 +188,7 @@ namespace CoAP.Net
         public void SendRequest(Request request)
         {
             // TODO thread
-            _coapStack.SendRequest(request, MessageDeliverer);
+            _coapStack.SendRequest(request);
         }
 
         /// <inheritdoc/>
@@ -222,7 +243,6 @@ namespace CoAP.Net
                 Exchange exchange = _matcher.ReceiveRequest(request);
                 if (exchange != null)
                 {
-                    exchange.Forwarder = this;
                     exchange.EndPoint = this;
                     _coapStack.ReceiveRequest(exchange, request);
                 }
@@ -236,7 +256,6 @@ namespace CoAP.Net
                 if (exchange != null)
                 {
                     response.RTT = (DateTime.Now - exchange.Timestamp).TotalMilliseconds;
-                    exchange.Forwarder = this;
                     exchange.EndPoint = this;
                     _coapStack.ReceiveResponse(exchange, response);
                 }
@@ -261,7 +280,6 @@ namespace CoAP.Net
                     Exchange exchange = _matcher.ReceiveEmptyMessage(message);
                     if (exchange != null)
                     {
-                        exchange.Forwarder = this;
                         exchange.EndPoint = this;
                         _coapStack.ReceiveEmptyMessage(exchange, message);
                     }

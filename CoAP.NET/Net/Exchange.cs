@@ -50,6 +50,7 @@ namespace CoAP.Net
             _origin = origin;
             _request = request;
             _timestamp = DateTime.Now;
+            _endpoint = request.EndPoint;
         }
 
         public Origin Origin
@@ -145,7 +146,7 @@ namespace CoAP.Net
 
         public IExchangeForwarder Forwarder
         {
-            get { return _forwarder; }
+            get { return _forwarder ?? (_endpoint == null ? null : _endpoint.ExchangeForwarder); }
             set { _forwarder = value; }
         }
 
@@ -304,7 +305,7 @@ namespace CoAP.Net
             {
                 _token = token;
                 _endpoint = ep;
-                _hash = _token.GetHashCode() * 31 + ep.GetHashCode();
+                _hash = ComputeHash(_token) * 31 + ep.GetHashCode();
             }
 
             /// <inheritdoc/>
@@ -319,13 +320,32 @@ namespace CoAP.Net
                 KeyToken other = obj as KeyToken;
                 if (other == null)
                     return false;
-                return _token.GetHashCode() == other._token.GetHashCode() && _endpoint == other._endpoint;
+                return _hash == other._hash;
             }
 
             /// <inheritdoc/>
             public override String ToString()
             {
                 return "KeyToken[" + BitConverter.ToString(_token) + " from " + _endpoint + "]";
+            }
+
+            static Int32 ComputeHash(params Byte[] data)
+            {
+                unchecked
+                {
+                    const Int32 p = 16777619;
+                    Int32 hash = (Int32)2166136261;
+
+                    for (Int32 i = 0; i < data.Length; i++)
+                        hash = (hash ^ data[i]) * p;
+
+                    hash += hash << 13;
+                    hash ^= hash >> 7;
+                    hash += hash << 3;
+                    hash ^= hash >> 17;
+                    hash += hash << 5;
+                    return hash;
+                }
             }
         }
 
