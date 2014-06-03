@@ -358,6 +358,7 @@ namespace CoAP.Layers
 
             public TransmissionContext()
             {
+                timeout = msg.AckTimeout;
                 timer = new Timer();
                 timer.AutoReset = false;
                 timer.Elapsed += new ElapsedEventHandler(timer_Elapsed);
@@ -367,10 +368,10 @@ namespace CoAP.Layers
             {
                 CancelRetransmission();
 
-                if (msg.ResponseTimeout > 0)
+                if (timeout >= 0)
                 {
                     if (0 == timeout)
-                        timeout = InitialTimeout(msg.ResponseTimeout);
+                        timeout = InitialTimeout(CoapConstants.AckTimeout);
                     else
                         timeout *= 2;
 
@@ -397,7 +398,7 @@ namespace CoAP.Layers
         private static Int32 InitialTimeout(Int32 initialTimeout)
         {
             Int32 min = initialTimeout;
-            Double f = CoapConstants.ResponseRandomFactor;
+            Double f = CoapConstants.AckRandomFactor;
             return (Int32)(min + min * (f - 1D) * _rand.NextDouble());
         }
     }

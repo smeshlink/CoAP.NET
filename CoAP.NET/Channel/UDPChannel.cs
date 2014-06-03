@@ -123,6 +123,19 @@ namespace CoAP.Channel
                 _socket.Socket.Bind(_localEP);
             }
 
+            if (_receiveBufferSize > 0)
+            {
+                _socket.Socket.ReceiveBufferSize = _receiveBufferSize;
+                if (_socketBackup != null)
+                    _socketBackup.Socket.ReceiveBufferSize = _receiveBufferSize;
+            }
+            if (_sendBufferSize > 0)
+            {
+                _socket.Socket.SendBufferSize = _sendBufferSize;
+                if (_socketBackup != null)
+                    _socketBackup.Socket.SendBufferSize = _sendBufferSize;
+            }
+
             BeginReceive();
         }
 

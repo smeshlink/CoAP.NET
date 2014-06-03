@@ -34,13 +34,13 @@ namespace CoAP
         /// <summary>
         /// The initial time (ms) for a CoAP message
         /// </summary>
-        public const Int32 ResponseTimeout = 2000;
+        public const Int32 AckTimeout = 2000;
         /// <summary>
         /// The initial timeout is set
         /// to a random number between RESPONSE_TIMEOUT and (RESPONSE_TIMEOUT *
         /// RESPONSE_RANDOM_FACTOR)
         /// </summary>
-        public const Double ResponseRandomFactor = 1.5D;
+        public const Double AckRandomFactor = 1.5D;
         /// <summary>
         /// The max time that a message would be retransmitted
         /// </summary>

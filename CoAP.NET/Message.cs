@@ -52,7 +52,7 @@ namespace CoAP
         private DateTime _timestamp;
         private Int32 _retransmissioned;
         private Int32 _maxRetransmit = CoapConstants.MaxRetransmit;
-        private Int32 _responseTimeout = CoapConstants.ResponseTimeout;
+        private Int32 _ackTimeout;
         private EndpointAddress _peerAddress;
         private System.Net.EndPoint _source;
         private System.Net.EndPoint _destination;
@@ -732,13 +732,13 @@ namespace CoAP
 
         /// <summary>
         /// Gets or sets the amount of time in milliseconds after which this message will time out.
-        /// The default value is <code>CoapConstants.ResponseTimeout</code>.
-        /// A value less or equal than 0 indicates an infinite time-out period.
+        /// A value of 0 indicates that the time should be decided automatically,
+        /// while a negative that never time out. The default value is 0.
         /// </summary>
-        public Int32 ResponseTimeout
+        public Int32 AckTimeout
         {
-            get { return _responseTimeout; }
-            set { _responseTimeout = value; }
+            get { return _ackTimeout; }
+            set { _ackTimeout = value; }
         }
 
         /// <summary>

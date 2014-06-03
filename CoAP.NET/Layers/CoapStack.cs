@@ -40,7 +40,7 @@ namespace CoAP.Layers
         }
 
         public CoapStack(ICoapConfig config)
-            : this(config.Port, config.TransferBlockSize, config.SequenceTimeout)
+            : this(config.DefaultPort, config.DefaultBlockSize, config.SequenceTimeout)
         {
 #if COAPALL
             if (config.Spec != null)

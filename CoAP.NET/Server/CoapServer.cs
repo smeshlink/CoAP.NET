@@ -51,7 +51,7 @@ namespace CoAP.Server
         /// <param name="ports">the ports to bind to</param>
         public CoapServer(ICoapConfig config, params Int32[] ports)
         {
-            _config = config ?? new CoapConfig();
+            _config = config ?? CoapConfig.Default;
             _root = new RootResource(this);
             _deliverer = new ServerMessageDeliverer(_root);
 

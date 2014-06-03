@@ -129,17 +129,17 @@ namespace CoAP
         public static ICommunicator CreateCommunicator(Int32 port, Int32 transferBlockSize)
         {
             CoapConfig config = new CoapConfig();
-            config.Port = port;
-            config.TransferBlockSize = transferBlockSize;
+            config.DefaultPort = port;
+            config.DefaultBlockSize = transferBlockSize;
             return CreateCommunicator(config);
         }
 
         public static ICommunicator CreateCommunicator(Int32 port, Int32 httpPort, Int32 transferBlockSize)
         {
             CoapConfig config = new CoapConfig();
-            config.Port = port;
+            config.DefaultPort = port;
             config.HttpPort = httpPort;
-            config.TransferBlockSize = transferBlockSize;
+            config.DefaultBlockSize = transferBlockSize;
             return CreateCommunicator(config);
         }
 
@@ -155,8 +155,8 @@ namespace CoAP
         public static ICommunicator CreateCommunicator(Int32 port, Int32 transferBlockSize, ISpec spec)
         {
             CoapConfig config = new CoapConfig();
-            config.Port = port;
-            config.TransferBlockSize = transferBlockSize;
+            config.DefaultPort = port;
+            config.DefaultBlockSize = transferBlockSize;
             config.Spec = spec;
             return CreateCommunicator(config);
         }

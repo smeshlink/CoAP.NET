@@ -14,22 +14,49 @@ using System;
 namespace CoAP
 {
     /// <summary>
-    /// Provides configuration for <see cref="ICommunicator"/>.
+    /// Provides configuration for CoAP communication.
     /// </summary>
     public interface ICoapConfig
     {
         /// <summary>
-        /// Gets the port which CoAP endpoint is on.
+        /// Gets the default CoAP port for normal CoAP communication (not secure).
         /// </summary>
-        Int32 Port { get; }
+        Int32 DefaultPort { get; }
+        /// <summary>
+        /// Gets the default CoAP port for secure CoAP communication (coaps).
+        /// </summary>
+        Int32 DefaultSecurePort { get; }
         /// <summary>
         /// Gets the port which HTTP proxy is on.
         /// </summary>
         Int32 HttpPort { get; }
+
+        Int32 AckTimeout { get; }
+        Double AckRandomFactor { get; }
+        Int32 AckTimeoutScale { get; }
+        Int32 MaxRetransmit { get; }
+
+        Int32 MaxMessageSize { get; }
         /// <summary>
-        /// Gets the preferred size of block in blockwise transfer.
+        /// Gets the default preferred size of block in blockwise transfer.
         /// </summary>
-        Int32 TransferBlockSize { get; }
+        Int32 DefaultBlockSize { get; }
+        Boolean UseRandomIDStart { get; }
+        Boolean UseRandomTokenStart { get; }
+        
+        Int64 NotificationMaxAge { get; }
+        Int64 NotificationCheckIntervalTime { get; }
+        Int32 NotificationCheckIntervalCount { get; }
+        Int32 NotificationReregistrationBackoff { get; }
+
+        String Deduplicator { get; }
+        Int32 CropRotationPeriod { get; }
+        Int32 ExchangeLifecycle { get; }
+        Int64 MarkAndSweepInterval { get; }
+
+        Int32 ChannelReceiveBufferSize { get; }
+        Int32 ChannelSendBufferSize { get; }
+        Int32 ChannelReceivePacketSize { get; }
         /// <summary>
         /// Gets the overall timeout for CoAP request/response(s).
         /// </summary>
@@ -40,17 +67,5 @@ namespace CoAP
         /// </summary>
         ISpec Spec { get; }
 #endif
-        Boolean UseRandomIDStart { get; }
-        Boolean UseRandomTokenStart { get; }
-        Int32 MaxMessageSize { get; }
-        Int32 DefaultBlockSize { get; }
-        Int32 NotificationReregistrationBackoff { get; }
-
-        String Deduplicator { get; }
-        Int32 CropRotationPeriod { get; }
-        Int32 ExchangeLifecycle { get; }
-        Int32 MarkAndSweepInterval { get; }
-
-        int DefaultPort { get; set; }
     }
 }

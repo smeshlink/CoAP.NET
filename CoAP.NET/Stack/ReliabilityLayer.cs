@@ -225,11 +225,11 @@ namespace CoAP.Stack
             
             if (ctx.FailedTransmissionCount > 0)
             {
-                ctx.CurrentTimeout *= 2;
+                ctx.CurrentTimeout *= _config.AckTimeoutScale;
             }
             else if (ctx.CurrentTimeout == 0)
             {
-                ctx.CurrentTimeout = InitialTimeout(CoapConstants.ResponseTimeout, CoapConstants.ResponseRandomFactor);
+                ctx.CurrentTimeout = InitialTimeout(_config.AckTimeout, _config.AckRandomFactor);
             }
 
             if (log.IsDebugEnabled)
@@ -257,7 +257,7 @@ namespace CoAP.Stack
                 _exchange = exchange;
                 _message = message;
                 _retransmit = retransmit;
-                _currentTimeout = message.ResponseTimeout;
+                _currentTimeout = message.AckTimeout;
                 _timer = new Timer();
                 _timer.AutoReset = false;
                 _timer.Elapsed += timer_Elapsed;

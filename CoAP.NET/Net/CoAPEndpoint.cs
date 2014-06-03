@@ -36,7 +36,7 @@ namespace CoAP.Net
         /// Instantiates a new endpoint.
         /// </summary>
         public CoAPEndPoint()
-            : this(0, new CoapConfig())
+            : this(0, CoapConfig.Default)
         { }
 
         /// <summary>
@@ -309,14 +309,18 @@ namespace CoAP.Net
         static IChannel NewUDPChannel(Int32 port, ICoapConfig config)
         {
             UDPChannel channel = new UDPChannel(port);
-            // TODO config
+            channel.ReceiveBufferSize = config.ChannelReceiveBufferSize;
+            channel.SendBufferSize = config.ChannelSendBufferSize;
+            channel.ReceivePacketSize = config.ChannelReceivePacketSize;
             return channel;
         }
 
         static IChannel NewUDPChannel(System.Net.EndPoint localEP, ICoapConfig config)
         {
             UDPChannel channel = new UDPChannel(localEP);
-            // TODO config
+            channel.ReceiveBufferSize = config.ChannelReceiveBufferSize;
+            channel.SendBufferSize = config.ChannelSendBufferSize;
+            channel.ReceivePacketSize = config.ChannelReceivePacketSize;
             return channel;
         }
 

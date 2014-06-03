@@ -17,15 +17,18 @@ namespace CoAP.Deduplication
     static class DeduplicatorFactory
     {
         static readonly ILogger log = LogManager.GetLogger(typeof(DeduplicatorFactory));
+        public const String MarkAndSweepDeduplicator = "MarkAndSweep";
+        public const String CropRotationDeduplicator = "CropRotation";
+        public const String NoopDeduplicator = "Noop";
 
         public static IDeduplicator CreateDeduplicator(ICoapConfig config)
         {
             String type = config.Deduplicator;
-            if (String.Equals("MarkAndSweep", type, StringComparison.OrdinalIgnoreCase))
+            if (String.Equals(MarkAndSweepDeduplicator, type, StringComparison.OrdinalIgnoreCase))
                 return new SweepDeduplicator(config);
-            else if (String.Equals("CropRotation", type, StringComparison.OrdinalIgnoreCase))
+            else if (String.Equals(CropRotationDeduplicator, type, StringComparison.OrdinalIgnoreCase))
                 return new CropRotation(config);
-            else if (!String.Equals("Noop", type, StringComparison.OrdinalIgnoreCase))
+            else if (!String.Equals(NoopDeduplicator, type, StringComparison.OrdinalIgnoreCase))
             {
                 if (log.IsWarnEnabled)
                     log.Warn("Unknown deduplicator type: " + type);
