@@ -71,10 +71,33 @@ namespace CoAP.Util
         {
             if (bytes1 == null && bytes2 == null)
                 return true;
-            else if (bytes1 == null || bytes2 == null)
+            else if (bytes1 == null || bytes2 == null || bytes1.Length != bytes2.Length)
                 return false;
-            else
-                return bytes1.GetHashCode() == bytes2.GetHashCode();
+            for (Int32 i = 0; i < bytes1.Length; i++)
+            {
+                if (bytes1[i] != bytes2[i])
+                    return false;
+            }
+            return true;
+        }
+
+        public static Int32 ComputeHash(params Byte[] data)
+        {
+            unchecked
+            {
+                const Int32 p = 16777619;
+                Int32 hash = (Int32)2166136261;
+
+                for (Int32 i = 0; i < data.Length; i++)
+                    hash = (hash ^ data[i]) * p;
+
+                hash += hash << 13;
+                hash ^= hash >> 7;
+                hash += hash << 3;
+                hash ^= hash >> 17;
+                hash += hash << 5;
+                return hash;
+            }
         }
     }
 }
