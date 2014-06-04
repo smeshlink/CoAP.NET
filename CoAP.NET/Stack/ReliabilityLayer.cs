@@ -288,9 +288,16 @@ namespace CoAP.Stack
 
             public void Cancel()
             {
-                if (log.IsDebugEnabled)
-                    log.Debug("Cancel retransmission.");
                 _timer.Stop();
+                _exchange.Remove(TransmissionContextKey);
+                if (log.IsDebugEnabled)
+                {
+                    log.Debug("Cancel retransmission for -->");
+                    if (_exchange.Origin == Origin.Local)
+                        log.Debug(_exchange.CurrentRequest);
+                    else
+                        log.Debug(_exchange.CurrentResponse);
+                }
                 Dispose();
             }
 
@@ -343,7 +350,7 @@ namespace CoAP.Stack
                         log.Debug("Timeout: retransmission limit reached, exchange failed, message: " + _message);
                     _exchange.TimedOut = true;
                     _message.TimedOut = true;
-                    _exchange.Remove(TransmissionContextKey);
+                    Cancel();
                 }
             }
         }

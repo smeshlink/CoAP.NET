@@ -31,7 +31,7 @@ namespace CoAP.Server.Resources
         private String _path = String.Empty;
         private Boolean _visible;
         private Boolean _observable;
-        private MessageType _observeType;
+        private MessageType _observeType = MessageType.Unknown;
         private IResource _parent;
         private IDictionary<String, IResource> _children
             = new ConcurrentDictionary<String, IResource>();
