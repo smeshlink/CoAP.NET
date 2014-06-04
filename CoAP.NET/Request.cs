@@ -36,7 +36,7 @@ namespace CoAP
         /// <summary>
         /// Fired when a response arrives.
         /// </summary>
-        public event EventHandler<ResponseEventArgs> Responded;
+        public event EventHandler<ResponseEventArgs> Respond;
         public event EventHandler<ResponseEventArgs> Responding;
 
         /// <summary>
@@ -145,6 +145,7 @@ namespace CoAP
             {
                 _currentResponse = value;
                 NotifyResponse();
+                FireRespond(value);
             }
         }
 
@@ -251,12 +252,11 @@ namespace CoAP
             {
                 System.Threading.Monitor.PulseAll(_sync);
             }
-            FireResponsed(_currentResponse);
         }
 
-        private void FireResponsed(Response response)
+        private void FireRespond(Response response)
         {
-            EventHandler<ResponseEventArgs> h = Responded;
+            EventHandler<ResponseEventArgs> h = Respond;
             if (h != null)
                 h(this, new ResponseEventArgs(response));
         }
