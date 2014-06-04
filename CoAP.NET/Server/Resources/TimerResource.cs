@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2011-2013, Longxiang He <helongxiang@smeshlink.com>,
+ * Copyright (c) 2011-2014, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
  * This program is distributed in the hope that it will be useful,
@@ -12,9 +12,9 @@
 using System;
 using System.Threading;
 
-namespace CoAP.EndPoint.Resources
+namespace CoAP.Server.Resources
 {
-    public class TimerResource : LocalResource
+    public class TimerResource : Resource
     {
         private Timer _timer;
 

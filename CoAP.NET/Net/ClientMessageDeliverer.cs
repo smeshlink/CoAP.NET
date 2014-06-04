@@ -26,9 +26,9 @@ namespace CoAP.Net
         public void DeliverResponse(Exchange exchange, Response response)
         {
             if (exchange == null)
-                ThrowHelper.ArgumentNullException("exchange");
+                throw ThrowHelper.ArgumentNull("exchange");
             if (response == null)
-                ThrowHelper.ArgumentNullException("response");
+                throw ThrowHelper.ArgumentNull("response");
             if (exchange.Request == null)
                 throw new ArgumentException("Request should not be empty.", "exchange");
             exchange.Request.Response = response;

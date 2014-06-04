@@ -16,8 +16,9 @@ using System.IO;
 using System.Net;
 using System.Text.RegularExpressions;
 using CoAP.Http;
+using CoAP.Util;
 
-namespace CoAP.Util
+namespace CoAP.Proxy
 {
     static class HttpTranslator
     {
@@ -26,7 +27,7 @@ namespace CoAP.Util
         private static readonly Dictionary<OptionType, String> coap2httpHeader = new Dictionary<OptionType, String>();
         private static readonly Dictionary<String, Int32> http2coapMediaType = new Dictionary<String, Int32>(StringComparer.OrdinalIgnoreCase);
         private static readonly Dictionary<Int32, String> coap2httpContentType = new Dictionary<Int32, String>();
-        private static readonly Dictionary<String, Request.Method> http2coapMethod = new Dictionary<String, Request.Method>(StringComparer.OrdinalIgnoreCase);
+        private static readonly Dictionary<String, Int32> http2coapMethod = new Dictionary<String, Int32>(StringComparer.OrdinalIgnoreCase);
 
         static HttpTranslator()
         {
@@ -104,11 +105,11 @@ namespace CoAP.Util
             http2coapCode[HttpStatusCode.HttpVersionNotSupported] = Code.BadGateway;
             http2coapCode[(HttpStatusCode)507] = Code.InternalServerError;
 
-            http2coapMethod["get"] = Request.Method.GET;
-            http2coapMethod["post"] = Request.Method.POST;
-            http2coapMethod["put"] = Request.Method.PUT;
-            http2coapMethod["delete"] = Request.Method.DELETE;
-            http2coapMethod["head"] = Request.Method.GET;
+            http2coapMethod["get"] = Code.GET;;
+            http2coapMethod["post"] = Code.POST;
+            http2coapMethod["put"] = Code.PUT;
+            http2coapMethod["delete"] = Code.DELETE;
+            http2coapMethod["head"] = Code.GET;
         }
 
         /// <summary>
@@ -130,9 +131,9 @@ namespace CoAP.Util
         public static Response GetCoapResponse(HttpWebResponse httpResponse, Request coapRequest)
         {
             if (httpResponse == null)
-                ThrowHelper.ArgumentNullException("httpResponse");
+                throw ThrowHelper.ArgumentNull("httpResponse");
             if (coapRequest == null)
-                ThrowHelper.ArgumentNullException("coapRequest");
+                throw ThrowHelper.ArgumentNull("coapRequest");
 
             HttpStatusCode httpCode = httpResponse.StatusCode;
             Int32 coapCode = 0;
@@ -150,7 +151,7 @@ namespace CoAP.Util
             else
             {
                 if (!http2coapCode.TryGetValue(httpCode, out coapCode))
-                    ThrowHelper.TranslationException("Cannot convert the HTTP status " + httpCode);
+                    throw ThrowHelper.TranslationException("Cannot convert the HTTP status " + httpCode);
             }
 
             // create the coap reaponse
@@ -207,16 +208,16 @@ namespace CoAP.Util
         public static Request GetCoapRequest(IHttpRequest httpRequest, String proxyResource, Boolean proxyingEnabled)
         {
             if (httpRequest == null)
-                ThrowHelper.ArgumentNullException("httpRequest");
+                throw ThrowHelper.ArgumentNull("httpRequest");
             if (proxyResource == null)
-                ThrowHelper.ArgumentNullException("proxyResource");
+                throw ThrowHelper.ArgumentNull("proxyResource");
 
-            Request.Method coapMethod;
+            Int32 coapMethod;
             if (!http2coapMethod.TryGetValue(httpRequest.Method, out coapMethod))
-                ThrowHelper.TranslationException(httpRequest.Method + " method not mapped");
+                throw ThrowHelper.TranslationException(httpRequest.Method + " method not mapped");
 
             // create the request
-            Request coapRequest = Request.Create(coapMethod);
+            Request coapRequest = new Request(coapMethod);
 
             // get the uri
             String uriString = httpRequest.RequestUri;
@@ -260,8 +261,8 @@ namespace CoAP.Util
                     coapRequest.URI = new Uri(uriString);
                 }
 
-                // set the proxy as the sender to receive the response correctly
-                coapRequest.PeerAddress = new EndpointAddress(IPAddress.Loopback);
+                // TODO set the proxy as the sender to receive the response correctly
+                //coapRequest.PeerAddress = new EndpointAddress(IPAddress.Loopback);
             }
             else
             {
@@ -345,7 +346,7 @@ namespace CoAP.Util
         public static IEnumerable<Option> GetCoapOptions(NameValueCollection headers)
         {
             if (headers == null)
-                ThrowHelper.ArgumentNullException("headers");
+                throw ThrowHelper.ArgumentNull("headers");
 
             List<Option> list = new List<Option>();
             foreach (String key in headers.AllKeys)
@@ -449,7 +450,7 @@ namespace CoAP.Util
         public static WebRequest GetHttpRequest(Request coapRequest)
         {
             if (coapRequest == null)
-                ThrowHelper.ArgumentNullException("coapRequest");
+                throw ThrowHelper.ArgumentNull("coapRequest");
 
             Uri proxyUri = null;
             try
@@ -516,7 +517,7 @@ namespace CoAP.Util
         public static NameValueCollection GetHttpHeaders(IList<Option> optionList)
         {
             if (optionList == null)
-                ThrowHelper.ArgumentNullException("optionList");
+                throw ThrowHelper.ArgumentNull("optionList");
 
             NameValueCollection headers = new NameValueCollection(optionList.Count);
 
@@ -540,7 +541,7 @@ namespace CoAP.Util
                 else if (format == OptionFormat.String)
                     headerValue = opt.StringValue;
                 else if (format == OptionFormat.Opaque)
-                    headerValue = ByteArrayUtils.ToHexStream(opt.RawValue);
+                    headerValue = ByteArrayUtils.ToHexString(opt.RawValue);
                 else
                     continue;
 

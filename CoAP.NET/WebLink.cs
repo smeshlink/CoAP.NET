@@ -36,7 +36,7 @@ namespace CoAP
         public Int32 CompareTo(WebLink other)
         {
             if (other == null)
-                ThrowHelper.ArgumentNullException("other");
+                throw ThrowHelper.ArgumentNull("other");
             return _uri.CompareTo(other._uri);
         }
 

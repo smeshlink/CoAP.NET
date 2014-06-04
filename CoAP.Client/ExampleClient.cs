@@ -2,6 +2,7 @@
 using CoAP.EndPoint;
 using CoAP.EndPoint.Resources;
 using System.Collections.Generic;
+using CoAP.Util;
 
 namespace CoAP.Examples
 {
@@ -13,9 +14,9 @@ namespace CoAP.Examples
             Uri uri = null;
             String payload = null;
             Boolean loop = false;
-            Boolean byEvent = false;
+            Boolean byEvent = true;
 
-            args = new String[] { "DISCOVER", "coap://127.0.0.1" };
+            args = new String[] { "OBSERVE", "coap://127.0.0.1/obs" };
 
             if (args.Length == 0)
                 PrintUsage();
@@ -73,7 +74,7 @@ namespace CoAP.Examples
 
             if ("OBSERVE".Equals(method))
             {
-                request.SetObserve();
+                request.MarkObserve();
                 loop = true;
             }
             else if ("DISCOVER".Equals(method) &&
@@ -103,10 +104,10 @@ namespace CoAP.Examples
                             Console.WriteLine(response);
                             Console.WriteLine("Time (ms): " + response.RTT);
                         }
-                        if (!response.IsEmptyACK && !loop)
+                        if (!loop)
                             Environment.Exit(0);
                     };
-                    request.Execute();
+                    request.Send();
                     while (true)
                     {
                         Console.ReadKey();
@@ -131,7 +132,7 @@ namespace CoAP.Examples
                         }
                         else
                         {
-                            Console.WriteLine(response);
+                            Console.WriteLine(Utils.ToString(response));
                             Console.WriteLine("Time elapsed (ms): " + response.RTT);
 
                             if (response.ContentType == MediaType.ApplicationLinkFormat)

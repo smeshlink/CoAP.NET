@@ -20,7 +20,7 @@ namespace CoAP.Util
     /// </summary>
     public static class Utils
     {
-        public static void InsertionSort<T>(List<T> list, Comparison<T> comparison)
+        public static void InsertionSort<T>(IList<T> list, Comparison<T> comparison)
         {
             for (Int32 i = 1; i < list.Count; i++)
             {
@@ -73,6 +73,32 @@ namespace CoAP.Util
                 return false;
         }
 
+        public static T FirstOrDefault<T>(IEnumerable<T> source, Predicate<T> condition)
+        {
+            if (source != null)
+            {
+                foreach (var item in source)
+                {
+                    if (condition(item))
+                        return item;
+                }
+            }
+            return default(T);
+        }
+
+        public static Boolean Contains<T>(IEnumerable<T> source, Predicate<T> condition)
+        {
+            if (source != null)
+            {
+                foreach (var item in source)
+                {
+                    if (condition(item))
+                        return true;
+                }
+            }
+            return false;
+        }
+
         public static String ToString(Message msg)
         {
             StringBuilder sb = new StringBuilder();
@@ -87,15 +113,21 @@ namespace CoAP.Util
                 kind = "Response";
                 code = "Status";
             }
+
             sb.AppendFormat("==[ COAP {0} ]============================================\n", kind)
                 .AppendFormat("ID     : {0}\n", msg.ID)
                 .AppendFormat("Type   : {0}\n", msg.Type)
                 .AppendFormat("Token  : {0}\n", msg.TokenString)
-                .AppendFormat("{1:7}: {0}\n", CoAP.Code.ToString(msg.Code), code)
-                .AppendFormat("Source : {0}", msg.Source)
-                .AppendFormat("Dest   : {0}", msg.Destination);
+                .AppendFormat("{1}: {0}\n", CoAP.Code.ToString(msg.Code), code.PadRight(7));
+            
+            if (msg.Source != null)
+                sb.AppendFormat("Source : {0}\n", msg.Source);
+            if (msg.Destination != null)
+                sb.AppendFormat("Dest   : {0}\n", msg.Destination);
+            
+            sb.AppendFormat("Options: {0}\n", OptionsToString(msg))
+                .AppendFormat("Payload: {0} Bytes\n", msg.PayloadSize);
 
-            sb.AppendFormat("Payload: {0} Bytes\n", msg.PayloadSize);
             if (msg.PayloadSize > 0 && MediaType.IsPrintable(msg.ContentType))
             {
                 sb.AppendLine("---------------------------------------------------------------");
@@ -103,6 +135,76 @@ namespace CoAP.Util
             }
             sb.AppendLine("===============================================================");
 
+            return sb.ToString();
+        }
+
+        public static String OptionsToString(Message msg)
+        {
+            Boolean first = true;
+            Action<StringBuilder, String, String> appendIfNotNullOrEmpty =
+                delegate(StringBuilder builder, String header, String value)
+                {
+                    if (String.IsNullOrEmpty(value))
+                        return;
+
+                    if (first)
+                        first = false;
+                    else
+                        builder.Append(", ");
+                    builder.Append(header).Append("=").Append(value);
+                };
+
+            StringBuilder sb = new StringBuilder();
+            appendIfNotNullOrEmpty(sb, "If-Match", ToString(msg.IfMatches, bs => ByteArrayUtils.ToHexString(bs)));
+            appendIfNotNullOrEmpty(sb, "URI-Host", msg.UriHost);
+            appendIfNotNullOrEmpty(sb, "ETag", ToString(msg.ETags, bs => ByteArrayUtils.ToHexString(bs)));
+            if (msg.IfNoneMatch)
+                appendIfNotNullOrEmpty(sb, "If-None-Match", msg.IfNoneMatch.ToString());
+            if (msg.UriPort > 0)
+            appendIfNotNullOrEmpty(sb, "URI-Port", msg.UriPort.ToString());
+            appendIfNotNullOrEmpty(sb, "Location-Path", ToString(msg.LocationPaths));
+            appendIfNotNullOrEmpty(sb, "URI-Path", ToString(msg.UriPaths));
+            if (msg.ContentType != MediaType.Undefined)
+                appendIfNotNullOrEmpty(sb, "Content-Type", MediaType.ToString(msg.ContentType));
+            if (msg.HasOption(OptionType.MaxAge))
+                appendIfNotNullOrEmpty(sb, "Max-Age", msg.MaxAge.ToString());
+            appendIfNotNullOrEmpty(sb, "URI-Query", ToString(msg.UriQueries));
+            if (msg.Accept != MediaType.Undefined)
+                appendIfNotNullOrEmpty(sb, "Accept", MediaType.ToString(msg.Accept));
+            appendIfNotNullOrEmpty(sb, "Location-Query", ToString(msg.LocationQueries));
+            if (msg.HasOption(OptionType.ProxyUri))
+                appendIfNotNullOrEmpty(sb, "Proxy-URI", msg.ProxyUri.ToString());
+            appendIfNotNullOrEmpty(sb, "Proxy-Scheme", msg.ProxyScheme);
+            if (msg.Block1 != null)
+                appendIfNotNullOrEmpty(sb, "Block1", msg.Block1.ToString());
+            if (msg.Block2 != null)
+                appendIfNotNullOrEmpty(sb, "Block2", msg.Block2.ToString());
+            if (msg.Observe.HasValue)
+                appendIfNotNullOrEmpty(sb, "Observe", msg.Observe.ToString());
+            return sb.ToString();
+        }
+
+        public static String ToString<T>(IEnumerable<T> source)
+        {
+            return ToString(source, o => o.ToString());
+        }
+
+        public static String ToString<T>(IEnumerable<T> source, Func<T, String> toString)
+        {
+            if (source == null)
+                return String.Empty;
+            StringBuilder sb = new StringBuilder();
+            using (IEnumerator<T> it = source.GetEnumerator())
+            {
+                if (!it.MoveNext())
+                    return String.Empty;
+                sb.Append(toString(it.Current));
+                while (it.MoveNext())
+                {
+                    sb.Append(", ");
+                    sb.Append(toString(it.Current));
+                }
+            }
             return sb.ToString();
         }
     }

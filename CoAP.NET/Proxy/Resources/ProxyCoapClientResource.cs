@@ -9,19 +9,24 @@
  * Please see README for more information.
  */
 
+using System;
 using CoAP.Log;
-using CoAP.Util;
+using CoAP.Server.Resources;
 
-namespace CoAP.EndPoint.Resources
+namespace CoAP.Proxy.Resources
 {
     public class ProxyCoapClientResource : ForwardingResource
     {
         private static readonly ILogger log = LogManager.GetLogger(typeof(ProxyCoapClientResource));
 
         public ProxyCoapClientResource()
-            : base("proxy/coapClient", true)
+            : this("proxy/coapClient")
+        { }
+
+        public ProxyCoapClientResource(String name)
+            : base(name)
         {
-            Title = "Forward the requests to a CoAP server.";
+            Attributes.Title = "Forward the requests to a CoAP server.";
         }
 
         protected override Response ForwardRequest(Request incomingRequest)
@@ -44,11 +49,10 @@ namespace CoAP.EndPoint.Resources
             try
             {
                 outgoingRequest = CoapTranslator.GetRequest(incomingRequest);
-                outgoingRequest.ResponseQueueEnabled = true;
-                outgoingRequest.Token = TokenManager.Instance.AcquireToken();
+                //outgoingRequest.ResponseQueueEnabled = true;
+                //outgoingRequest.Token = TokenManager.Instance.AcquireToken();
 
-                outgoingRequest.Execute();
-                incomingRequest.Accept();
+                outgoingRequest.Send();
             }
             catch (TranslationException ex)
             {
@@ -64,11 +68,11 @@ namespace CoAP.EndPoint.Resources
             }
 
             // receive the response
-            Response receivedResponse;
+            Response receivedResponse = null;
 
             try
             {
-                receivedResponse = outgoingRequest.ReceiveResponse();
+                receivedResponse = outgoingRequest.WaitForResponse();
             }
             catch (System.Threading.ThreadInterruptedException ex)
             {

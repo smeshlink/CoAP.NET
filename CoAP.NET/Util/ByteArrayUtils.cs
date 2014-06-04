@@ -30,31 +30,13 @@ namespace CoAP.Util
                 {
                     builder.Append(digits[(data[i] >> 4) & 0xF]);
                     builder.Append(digits[data[i] & 0xF]);
-                    if (i < data.Length - 1)
-                        builder.Append(' ');
                 }
                 return builder.ToString();
             }
             else
             {
-                return "--";
-            }
-        }
-
-        public static String ToHexStream(Byte[] data)
-        {
-            if (data != null && data.Length > 0)
-            {
-                StringBuilder builder = new StringBuilder(data.Length * 3);
-                for (Int32 i = 0; i < data.Length; i++)
-                {
-                    builder.Append(digits[(data[i] >> 4) & 0xF]);
-                    builder.Append(digits[data[i] & 0xF]);
-                }
-                return builder.ToString();
-            }
-            else
                 return String.Empty;
+            }
         }
 
         public static Byte[] FromHexStream(String hex)

@@ -85,7 +85,7 @@ namespace CoAP
             set
             {
                 if (value == null)
-                    ThrowHelper.ArgumentNullException("value");
+                    throw ThrowHelper.ArgumentNull("value");
                 _valueBytes = stringConvertor.Encode(value);
             }
         }
@@ -273,6 +273,19 @@ namespace CoAP
         {
             Option opt = Create(type);
             opt.IntValue = val;
+            return opt;
+        }
+
+        /// <summary>
+        /// Creates an option.
+        /// </summary>
+        /// <param name="type">The type of the option</param>
+        /// <param name="val">The long value of the option</param>
+        /// <returns>The new option</returns>
+        public static Option Create(OptionType type, Int64 val)
+        {
+            Option opt = Create(type);
+            opt.LongValue = val;
             return opt;
         }
 

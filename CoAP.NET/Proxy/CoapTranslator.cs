@@ -10,8 +10,9 @@
  */
 
 using System;
+using CoAP.Util;
 
-namespace CoAP.Util
+namespace CoAP.Proxy
 {
     /// <summary>
     /// Provides the translations between the messages from the internal CoAP nodes and external ones.
@@ -31,7 +32,7 @@ namespace CoAP.Util
         public static Request GetRequest(Request incomingRequest)
         {
             if (incomingRequest == null)
-                ThrowHelper.ArgumentNullException("incomingRequest");
+                throw ThrowHelper.ArgumentNull("incomingRequest");
 
             Request outgoingRequest = new Request(incomingRequest.Code, incomingRequest.Type == MessageType.CON);
 
@@ -90,12 +91,12 @@ namespace CoAP.Util
         public static Response GetResponse(Response incomingResponse)
         {
             if (incomingResponse == null)
-                ThrowHelper.ArgumentNullException("incomingResponse");
+                throw ThrowHelper.ArgumentNull("incomingResponse");
 
             Response outgoingResponse = new Response(incomingResponse.Code);
 
             // copy payload
-            byte[] payload = incomingResponse.Payload;
+            Byte[] payload = incomingResponse.Payload;
             outgoingResponse.Payload = payload;
 
             // copy every option

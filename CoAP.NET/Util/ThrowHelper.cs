@@ -10,19 +10,25 @@
  */
 
 using System;
+using CoAP.Proxy;
 
 namespace CoAP.Util
 {
     static class ThrowHelper
     {
-        public static void ArgumentNullException(String arg)
+        public static Exception TranslationException(String msg)
         {
-            throw new ArgumentNullException(arg);
+            return new TranslationException(msg);
         }
 
-        public static void TranslationException(String msg)
+        public static Exception ArgumentNull(String paramName)
         {
-            throw new TranslationException(msg);
+            return new ArgumentNullException(paramName);
+        }
+
+        public static Exception Argument(String paramName, String message)
+        {
+            return new ArgumentException(message, paramName);
         }
     }
 }

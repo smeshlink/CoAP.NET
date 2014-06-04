@@ -60,7 +60,7 @@ namespace CoAP.Stack
             if (request.HasOption(OptionType.Block1))
             {
                 // This must be a large POST or PUT request
-                BlockOption block1 = (BlockOption)request.GetFirstOption(OptionType.Block1);
+                BlockOption block1 = request.Block1;
                 if (log.IsDebugEnabled)
                     log.Debug("Request contains block1 option " + block1);
 
@@ -97,7 +97,7 @@ namespace CoAP.Stack
                         if (log.IsDebugEnabled)
                             log.Debug("There are more blocks to come. Acknowledge this block.");
 
-                        if (request.IsConfirmable)
+                        if (request.Type == MessageType.CON)
                         {
                             Response piggybacked = Response.CreatePiggybackedResponse(request, Code.Continue);
                             piggybacked.AddOption(new BlockOption(OptionType.Block1, block1.NUM, block1.SZX, true));
@@ -144,7 +144,7 @@ namespace CoAP.Stack
             {
                 // The response has already been generated and the client just wants
                 // the next block of it
-                BlockOption block2 = (BlockOption)request.GetFirstOption(OptionType.Block2);
+                BlockOption block2 = request.Block2;
                 Response response = exchange.Response;
                 BlockwiseStatus status = FindResponseBlockStatus(exchange, response);
                 status.CurrentNUM = block2.NUM;
@@ -234,10 +234,10 @@ namespace CoAP.Stack
                 return;
             }
 
-            if (response.HasOption(OptionType.Block1))
+            BlockOption block1 = response.Block1;
+            if (block1 != null)
             {
                 // TODO: What if request has not been sent blockwise (server error)
-                BlockOption block1 = (BlockOption)response.GetFirstOption(OptionType.Block1);
                 if (log.IsDebugEnabled)
                     log.Debug("Response acknowledges block " + block1);
 
@@ -272,17 +272,18 @@ namespace CoAP.Stack
                 }
             }
 
-            if (response.HasOption(OptionType.Block2))
+            BlockOption block2 = response.Block2;
+            if (block2 != null)
             {
-                BlockOption block2 = (BlockOption)response.GetFirstOption(OptionType.Block2);
                 BlockwiseStatus status = FindResponseBlockStatus(exchange, response);
 
                 if (block2.NUM == status.CurrentNUM)
                 {
                     // We got the block we expected :-)
                     status.AddBlock(response.Payload);
-                    if (response.HasOption(OptionType.Observe))
-                        status.Observe = response.GetFirstOption(OptionType.Observe).IntValue;
+                    Int32? obs = response.Observe;
+                    if (obs.HasValue)
+                        status.Observe = obs.Value;
 
                     if (block2.M)
                     {
@@ -363,7 +364,7 @@ namespace CoAP.Stack
             // been sent in one piece without blockwise).
             if (request.HasOption(OptionType.Block2))
             {
-                BlockOption block2 = (BlockOption)request.GetFirstOption(OptionType.Block2);
+                BlockOption block2 = request.Block2;
                 if (log.IsDebugEnabled)
                     log.Debug("Request demands blockwise transfer of response with option " + block2 + ". Create and set new block2 status");
                 BlockwiseStatus status2 = new BlockwiseStatus(request.ContentType, block2.NUM, block2.SZX);

@@ -12,18 +12,22 @@
 using System;
 using System.Net;
 using CoAP.Log;
-using CoAP.Util;
+using CoAP.Server.Resources;
 
-namespace CoAP.EndPoint.Resources
+namespace CoAP.Proxy.Resources
 {
     public class ProxyHttpClientResource : ForwardingResource
     {
         private static readonly ILogger log = LogManager.GetLogger(typeof(ProxyHttpClientResource));
 
         public ProxyHttpClientResource()
-            : base("proxy/httpClient", true)
+            : this("proxy/coapClient")
+        { }
+
+        public ProxyHttpClientResource(String name)
+            : base(name)
         {
-            Title = "Forward the requests to a HTTP client.";
+            Attributes.Title = "Forward the requests to a HTTP client.";
         }
 
         protected override Response ForwardRequest(Request incomingCoapRequest)
@@ -63,10 +67,6 @@ namespace CoAP.EndPoint.Resources
                     log.Warn("Problems during the http/coap translation: " + e.Message);
                 return new Response(Code.BadGateway);
             }
-
-            // accept the request sending a separate response to avoid the timeout
-            // in the requesting client
-            incomingCoapRequest.Accept();
 
             HttpWebResponse httpResponse = (HttpWebResponse)httpRequest.GetResponse();
             DateTime timestamp = DateTime.Now;

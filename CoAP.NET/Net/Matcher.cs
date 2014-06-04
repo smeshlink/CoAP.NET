@@ -369,8 +369,8 @@ namespace CoAP.Net
                 {
                     // TODO: We can optimize this and only do it, when the request really had blockwise transfer
                     Exchange.KeyUri uriKey = new Exchange.KeyUri(request.URI, request.Source);
-                    if (log.IsDebugEnabled)
-                        log.Debug("++++++++++++++++++Remote ongoing completed, cleaning up "+uriKey);
+                    //if (log.IsDebugEnabled)
+                    //    log.Debug("++++++++++++++++++Remote ongoing completed, cleaning up "+uriKey);
                     _ongoingExchanges.Remove(uriKey);
                 }
 
@@ -382,8 +382,8 @@ namespace CoAP.Net
                 {
                     // only response MIDs are stored for ACK and RST, no reponse Tokens
                     Exchange.KeyID midKey = new Exchange.KeyID(response.ID, response.Destination);
-                    if (log.IsDebugEnabled)
-                        log.Debug("++++++++++++++++++Remote ongoing completed, cleaning up " + midKey);
+                    //if (log.IsDebugEnabled)
+                    //    log.Debug("++++++++++++++++++Remote ongoing completed, cleaning up " + midKey);
                     _exchangesByID.Remove(midKey);
                 }
             }

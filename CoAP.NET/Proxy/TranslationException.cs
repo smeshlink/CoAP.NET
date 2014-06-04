@@ -11,7 +11,7 @@
 
 using System;
 
-namespace CoAP.Util
+namespace CoAP.Proxy
 {
     [Serializable]
     public class TranslationException : Exception

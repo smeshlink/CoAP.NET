@@ -275,7 +275,7 @@ namespace CoAP.Stack
                     Request refresh = Request.NewGet();
                     refresh.SetOptions(request.GetOptions());
                     // make sure Observe is set and zero
-                    refresh.SetObserve();
+                    refresh.MarkObserve();
                     // use same Token
                     refresh.Token = request.Token;
                     refresh.Destination = request.Destination;

@@ -58,35 +58,12 @@ namespace CoAP
         }
 
         /// <summary>
-        /// Gets a value that indicates whether this response is a "Piggy-backed" response,
-        /// which is carried directly in the acknowledgement message.
-        /// </summary>
-        public Boolean IsPiggyBacked
-        {
-            get
-            {
-                return IsAcknowledgement && Code != CoAP.Code.Empty;
-            }
-        }
-
-        /// <summary>
         /// Gets or sets a value indicating whether this response is the last response of an exchange.
         /// </summary>
         public Boolean Last
         {
             get { return _last; }
             set { _last = value; }
-        }
-
-        protected override void DoHandleBy(IMessageHandler handler)
-        {
-            handler.HandleMessage(this);
-        }
-
-        protected override void PayloadAppended(Byte[] block)
-        {
-            if (null != _request)
-                _request.ResponsePayloadAppended(this, block);
         }
 
         /// <summary>

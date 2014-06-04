@@ -11,10 +11,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Net;
-using System.Text;
-using CoAP.Layers;
-using CoAP.Log;
 using CoAP.Util;
 
 namespace CoAP
@@ -38,21 +34,13 @@ namespace CoAP
         /// </summary>
         public const Int32 None = -1;
 
-        private static readonly ILogger log = LogManager.GetLogger(typeof(Message));
-
         private MessageType _type = MessageType.Unknown;
         private Int32 _code;
         private Int32 _id = None;
         private Byte[] _token;
-        private Byte[] _payLoadBytes;
-        private Boolean _requiresToken = true;
-        private Boolean _requiresBlockwise = false;
-        private SortedDictionary<OptionType, IList<Option>> _optionMap = new SortedDictionary<OptionType, IList<Option>>();
-        private DateTime _timestamp;
-        private Int32 _retransmissioned;
-        private Int32 _maxRetransmit = CoapConstants.MaxRetransmit;
-        private Int32 _ackTimeout;
-        private EndpointAddress _peerAddress;
+        private Byte[] _payload;
+        private String _payloadString;
+        private SortedDictionary<OptionType, LinkedList<Option>> _optionMap = new SortedDictionary<OptionType, LinkedList<Option>>();
         private System.Net.EndPoint _source;
         private System.Net.EndPoint _destination;
         private Boolean _acknowledged;
@@ -60,9 +48,10 @@ namespace CoAP
         private Boolean _cancelled;
         private Boolean _timedOut;
         private Boolean _duplicate;
-        private Boolean _complete;
         private Byte[] _bytes;
-        private ICommunicator _communicator;
+        private DateTime _timestamp;
+        private Int32 _maxRetransmit = CoapConstants.MaxRetransmit;
+        private Int32 _ackTimeout;
 
         /// <summary>
         /// Occurs when this message is retransmitting.
@@ -144,17 +133,7 @@ namespace CoAP
             {
                 if (value != null && value.Length > 8)
                     throw new ArgumentException("Token length must be between 0 and 8 inclusive.", "value");
-
                 _token = value;
-
-                if (value != null && value.Length > 0)
-                {
-                    // for compatibility with CoAP 13-
-                    // do not call SetOption() to avoid loop
-                    List<Option> list = new List<Option>(1);
-                    list.Add(Option.Create(OptionType.Token, value));
-                    _optionMap[OptionType.Token] = list;
-                }
             }
         }
 
@@ -164,32 +143,6 @@ namespace CoAP
         public String TokenString
         {
             get { return _token == null ? null : ByteArrayUtils.ToHexString(_token); }
-        }
-
-        /// <summary>
-        /// Gets the size of the payload of this CoAP message.
-        /// </summary>
-        public Int32 PayloadSize
-        {
-            get { return (null == _payLoadBytes) ? 0 : _payLoadBytes.Length; }
-        }
-
-        /// <summary>
-        /// Gets or sets the payload of this CoAP message.
-        /// </summary>
-        public Byte[] Payload
-        {
-            get { return _payLoadBytes; }
-            set { _payLoadBytes = value; }
-        }
-
-        /// <summary>
-        /// Gets or sets the payload of this CoAP message in string representation.
-        /// </summary>
-        public String PayloadString
-        {
-            get { return (null == _payLoadBytes) ? null : System.Text.Encoding.UTF8.GetString(_payLoadBytes); }
-            set { SetPayload(value, MediaType.TextPlain); }
         }
 
         /// <summary>
@@ -295,147 +248,59 @@ namespace CoAP
             set { _timestamp = value; }
         }
 
-        internal void FireRetransmitting()
+        /// <summary>
+        /// Gets or sets the max times this message should be retransmissioned.
+        /// By default the value is equal to <code>CoapConstants.MaxRetransmit</code>.
+        /// A value of 0 indicates that this message will not be retransmissioned when timeout.
+        /// </summary>
+        public Int32 MaxRetransmit
         {
-            Fire(Retransmitting);
-        }
-
-        private void Fire(EventHandler handler)
-        {
-            if (handler != null)
-                handler(this, EventArgs.Empty);
+            get { return _maxRetransmit; }
+            set { _maxRetransmit = value; }
         }
 
         /// <summary>
-        /// Creates a reply message to this message, which addressed to the
-        /// peer and has the same message ID and token.
+        /// Gets or sets the amount of time in milliseconds after which this message will time out.
+        /// A value of 0 indicates that the time should be decided automatically,
+        /// while a negative that never time out. The default value is 0.
         /// </summary>
-        /// <param name="ack">Acknowledgement or not</param>
-        /// <returns></returns>
-        public Message NewReply(Boolean ack)
+        public Int32 AckTimeout
         {
-            return NewReply(CoAP.Code.Empty, ack);
-        }
-
-        public Message NewReply(Int32 code, Boolean ack)
-        {
-            Message reply = new Message(_type == MessageType.CON ?
-                (ack ? MessageType.ACK : MessageType.RST) : MessageType.NON, code);
-
-            // echo ID
-            reply._id = this._id;
-            // set the receiver URI of the reply to the sender of this message
-            reply._peerAddress = _peerAddress;
-
-            // echo token
-            reply.Token = Token;
-            reply.RequiresToken = this.RequiresToken;
-
-            return reply;
+            get { return _ackTimeout; }
+            set { _ackTimeout = value; }
         }
 
         /// <summary>
-        /// Creates a new ACK message with peer address and MID matching to this message.
+        /// Gets the size of the payload of this CoAP message.
         /// </summary>
-        public Message NewAccept()
+        public Int32 PayloadSize
         {
-            Message ack = new Message(MessageType.ACK, CoAP.Code.Empty);
-            ack.PeerAddress = this.PeerAddress;
-            ack.ID = this.ID;
-            // echo token
-            ack.Token = Token;
-            return ack;
+            get { return (null == _payload) ? 0 : _payload.Length; }
         }
 
         /// <summary>
-        /// Creates a new RST message with peer address and MID matching to this message.
+        /// Gets or sets the payload of this CoAP message.
         /// </summary>
-        public Message NewReject()
+        public Byte[] Payload
         {
-            Message rst = new Message(MessageType.RST, CoAP.Code.Empty);
-            rst.PeerAddress = this.PeerAddress;
-            rst.ID = this.ID;
-            return rst;
+            get { return _payload; }
+            set { _payload = value; _payloadString = null; }
         }
 
         /// <summary>
-        /// Accepts this message with an empty ACK. Use this method only at
-        /// application level, as the ACK will be sent through the whole stack.
-        /// Within the stack use NewAccept() and send it through the corresponding lower layer.
+        /// Gets or sets the payload of this CoAP message in string representation.
         /// </summary>
-        public virtual void Accept()
+        public String PayloadString
         {
-            if (IsConfirmable)
+            get
             {
-                Message msg = NewAccept();
-                msg.Communicator = this.Communicator;
-                msg.Send();
+                if (_payload == null)
+                    return null;
+                else if (_payloadString == null)
+                    _payloadString = System.Text.Encoding.UTF8.GetString(_payload);
+                return _payloadString;
             }
-        }
-
-        /// <summary>
-        /// Rejects this message with an empty RST. Use this method only at
-        /// application level, as the RST will be sent through the whole stack.
-        /// Within the stack use NewReject() and send it through the corresponding lower layer.
-        /// </summary>
-        public void Reject0()
-        {
-            Message msg = NewReject();
-            msg.Communicator = this.Communicator;
-            msg.Send();
-        }
-
-        /// <summary>
-        /// Sends this message.
-        /// </summary>
-        public void Send()
-        {
-            Communicator.SendMessage(this);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="handler"></param>
-        public void HandleBy(IMessageHandler handler)
-        {
-            DoHandleBy(handler);
-        }
-
-        /// <summary>
-        /// Notification method that is called when the transmission of this
-        /// message was canceled due to timeout.
-        /// </summary>
-        public void HandleTimeout()
-        {
-            DoHandleTimeout();
-        }
-
-        /// <summary>
-        /// Appends data to this message's payload.
-        /// </summary>
-        /// <param name="block">The byte array to be appended</param>
-        public void AppendPayload(Byte[] block)
-        {
-            if (null != block)
-            {
-                System.Threading.Monitor.Enter(this);
-                if (null == this._payLoadBytes)
-                {
-                    this._payLoadBytes = (Byte[])block.Clone();
-                }
-                else
-                {
-                    Byte[] newPayload = new Byte[this._payLoadBytes.Length + block.Length];
-                    Array.Copy(this._payLoadBytes, 0, newPayload, 0, this._payLoadBytes.Length);
-                    Array.Copy(block, 0, newPayload, this._payLoadBytes.Length, block.Length);
-                    this._payLoadBytes = newPayload;
-                }
-                System.Threading.Monitor.PulseAll(this);
-                // TODO add event
-                PayloadAppended(block);
-                System.Threading.Monitor.Exit(this);
-            }
+            set { SetPayload(value, MediaType.TextPlain); }
         }
 
         /// <summary>
@@ -462,6 +327,17 @@ namespace CoAP
             ContentType = mediaType;
         }
 
+        internal void FireRetransmitting()
+        {
+            Fire(Retransmitting);
+        }
+
+        private void Fire(EventHandler handler)
+        {
+            if (handler != null)
+                handler(this, EventArgs.Empty);
+        }
+
         /// <summary>
         /// To string.
         /// </summary>
@@ -484,8 +360,8 @@ namespace CoAP
                     payload += "... " + PayloadSize + " bytes";
             }
 
-            return String.Format("{0}-{1} ID={2}, Token={3}, {4}, {5}",
-                Type, CoAP.Code.ToString(_code), ID, TokenString, payload);
+            return String.Format("{0}-{1} ID={2}, Token={3}, Options=[{4}], {5}",
+                Type, CoAP.Code.ToString(_code), ID, TokenString, Utils.OptionsToString(this), payload);
         }
 
         /// <summary>
@@ -513,14 +389,7 @@ namespace CoAP
             }
             else if (!_optionMap.Equals(other._optionMap))
                 return false;
-            if (!Utils.AreSequenceEqualTo(_payLoadBytes, other._payLoadBytes))
-                return false;
-            if (PeerAddress == null)
-            {
-                if (other.PeerAddress != null)
-                    return false;
-            }
-            else if (!PeerAddress.Equals(other.PeerAddress))
+            if (!Utils.AreSequenceEqualTo(_payload, other._payload))
                 return false;
             return true;
         }
@@ -533,30 +402,538 @@ namespace CoAP
             return base.GetHashCode();
         }
 
-        #region Option operations
+        #region Options
+
+        /// <summary>
+        /// Gets If-Match options.
+        /// </summary>
+        public IEnumerable<Byte[]> IfMatches
+        {
+            get { return SelectOptions(OptionType.IfMatch, o => o.RawValue); }
+        }
+
+        public Boolean IsIfMatch(Byte[] what)
+        {
+            IEnumerable<Option> ifmatches = GetOptions(OptionType.IfMatch);
+            if (ifmatches == null)
+                return true;
+            using (IEnumerator<Option> it = ifmatches.GetEnumerator())
+            {
+                if (!it.MoveNext())
+                    return true;
+                do
+                {
+                    if (Utils.AreSequenceEqualTo(what, it.Current.RawValue))
+                        return true;
+                } while (it.MoveNext());
+            }
+            return false;
+        }
+
+        public Message AddIfMatch(Byte[] opaque)
+        {
+            if (opaque == null)
+                throw ThrowHelper.ArgumentNull("opaque");
+            if (opaque.Length > 8)
+                throw ThrowHelper.Argument("opaque", "Content of If-Match option is too large: " + ByteArrayUtils.ToHexString(opaque));
+            return AddOption(Option.Create(OptionType.IfMatch, opaque));
+        }
+
+        public Message RemoveIfMatch(Byte[] opaque)
+        {
+            LinkedList<Option> list = GetOptions(OptionType.IfMatch) as LinkedList<Option>;
+            if (list != null)
+            {
+                Option opt = Utils.FirstOrDefault(list, o => Utils.AreSequenceEqualTo(opaque, o.RawValue));
+                if (opt != null)
+                    list.Remove(opt);
+            }
+            return this;
+        }
+
+        public Message ClearIfMatches()
+        {
+            RemoveOptions(OptionType.IfMatch);
+            return this;
+        }
+
+        public IEnumerable<Byte[]> ETags
+        {
+            get { return SelectOptions(OptionType.ETag, o => o.RawValue); }
+        }
+
+        public Boolean ContainsETag(Byte[] what)
+        {
+            return Utils.Contains(GetOptions(OptionType.ETag), o => Utils.AreSequenceEqualTo(what, o.RawValue));
+        }
+
+        public Message AddETag(Byte[] opaque)
+        {
+            if (opaque == null)
+                throw ThrowHelper.ArgumentNull("opaque");
+            return AddOption(Option.Create(OptionType.ETag, opaque));
+        }
+
+        public Message RemoveETag(Byte[] opaque)
+        {
+            LinkedList<Option> list = GetOptions(OptionType.ETag) as LinkedList<Option>;
+            if (list != null)
+            {
+                Option opt = Utils.FirstOrDefault(list, o => Utils.AreSequenceEqualTo(opaque, o.RawValue));
+                if (opt != null)
+                    list.Remove(opt);
+            }
+            return this;
+        }
+
+        public Message ClearETags()
+        {
+            RemoveOptions(OptionType.ETag);
+            return this;
+        }
+
+        public Boolean IfNoneMatch
+        {
+            get { return HasOption(OptionType.IfNoneMatch); }
+        }
+
+        public String UriHost
+        {
+            get
+            {
+                Option host = GetFirstOption(OptionType.UriHost);
+                if (host == null)
+                {
+                    if (Destination != null)
+                    {
+                        return Destination.ToString();
+                    }
+                    else
+                        return "localhost";
+                }
+                else
+                {
+                    return host.StringValue;
+                }
+            }
+            set
+            {
+                if (value == null)
+                    throw new ArgumentNullException("value");
+                else if (value.Length < 1 || value.Length > 255)
+                    throw new ArgumentException("URI-Host option's length must be between 1 and 255 inclusive", "value");
+                SetOption(Option.Create(OptionType.UriHost, value));
+            }
+        }
+
+        public String UriPath
+        {
+            get { return "/" + Option.Join(GetOptions(OptionType.UriPath), "/"); }
+            set { SetOptions(Option.Split(OptionType.UriPath, value, "/")); }
+        }
+
+        public IEnumerable<String> UriPaths
+        {
+            get
+            {
+                IEnumerable<Option> opts = GetOptions(OptionType.UriPath);
+                if (opts != null)
+                {
+                    foreach (Option opt in opts)
+                    {
+                        yield return opt.StringValue;
+                    }
+                }
+                yield break;
+            }
+        }
+
+        public Message AddUriPath(String path)
+        {
+            if (path == null)
+                throw ThrowHelper.ArgumentNull("path");
+            if (path.Length > 255)
+                throw ThrowHelper.Argument("path", "Uri Path option's length must be between 0 and 255 inclusive");
+            return AddOption(Option.Create(OptionType.UriPath, path));
+        }
+
+        public Message RemoveUriPath(String path)
+        {
+            LinkedList<Option> list = GetOptions(OptionType.UriPath) as LinkedList<Option>;
+            if (list != null)
+            {
+                Option opt = Utils.FirstOrDefault(list, o => String.Equals(path, o.StringValue));
+                if (opt != null)
+                    list.Remove(opt);
+            }
+            return this;
+        }
+
+        public Message ClearUriPath()
+        {
+            RemoveOptions(OptionType.UriPath);
+            return this;
+        }
+
+        public String UriQuery
+        {
+            get { return Option.Join(GetOptions(OptionType.UriQuery), "&"); }
+            set
+            {
+                if (!String.IsNullOrEmpty(value) && value.StartsWith("?"))
+                    value = value.Substring(1);
+                SetOptions(Option.Split(OptionType.UriQuery, value, "&"));
+            }
+        }
+
+        public IEnumerable<String> UriQueries
+        {
+            get
+            {
+                IEnumerable<Option> opts = GetOptions(OptionType.UriQuery);
+                if (opts != null)
+                {
+                    foreach (Option opt in opts)
+                    {
+                        yield return opt.StringValue;
+                    }
+                }
+                yield break;
+            }
+        }
+
+        public Message AddUriQuery(String query)
+        {
+            if (query == null)
+                throw ThrowHelper.ArgumentNull("query");
+            if (query.Length > 255)
+                throw ThrowHelper.Argument("query", "Uri Query option's length must be between 0 and 255 inclusive");
+            return AddOption(Option.Create(OptionType.UriQuery, query));
+        }
+
+        public Message RemoveUriQuery(String query)
+        {
+            LinkedList<Option> list = GetOptions(OptionType.UriQuery) as LinkedList<Option>;
+            if (list != null)
+            {
+                Option opt = Utils.FirstOrDefault(list, o => String.Equals(query, o.StringValue));
+                if (opt != null)
+                    list.Remove(opt);
+            }
+            return this;
+        }
+
+        public Message ClearUriQuery()
+        {
+            RemoveOptions(OptionType.UriQuery);
+            return this;
+        }
+
+        public Int32 UriPort
+        {
+            get
+            {
+                Option opt = GetFirstOption(OptionType.UriPort);
+                return opt == null ? 0 : opt.IntValue;
+            }
+            set
+            {
+                if (value == 0)
+                    RemoveOptions(OptionType.UriPort);
+                else
+                    SetOption(Option.Create(OptionType.UriPort, value));
+            }
+        }
+
+        public String Location
+        {
+            get
+            {
+                String path = "/" + LocationPath, query = LocationQuery;
+                if (!String.IsNullOrEmpty(query))
+                    path += "?" + query;
+                return path;
+            }
+        }
+
+        /// <summary>
+        /// Gets or set the location-path of this CoAP message.
+        /// </summary>
+        public String LocationPath
+        {
+            get { return Option.Join(GetOptions(OptionType.LocationPath), "/"); }
+            set { SetOptions(Option.Split(OptionType.LocationPath, value, "/")); }
+        }
+
+        public IEnumerable<String> LocationPaths
+        {
+            get { return SelectOptions(OptionType.LocationPath, o => o.StringValue); }
+        }
+
+        public Message AddLocationPath(String path)
+        {
+            if (path == null)
+                throw ThrowHelper.ArgumentNull("path");
+            if (path.Length > 255)
+                throw ThrowHelper.Argument("path", "Location Path option's length must be between 0 and 255 inclusive");
+            return AddOption(Option.Create(OptionType.LocationPath, path));
+        }
+
+        public Message RemoveLocationPath(String path)
+        {
+            LinkedList<Option> list = GetOptions(OptionType.LocationPath) as LinkedList<Option>;
+            if (list != null)
+            {
+                Option opt = Utils.FirstOrDefault(list, o => String.Equals(path, o.StringValue));
+                if (opt != null)
+                    list.Remove(opt);
+            }
+            return this;
+        }
+
+        public Message ClearLocationPath()
+        {
+            RemoveOptions(OptionType.LocationPath);
+            return this;
+        }
+
+        public String LocationQuery
+        {
+            get { return Option.Join(GetOptions(OptionType.LocationQuery), "&"); }
+            set
+            {
+                if (!String.IsNullOrEmpty(value) && value.StartsWith("?"))
+                    value = value.Substring(1);
+                SetOptions(Option.Split(OptionType.LocationQuery, value, "&"));
+            }
+        }
+
+        public IEnumerable<String> LocationQueries
+        {
+            get { return SelectOptions(OptionType.LocationQuery, o => o.StringValue); }
+        }
+
+        public Message AddLocationQuery(String query)
+        {
+            if (query == null)
+                throw ThrowHelper.ArgumentNull("query");
+            if (query.Length > 255)
+                throw ThrowHelper.Argument("query", "Location Query option's length must be between 0 and 255 inclusive");
+            return AddOption(Option.Create(OptionType.LocationQuery, query));
+        }
+
+        public Message RemoveLocationQuery(String query)
+        {
+            LinkedList<Option> list = GetOptions(OptionType.LocationQuery) as LinkedList<Option>;
+            if (list != null)
+            {
+                Option opt = Utils.FirstOrDefault(list, o => String.Equals(query, o.StringValue));
+                if (opt != null)
+                    list.Remove(opt);
+            }
+            return this;
+        }
+
+        public Message ClearLocationQuery()
+        {
+            RemoveOptions(OptionType.LocationQuery);
+            return this;
+        }
+
+        /// <summary>
+        /// Gets or sets the content-type of this CoAP message.
+        /// </summary>
+        public Int32 ContentType
+        {
+            get
+            {
+                Option opt = GetFirstOption(OptionType.ContentType);
+                return (null == opt) ? MediaType.Undefined : opt.IntValue;
+            }
+            set
+            {
+                if (value == MediaType.Undefined)
+                    RemoveOptions(OptionType.ContentType);
+                else
+                    SetOption(Option.Create(OptionType.ContentType, value));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the content-format of this CoAP message,
+        /// same as ContentType, only another name.
+        /// </summary>
+        public Int32 ContentFormat
+        {
+            get { return ContentType; }
+            set { ContentType = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets the max-age of this CoAP message.
+        /// </summary>
+        public Int64 MaxAge
+        {
+            get
+            {
+                Option opt = GetFirstOption(OptionType.MaxAge);
+                return (null == opt) ? CoapConstants.DefaultMaxAge : opt.LongValue;
+            }
+            set
+            {
+                if (value < 0 || value > UInt32.MaxValue)
+                    throw ThrowHelper.Argument("value", "Max-Age option must be between 0 and " + UInt32.MaxValue + " (4 bytes) inclusive");
+                SetOption(Option.Create(OptionType.MaxAge, value));
+            }
+        }
+
+        public Int32 Accept
+        {
+            get
+            {
+                Option opt = GetFirstOption(OptionType.Accept);
+                return opt == null ? MediaType.Undefined : opt.IntValue;
+            }
+            set
+            {
+                if (value == MediaType.Undefined)
+                    RemoveOptions(OptionType.Accept);
+                else
+                    SetOption(Option.Create(OptionType.Accept, value));
+            }
+        }
+
+        public Uri ProxyUri
+        {
+            get
+            {
+                Option opt = GetFirstOption(OptionType.Accept);
+                if (opt == null)
+                    return null;
+
+                String proxyUriString = Uri.UnescapeDataString(opt.StringValue);
+                // TODO URLDecode
+                if (!proxyUriString.StartsWith("coap://") && !proxyUriString.StartsWith("coaps://")
+                    && !proxyUriString.StartsWith("http://") && !proxyUriString.StartsWith("https://"))
+                    proxyUriString = "coap://" + proxyUriString;
+
+                return new Uri(proxyUriString);
+            }
+            set
+            {
+                if (value == null)
+                    RemoveOptions(OptionType.ProxyUri);
+                else
+                    SetOption(Option.Create(OptionType.ProxyUri, value.ToString()));
+            }
+        }
+
+        public String ProxyScheme
+        {
+            get
+            {
+                Option opt = GetFirstOption(OptionType.Accept);
+                return opt == null ? null : opt.StringValue;
+            }
+            set
+            {
+                if (value == null)
+                    RemoveOptions(OptionType.ProxyScheme);
+                else
+                    SetOption(Option.Create(OptionType.ProxyScheme, value.ToString()));
+            }
+        }
+
+        public Int32? Observe
+        {
+            get
+            {
+                Option opt = GetFirstOption(OptionType.Observe);
+                if (opt == null)
+                    return null;
+                else
+                    return opt.IntValue;
+            }
+            set
+            {
+                if (value == null)
+                    RemoveOptions(OptionType.Observe);
+                else if (value < 0 || ((1 << 24) - 1) < value)
+                    throw ThrowHelper.Argument("value", "Observe option must be between 0 and " + ((1 << 24) - 1) + " (3 bytes) inclusive but was " + value);
+                else
+                    SetOption(Option.Create(OptionType.Observe, value.Value));
+            }
+        }
+
+        public BlockOption Block1
+        {
+            get { return GetFirstOption(OptionType.Block1) as BlockOption; }
+            set
+            {
+                if (value == null)
+                    RemoveOptions(OptionType.Block1);
+                else
+                    SetOption(value);
+            }
+        }
+
+        public void SetBlock1(Int32 szx, Boolean m, Int32 num)
+        {
+            SetOption(new BlockOption(OptionType.Block1, num, szx, m));
+        }
+
+        public BlockOption Block2
+        {
+            get { return GetFirstOption(OptionType.Block2) as BlockOption; }
+            set
+            {
+                if (value == null)
+                    RemoveOptions(OptionType.Block2);
+                else
+                    SetOption(value);
+            }
+        }
+
+        public void SetBlock2(Int32 szx, Boolean m, Int32 num)
+        {
+            SetOption(new BlockOption(OptionType.Block2, num, szx, m));
+        }
+
+        private IEnumerable<T> SelectOptions<T>(OptionType optionType, Func<Option, T> func)
+        {
+            IEnumerable<Option> opts = GetOptions(optionType);
+            if (opts != null)
+            {
+                foreach (Option opt in opts)
+                {
+                    yield return func(opt);
+                }
+            }
+            yield break;
+        }
 
         /// <summary>
         /// Adds an option to the list of options of this CoAP message.
         /// </summary>
         /// <param name="option">the option to add</param>
-        public void AddOption(Option option)
+        public Message AddOption(Option option)
         {
             if (option == null)
                 throw new ArgumentNullException("opt");
 
-            IList<Option> list = null;
-            if (_optionMap.ContainsKey(option.Type))
-                list = _optionMap[option.Type];
-            else
+            LinkedList<Option> list;
+            if (!_optionMap.TryGetValue(option.Type, out list))
             {
-                list = new List<Option>();
+                list = new LinkedList<Option>();
                 _optionMap[option.Type] = list;
             }
 
-            list.Add(option);
+            list.AddLast(option);
 
             if (option.Type == OptionType.Token)
                 Token = option.RawValue;
+
+            return this;
         }
 
         /// <summary>
@@ -575,9 +952,9 @@ namespace CoAP
         /// Removes all options of the given type from this CoAP message.
         /// </summary>
         /// <param name="optionType">the type of option to remove</param>
-        public void RemoveOptions(OptionType optionType)
+        public Boolean RemoveOptions(OptionType optionType)
         {
-            _optionMap.Remove(optionType);
+            return _optionMap.Remove(optionType);
         }
 
         /// <summary>
@@ -635,8 +1012,11 @@ namespace CoAP
         /// <returns>the first option of the specified type, or null</returns>
         public Option GetFirstOption(OptionType optionType)
         {
-            IList<Option> list = _optionMap.ContainsKey(optionType) ? _optionMap[optionType] : null;
-            return (null != list && list.Count > 0) ? list[0] : null;
+            LinkedList<Option> list;
+            if (_optionMap.TryGetValue(optionType, out list))
+                return list.Count > 0 ? list.First.Value : null;
+            else
+                return null;
         }
 
         /// <summary>
@@ -646,9 +1026,9 @@ namespace CoAP
         public IList<Option> GetOptions()
         {
             List<Option> list = new List<Option>();
-            foreach (IList<Option> opts in this._optionMap.Values)
+            foreach (ICollection<Option> opts in _optionMap.Values)
             {
-                if (null != opts)
+                if (opts.Count > 0)
                     list.AddRange(opts);
             }
             return list;
@@ -666,153 +1046,6 @@ namespace CoAP
         #endregion
 
         #region Properties
-
-        public ICommunicator Communicator
-        {
-            get
-            {
-                if (_communicator == null)
-                    _communicator = CommunicatorFactory.Default;
-                return _communicator;
-            }
-            set { _communicator = value; }
-        }
-
-        /// <summary>
-        /// Gets or sets a value that indicates whether a generated token is needed.
-        /// </summary>
-        public Boolean RequiresToken
-        {
-            get { return _requiresToken && Code != CoAP.Code.Empty; }
-            set { _requiresToken = value; }
-        }
-
-        public Boolean RequiresBlockwise
-        {
-            get { return this._requiresBlockwise; }
-            set { this._requiresBlockwise = value; }
-        }
-
-        /// <summary>
-        /// Gets or sets how many times this message has been retransmissioned.
-        /// </summary>
-        public Int32 Retransmissioned
-        {
-            get { return _retransmissioned; }
-            set { _retransmissioned = value; }
-        }
-
-        /// <summary>
-        /// Gets or sets the max times this message should be retransmissioned.
-        /// By default the value is equal to <code>CoapConstants.MaxRetransmit</code>.
-        /// A value of 0 indicates that this message will not be retransmissioned when timeout.
-        /// </summary>
-        public Int32 MaxRetransmit
-        {
-            get { return _maxRetransmit; }
-            set { _maxRetransmit = value; }
-        }
-
-        /// <summary>
-        /// Gets or sets the amount of time in milliseconds after which this message will time out.
-        /// A value of 0 indicates that the time should be decided automatically,
-        /// while a negative that never time out. The default value is 0.
-        /// </summary>
-        public Int32 AckTimeout
-        {
-            get { return _ackTimeout; }
-            set { _ackTimeout = value; }
-        }
-
-        /// <summary>
-        /// Gets or sets the content-type of this CoAP message.
-        /// </summary>
-        public Int32 ContentType
-        {
-            get
-            {
-                Option opt = GetFirstOption(OptionType.ContentType);
-                return (null == opt) ? MediaType.Undefined : opt.IntValue;
-            }
-            set
-            {
-                if (value == MediaType.Undefined)
-                {
-                    RemoveOptions(OptionType.ContentType);
-                }
-                else
-                {
-                    SetOption(Option.Create(OptionType.ContentType, value));
-                }
-            }
-        }
-
-        public Int32 FirstAccept
-        {
-            get {
-                Option opt = GetFirstOption(OptionType.Accept);
-                return opt == null ? MediaType.Undefined : opt.IntValue;
-            }
-        }
-
-        /// <summary>
-        /// Gets or set the location-path of this CoAP message.
-        /// </summary>
-        public String LocationPath
-        {
-            get
-            {
-                return Option.Join(GetOptions(OptionType.LocationPath), "/");
-            }
-            set
-            {
-                SetOptions(Option.Split(OptionType.LocationPath, value, "/"));
-            }
-        }
-
-        public String LocationQuery
-        {
-            get { return Option.Join(GetOptions(OptionType.LocationQuery), "&"); }
-            set
-            {
-                if (!String.IsNullOrEmpty(value) && value.StartsWith("?"))
-                    value = value.Substring(1);
-                SetOptions(Option.Split(OptionType.LocationQuery, value, "&"));
-            }
-        }
-
-        public Uri ProxyUri
-        {
-            get
-            {
-                IEnumerable<Option> opts = GetOptions(OptionType.ProxyUri);
-                if (opts == null)
-                    return null;
-
-                String proxyUriString = Uri.UnescapeDataString(Option.Join(opts, "/"));
-                // TODO URLDecode
-                if (!proxyUriString.StartsWith("coap://") && !proxyUriString.StartsWith("coaps://")
-                    && !proxyUriString.StartsWith("http://") && !proxyUriString.StartsWith("https://"))
-                    proxyUriString = "coap://" + proxyUriString;
-                return new Uri(proxyUriString);
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets the max-age of this CoAP message.
-        /// </summary>
-        public Int32 MaxAge
-        {
-            get
-            {
-                Option opt = GetFirstOption(OptionType.MaxAge);
-                return (null == opt) ? CoapConstants.DefaultMaxAge : opt.IntValue;
-            }
-            set
-            {
-                SetOption(Option.Create(OptionType.MaxAge, value));
-            }
-        }
 
         /// <summary>
         /// Gets the code of this CoAP message.
@@ -846,146 +1079,6 @@ namespace CoAP
             get { return CoAP.Code.IsResponse(_code); }
         }
 
-        /// <summary>
-        /// Gets a value that indicates whether this CoAP message is confirmable.
-        /// </summary>
-        public Boolean IsConfirmable
-        {
-            get { return _type == MessageType.CON; }
-        }
-
-        /// <summary>
-        /// Gets a value that indicates whether this CoAP message is non-confirmable.
-        /// </summary>
-        public Boolean IsNonConfirmable
-        {
-            get { return _type == MessageType.NON; }
-        }
-
-        /// <summary>
-        /// Gets a value that indicates whether this CoAP message is an acknowledgement.
-        /// </summary>
-        public Boolean IsAcknowledgement
-        {
-            get { return _type == MessageType.ACK; }
-        }
-
-        /// <summary>
-        /// Gets a value that indicates whether this CoAP message is a reset.
-        /// </summary>
-        public Boolean IsReset
-        {
-            get { return _type == MessageType.RST; }
-        }
-
-        /// <summary>
-        /// Gets a value that indicates whether this CoAP message is an reply message.
-        /// </summary>
-        public Boolean IsReply
-        {
-            get { return IsAcknowledgement || IsReset; }
-        }
-
-        /// <summary>
-        /// Gets a value that indicates whether this response is a separate one.
-        /// </summary>
-        public Boolean IsEmptyACK
-        {
-            get { return IsAcknowledgement && Code == CoAP.Code.Empty; }
-        }
-
-        /// <summary>
-        /// Gets a string that is assumed to uniquely identify a message,
-        /// since messages from different remote endpoints might have a same message ID.
-        /// </summary>
-        public String Key
-        {
-            get
-            {
-                return String.Format("{0}|{1}|{2}", PeerAddress == null ? "local" : PeerAddress.ToString(), _id, Type);
-            }
-        }
-
-        public String TransactionKey
-        {
-            get
-            {
-                return String.Format("{0}|{1}", PeerAddress == null ? "local" : PeerAddress.ToString(), _id);
-            }
-        }
-
-        public String SequenceKey
-        {
-            get
-            {
-                return String.Format("{0}#{1}", PeerAddress == null ? "local" : PeerAddress.ToString(), TokenString);
-            }
-        }
-
-        public EndpointAddress PeerAddress
-        {
-            get { return _peerAddress; }
-            set { _peerAddress = value; }
-        }
-
         #endregion
-
-        /// <summary>
-        /// Notification method that is called when the transmission of this
-        /// message was canceled due to timeout.
-        /// <remarks>Subclasses may override this method to add custom handling code.</remarks>
-        /// </summary>
-        protected virtual void DoHandleTimeout()
-        { }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="handler"></param>
-        protected virtual void DoHandleBy(IMessageHandler handler)
-        { }
-
-        /// <summary>
-        /// Creates a message with subtype according to code number
-        /// </summary>
-        /// <param name="code"></param>
-        /// <returns></returns>
-        public static Message Create(Int32 code)
-        {
-            if (CoAP.Code.IsRequest(code))
-            {
-                switch (code)
-                {
-                    case CoAP.Code.GET:
-                        return new GETRequest();
-                    case CoAP.Code.POST:
-                        return new POSTRequest();
-                    case CoAP.Code.PUT:
-                        return new PUTRequest();
-                    case CoAP.Code.DELETE:
-                        return new DELETERequest();
-                    default:
-                        return new UnsupportedRequest(code);
-                }
-            }
-            else if (CoAP.Code.IsResponse(code))
-            {
-                return new Response(code);
-            }
-            else if (code == CoAP.Code.Empty)
-            {
-                // empty messages are handled as responses
-                // in order to handle ACK/RST messages consistent
-                // with actual responses
-                return new Response(code);
-            }
-            else
-            {
-                return new Message(MessageType.CON, code);
-            }
-        }
-
-        protected virtual void PayloadAppended(Byte[] block)
-        { }
     }
 }
