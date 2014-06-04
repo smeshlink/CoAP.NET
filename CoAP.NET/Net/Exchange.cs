@@ -285,7 +285,7 @@ namespace CoAP.Net
                 KeyID other = obj as KeyID;
                 if (other == null)
                     return false;
-                return _id == other._id && _endpoint == other._endpoint;
+                return _id == other._id && _endpoint.Equals(other._endpoint);
             }
 
             /// <inheritdoc/>
