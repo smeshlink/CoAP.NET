@@ -50,7 +50,7 @@ namespace CoAP
     class Draft03 : ISpec
 #endif
     {
-        public const Int32 SupportedVersion = 1;
+        public const Int32 Version = 1;
         const Int32 VersionBits = 2;
         const Int32 TypeBits = 2;
         const Int32 OptionCountBits = 4;
@@ -346,7 +346,7 @@ namespace CoAP
                 }
 
                 // write fixed-size CoAP headers
-                writer.Write(msg.Version, VersionBits);
+                writer.Write(Version, VersionBits);
                 writer.Write((Int32)msg.Type, TypeBits);
                 writer.Write(optionCount, OptionCountBits);
                 writer.Write(MapOutCode(code), CodeBits);
@@ -372,7 +372,7 @@ namespace CoAP
 
             public override Boolean IsWellFormed
             {
-                get { return _version == SupportedVersion; }
+                get { return _version == Version; }
             }
 
             protected override void ReadProtocol()
@@ -445,7 +445,7 @@ namespace CoAP
     class Draft08 : ISpec
 #endif
     {
-        public const Int32 SupportedVersion = 1;
+        public const Int32 Version = 1;
         const Int32 VersionBits = 2;
         const Int32 TypeBits = 2;
         const Int32 OptionCountBits = 4;
@@ -705,7 +705,7 @@ namespace CoAP
                 }
 
                 // write fixed-size CoAP headers
-                writer.Write(msg.Version, VersionBits);
+                writer.Write(Version, VersionBits);
                 writer.Write((Int32)msg.Type, TypeBits);
                 writer.Write(optionCount, OptionCountBits);
                 writer.Write(msg.Code, CodeBits);
@@ -731,7 +731,7 @@ namespace CoAP
 
             public override Boolean IsWellFormed
             {
-                get { return _version == SupportedVersion; }
+                get { return _version == Version; }
             }
 
             protected override void ReadProtocol()
@@ -796,7 +796,7 @@ namespace CoAP
     class Draft12 : ISpec
 #endif
     {
-        public const Int32 SupportedVersion = 1;
+        public const Int32 Version = 1;
         const Int32 VersionBits = 2;
         const Int32 TypeBits = 2;
         const Int32 OptionCountBits = 4;
@@ -973,7 +973,7 @@ namespace CoAP
                 }
 
                 // write fixed-size CoAP headers
-                writer.Write(msg.Version, VersionBits);
+                writer.Write(Version, VersionBits);
                 writer.Write((Int32)msg.Type, TypeBits);
                 if (optionCount < 15)
                     writer.Write(optionCount, OptionCountBits);
@@ -1008,7 +1008,7 @@ namespace CoAP
 
             public override Boolean IsWellFormed
             {
-                get { return _version == SupportedVersion; }
+                get { return _version == Version; }
             }
 
             protected override void ReadProtocol()
@@ -1105,7 +1105,7 @@ namespace CoAP
     class Draft13 : ISpec
 #endif
     {
-        const Int32 SupportedVersion = 1;
+        const Int32 Version = 1;
         const Int32 VersionBits = 2;
         const Int32 TypeBits = 2;
         const Int32 TokenLengthBits = 4;
@@ -1237,7 +1237,7 @@ namespace CoAP
             protected override void Serialize(DatagramWriter writer, Message msg, Int32 code)
             {
                 // write fixed-size CoAP headers
-                writer.Write(msg.Version, VersionBits);
+                writer.Write(Version, VersionBits);
                 writer.Write((Int32)msg.Type, TypeBits);
                 writer.Write(msg.Token.Length, TokenLengthBits);
                 writer.Write(msg.Code, CodeBits);
@@ -1319,7 +1319,7 @@ namespace CoAP
 
             public override Boolean IsWellFormed
             {
-                get { return _version == SupportedVersion; }
+                get { return _version == Version; }
             }
 
             protected override void ReadProtocol()

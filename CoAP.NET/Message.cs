@@ -40,7 +40,6 @@ namespace CoAP
 
         private static readonly ILogger log = LogManager.GetLogger(typeof(Message));
 
-        private Int32 _version = Spec.SupportedVersion;
         private MessageType _type = MessageType.Unknown;
         private Int32 _code;
         private Int32 _id = None;
@@ -503,8 +502,6 @@ namespace CoAP
             Message other = (Message)obj;
             if (_type != other._type)
                 return false;
-            if (_version != other._version)
-                return false;
             if (_code != other._code)
                 return false;
             if (_id != other._id)
@@ -831,14 +828,6 @@ namespace CoAP
         public String CodeString
         {
             get { return CoAP.Code.ToString(_code); }
-        }
-
-        /// <summary>
-        /// Gets the version of this CoAP message.
-        /// </summary>
-        public Int32 Version
-        {
-            get { return _version; }
         }
 
         /// <summary>

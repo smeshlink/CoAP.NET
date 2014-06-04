@@ -224,7 +224,7 @@ namespace CoAP
         private void PrepareResponse(Request request)
         {
             // consecutive response require new MID that must be stored for RST matching
-            if (request.Response.ID == Message.InvalidID)
+            if (request.Response.ID == Message.None)
                 request.Response.ID = MessageLayer.NextMessageID();
 
             // 16-bit second counter
@@ -302,11 +302,11 @@ namespace CoAP
 
             public Observationship(Request request)
             {
-                request.ID = Message.InvalidID;
+                request.ID = Message.None;
                 this.clientID = request.PeerAddress.ToString();
                 this.resourcePath = request.UriPath;
                 this.request = request;
-                this.lastMessageID = Message.InvalidID;
+                this.lastMessageID = Message.None;
             }
         }
     }
