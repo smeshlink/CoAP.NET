@@ -27,9 +27,7 @@ namespace CoAP.Stack
 
         public void SendRequest(Request request)
         {
-            Exchange exchange = new Exchange(request, Origin.Local);
-            exchange.EndPoint = request.EndPoint;
-            Head.Filter.SendRequest(Head.NextFilter, exchange, request);
+            Head.Filter.SendRequest(Head.NextFilter, null, request);
         }
 
         public void SendResponse(Exchange exchange, Response response)
@@ -62,8 +60,14 @@ namespace CoAP.Stack
             public override void SendRequest(INextLayer nextLayer, Exchange exchange, Request request)
             {
                 if (exchange == null)
+                {
                     exchange = new Exchange(request, Origin.Local);
-                exchange.Request = request;
+                    exchange.EndPoint = request.EndPoint;
+                }
+                else
+                {
+                    exchange.Request = request;
+                }
                 base.SendRequest(nextLayer, exchange, request);
             }
 
@@ -136,7 +140,7 @@ namespace CoAP.Stack
 
             public void SendEmptyMessage(Exchange exchange, EmptyMessage message)
             {
-                _entry.PrevEntry.Filter.SendEmptyMessage(_entry.PrevEntry.NextFilter, exchange, message);
+                _entry.NextEntry.Filter.SendEmptyMessage(_entry.NextEntry.NextFilter, exchange, message);
             }
 
             public void ReceiveRequest(Exchange exchange, Request request)
