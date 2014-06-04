@@ -50,7 +50,6 @@ namespace CoAP.Net
             _origin = origin;
             _request = request;
             _timestamp = DateTime.Now;
-            _endpoint = request.EndPoint;
         }
 
         public Origin Origin

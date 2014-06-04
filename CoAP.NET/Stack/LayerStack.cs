@@ -28,6 +28,7 @@ namespace CoAP.Stack
         public void SendRequest(Request request)
         {
             Exchange exchange = new Exchange(request, Origin.Local);
+            exchange.EndPoint = request.EndPoint;
             Head.Filter.SendRequest(Head.NextFilter, exchange, request);
         }
 
