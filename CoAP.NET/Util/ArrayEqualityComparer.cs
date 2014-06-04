@@ -14,7 +14,7 @@ using System.Collections.Generic;
 
 namespace CoAP.Util
 {
-    class ArrayEqualityComparer<T> : IEqualityComparer<T[]>
+    public class ArrayEqualityComparer<T> : IEqualityComparer<T[]>
     {
         private static readonly IEqualityComparer<T[]> defaultInstance = new ArrayEqualityComparer<T>();
         private readonly IEqualityComparer<T> _elementComparer;
@@ -33,6 +33,7 @@ namespace CoAP.Util
             _elementComparer = elementComparer;
         }
 
+        /// <inheritdoc/>
         public Boolean Equals(T[] x, T[] y)
         {
             if (Object.ReferenceEquals(x, y))
@@ -56,6 +57,7 @@ namespace CoAP.Util
             return true;
         }
 
+        /// <inheritdoc/>
         public Int32 GetHashCode(T[] array)
         {
             if (array == null)

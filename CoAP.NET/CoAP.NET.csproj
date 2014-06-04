@@ -151,18 +151,18 @@
     <Compile Include="Util\CoapTranslator.cs" />
     <Compile Include="Util\Delegates.cs" />
     <Compile Include="Util\HashMap.cs" />
-    <Compile Include="Util\HashSet.cs" />
     <Compile Include="Util\HttpTranslator.cs" />
     <Compile Include="Util\Scanner.cs" />
-    <Compile Include="Util\Sort.cs" />
     <Compile Include="Util\System\Funcs.cs" />
     <Compile Include="Util\System.Collections.Concurrent\ConcurrentDictionary.cs" />
     <Compile Include="Util\System.Collections.Concurrent\ConcurrentQueue.cs" />
     <Compile Include="Util\System.Collections.Concurrent\IProducerConsumerCollection.cs" />
     <Compile Include="Util\System.Collections.Concurrent\SplitOrderedList.cs" />
+    <Compile Include="Util\System.Collections.Generic\HashSet.cs" />
     <Compile Include="Util\System.Collections.Generic\SynchronizedCollection.cs" />
     <Compile Include="Util\ThrowHelper.cs" />
     <Compile Include="Util\TranslationException.cs" />
+    <Compile Include="Util\Utils.cs" />
     <Compile Include="WebLink.cs" />
   </ItemGroup>
   <ItemGroup>

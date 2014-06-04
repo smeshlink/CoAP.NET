@@ -468,39 +468,25 @@ namespace CoAP
         /// </summary>
         public override String ToString()
         {
-#if DEBUG
-            StringBuilder builder = new StringBuilder();
-            String kind = "MESSAGE";
-            if (this.IsRequest)
-                kind = "REQUEST";
-            else if (this.IsResponse)
-                kind = "RESPONSE";
-            builder.AppendFormat("==[ COAP {0} ]============================================\n", kind);
-
-            IList<Option> options = GetOptions();
-            builder.AppendFormat("Address:  {0}\n", PeerAddress == null ? "local" : PeerAddress.ToString());
-            builder.AppendFormat("ID     :  {0}\n", _id);
-            builder.AppendFormat("Type   :  {0}\n", Type);
-            builder.AppendFormat("Code   :  {0}\n", CoAP.Code.ToString(_code));
-            builder.AppendFormat("Options:  {0}\n", options.Count);
-            foreach (Option opt in options)
+            String payload = PayloadString;
+            if (payload == null)
             {
-                builder.AppendFormat("  * {0}: {1} ({2} Bytes)\n", opt.Name, opt, opt.Length);
+                payload = "[no payload]";
             }
-            builder.AppendFormat("Payload: {0} Bytes\n", this.PayloadSize);
-            if (this.PayloadSize > 0)
+            else
             {
-                builder.AppendLine("---------------------------------------------------------------");
-                builder.AppendLine(this.PayloadString);
+                Int32 len = payload.Length, nl = payload.IndexOf('\n');
+                if (nl >= 0)
+                    payload = payload.Substring(0, nl);
+                if (payload.Length > 24)
+                    payload = payload.Substring(0, 24);
+                payload = "\"" + payload + "\"";
+                if (payload.Length != len + 2)
+                    payload += "... " + PayloadSize + " bytes";
             }
-            builder.AppendLine("===============================================================");
 
-            return builder.ToString();
-#else
-            return String.Format("{0}: [{1}] {2} '{3}'({4})",
-                Key, Type, CoAP.Code.ToString(_code),
-                PayloadString, PayloadSize);
-#endif
+            return String.Format("{0}-{1} ID={2}, Token={3}, {4}, {5}",
+                Type, CoAP.Code.ToString(_code), ID, TokenString, payload);
         }
 
         /// <summary>
@@ -530,7 +516,7 @@ namespace CoAP
             }
             else if (!_optionMap.Equals(other._optionMap))
                 return false;
-            if (!Sort.IsSequenceEqualTo(_payLoadBytes, other._payLoadBytes))
+            if (!Utils.AreSequenceEqualTo(_payLoadBytes, other._payLoadBytes))
                 return false;
             if (PeerAddress == null)
             {

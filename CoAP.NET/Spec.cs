@@ -262,7 +262,7 @@ namespace CoAP
                 Int32 lastOptionNumber = 0;
 
                 List<Option> options = (List<Option>)msg.GetOptions();
-                Sort.InsertionSort(options, delegate(Option o1, Option o2)
+                Utils.InsertionSort(options, delegate(Option o1, Option o2)
                 {
                     return GetOptionNumber(o1.Type).CompareTo(GetOptionNumber(o2.Type));
                 });
@@ -631,7 +631,7 @@ namespace CoAP
                 Int32 lastOptionNumber = 0;
 
                 List<Option> options = (List<Option>)msg.GetOptions();
-                Sort.InsertionSort(options, delegate(Option o1, Option o2)
+                Utils.InsertionSort(options, delegate(Option o1, Option o2)
                 {
                     return GetOptionNumber(o1.Type).CompareTo(GetOptionNumber(o2.Type));
                 });
@@ -876,7 +876,7 @@ namespace CoAP
                 Int32 lastOptionNumber = 0;
 
                 List<Option> options = (List<Option>)msg.GetOptions();
-                Sort.InsertionSort(options, delegate(Option o1, Option o2)
+                Utils.InsertionSort(options, delegate(Option o1, Option o2)
                 {
                     return GetOptionNumber(o1.Type).CompareTo(GetOptionNumber(o2.Type));
                 });
@@ -1248,7 +1248,7 @@ namespace CoAP
 
                 Int32 lastOptionNumber = 0;
                 List<Option> options = (List<Option>)msg.GetOptions();
-                Sort.InsertionSort(options, delegate(Option o1, Option o2)
+                Utils.InsertionSort(options, delegate(Option o1, Option o2)
                 {
                     return GetOptionNumber(o1.Type).CompareTo(GetOptionNumber(o2.Type));
                 });

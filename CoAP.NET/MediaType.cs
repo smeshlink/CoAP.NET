@@ -158,6 +158,28 @@ namespace CoAP
             return mediaType >= ImageGif && mediaType <= ImageTiff;
         }
 
+        public static Boolean IsPrintable(Int32 mediaType)
+        {
+            switch (mediaType)
+            {
+                case TextPlain:
+                case TextXml:
+                case TextCsv:
+                case TextHtml:
+                case ApplicationLinkFormat:
+                case ApplicationXml:
+                case ApplicationRdfXml:
+                case ApplicationSoapXml:
+                case ApplicationAtomXml:
+                case ApplicationXmppXml:
+                case ApplicationJson:
+                case Undefined:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
         /// <summary>
         /// Returns a string representation of the media type.
         /// </summary>

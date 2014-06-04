@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2011-2013, Longxiang He <helongxiang@smeshlink.com>,
+ * Copyright (c) 2011-2014, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
  * This program is distributed in the hope that it will be useful,
@@ -197,7 +197,7 @@ namespace CoAP
             const Int32 prime = 31;
             Int32 result = 1;
             result = prime * result + (Int32)this._type;
-            result = prime * result + ComputeHash(this.RawValue);
+            result = prime * result + ByteArrayUtils.ComputeHash(this.RawValue);
             return result;
         }
 
@@ -217,7 +217,7 @@ namespace CoAP
             else if (null != this.RawValue && null == other.RawValue)
                 return false;
             else
-                return Sort.IsSequenceEqualTo(this.RawValue, other.RawValue);
+                return Utils.AreSequenceEqualTo(this.RawValue, other.RawValue);
         }
 
         /// <summary>
@@ -416,25 +416,6 @@ namespace CoAP
                     return OptionFormat.Opaque;
                 default:
                     return OptionFormat.Unknown;
-            }
-        }
-
-        private static Int32 ComputeHash(params Byte[] data)
-        {
-            unchecked
-            {
-                const Int32 p = 16777619;
-                Int32 hash = (Int32)2166136261;
-
-                for (Int32 i = 0; i < data.Length; i++)
-                    hash = (hash ^ data[i]) * p;
-
-                hash += hash << 13;
-                hash ^= hash >> 7;
-                hash += hash << 3;
-                hash ^= hash >> 17;
-                hash += hash << 5;
-                return hash;
             }
         }
 
