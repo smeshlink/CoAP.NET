@@ -56,6 +56,7 @@
     <Compile Include="ResourceAttributesTest.cs" />
     <Compile Include="ResourceTest.cs" />
     <Compile Include="ResourceTreeTest.cs" />
+    <Compile Include="StartStopTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CoAP.NET\CoAP.NET.csproj">
