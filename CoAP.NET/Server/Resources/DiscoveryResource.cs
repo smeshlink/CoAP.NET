@@ -41,7 +41,7 @@ namespace CoAP.Server.Resources
         protected override void DoGet(CoapExchange exchange)
         {
             exchange.Respond(StatusCode.Content,
-                LinkFormat.Serialize(_root, exchange.Request.GetOptions(OptionType.UriQuery)),
+                LinkFormat.Serialize(_root, exchange.Request.UriQueries),
                 MediaType.ApplicationLinkFormat);
         }
     }

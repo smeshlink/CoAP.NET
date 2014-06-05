@@ -107,7 +107,7 @@ namespace CoAP
                     Int32 port = value.Port;
 
                     // set Uri-Host option if not IP literal
-                    if (host != null && !regIP.IsMatch(host)
+                    if (!String.IsNullOrEmpty(host) && !regIP.IsMatch(host)
                         && !host.Equals("localhost", StringComparison.OrdinalIgnoreCase))
                         UriHost = host;
 

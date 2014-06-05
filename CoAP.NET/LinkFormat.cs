@@ -77,7 +77,7 @@ namespace CoAP
 
         private static ILogger log = LogManager.GetLogger(typeof(LinkFormat));
 
-        public static String Serialize(IResource root, IEnumerable<Option> queries)
+        public static String Serialize(IResource root, IEnumerable<String> queries)
         {
             StringBuilder linkFormat = new StringBuilder();
 
@@ -143,7 +143,7 @@ namespace CoAP
             yield break;
         }
 
-        private static Boolean SerializeTree(IResource resource, IEnumerable<Option> queries, StringBuilder sb)
+        private static Boolean SerializeTree(IResource resource, IEnumerable<String> queries, StringBuilder sb)
         {
             Boolean append = false;
 
@@ -382,68 +382,75 @@ namespace CoAP
             return false;
         }
 
-        private static Boolean Matches(IResource resource, IEnumerable<Option> query)
+        private static Boolean Matches(IResource resource, IEnumerable<String> query)
         {
             if (resource == null)
                 return false;
             if (query == null)
                 return true;
 
-            ResourceAttributes attributes = resource.Attributes;
-            String path = resource.Path + resource.Name;
-
-            foreach (Option q in query)
+            using (IEnumerator<String> ie = query.GetEnumerator())
             {
-                String s = q.StringValue;
-                Int32 delim = s.IndexOf('=');
-                if (delim == -1)
-                {
-                    // flag attribute
-                    if (attributes.Contains(s))
-                        return true;
-                }
-                else
-                {
-                    String attrName = s.Substring(0, delim);
-                    String expected = s.Substring(delim + 1);
+                if (!ie.MoveNext())
+                    return true;
 
-                    if (attrName.Equals(LinkFormat.Link))
+                ResourceAttributes attributes = resource.Attributes;
+                String path = resource.Path + resource.Name;
+
+                do
+                {
+                    String s = ie.Current;
+
+                    Int32 delim = s.IndexOf('=');
+                    if (delim == -1)
                     {
-                        if (expected.EndsWith("*"))
-                            return resource.Path.StartsWith(expected.Substring(0, expected.Length - 1));
-                        else
-                            return resource.Path.Equals(expected);
+                        // flag attribute
+                        if (attributes.Contains(s))
+                            return true;
                     }
-                    else if (attributes.Contains(attrName))
+                    else
                     {
-                        // lookup attribute value
-                        foreach (String value in attributes.GetValues(attrName))
+                        String attrName = s.Substring(0, delim);
+                        String expected = s.Substring(delim + 1);
+
+                        if (attrName.Equals(LinkFormat.Link))
                         {
-                            String actual = value;
-                            // get prefix length according to "*"
-                            Int32 prefixLength = expected.IndexOf('*');
-                            if (prefixLength >= 0 && prefixLength < actual.Length)
+                            if (expected.EndsWith("*"))
+                                return resource.Path.StartsWith(expected.Substring(0, expected.Length - 1));
+                            else
+                                return resource.Path.Equals(expected);
+                        }
+                        else if (attributes.Contains(attrName))
+                        {
+                            // lookup attribute value
+                            foreach (String value in attributes.GetValues(attrName))
                             {
-                                // reduce to prefixes
-                                expected = expected.Substring(0, prefixLength);
-                                actual = actual.Substring(0, prefixLength);
-                            }
-
-                            // handle case like rt=[Type1 Type2]
-                            if (actual.IndexOf(' ') > -1)
-                            {
-                                foreach (String part in actual.Split(' '))
+                                String actual = value;
+                                // get prefix length according to "*"
+                                Int32 prefixLength = expected.IndexOf('*');
+                                if (prefixLength >= 0 && prefixLength < actual.Length)
                                 {
-                                    if (part.Equals(expected))
-                                        return true;
+                                    // reduce to prefixes
+                                    expected = expected.Substring(0, prefixLength);
+                                    actual = actual.Substring(0, prefixLength);
                                 }
-                            }
 
-                            if (expected.Equals(actual))
-                                return true;
+                                // handle case like rt=[Type1 Type2]
+                                if (actual.IndexOf(' ') > -1)
+                                {
+                                    foreach (String part in actual.Split(' '))
+                                    {
+                                        if (part.Equals(expected))
+                                            return true;
+                                    }
+                                }
+
+                                if (expected.Equals(actual))
+                                    return true;
+                            }
                         }
                     }
-                }
+                } while (ie.MoveNext());
             }
 
             return false;
