@@ -127,7 +127,6 @@
     <Compile Include="Util\ArrayEqualityComparer.cs" />
     <Compile Include="Util\ByteArrayUtils.cs" />
     <Compile Include="Util\Delegates.cs" />
-    <Compile Include="Util\HashMap.cs" />
     <Compile Include="Util\Scanner.cs" />
     <Compile Include="Util\System\Funcs.cs" />
     <Compile Include="Util\System.Collections.Concurrent\ConcurrentDictionary.cs" />

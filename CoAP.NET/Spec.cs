@@ -708,7 +708,7 @@ namespace CoAP
                 writer.Write(Version, VersionBits);
                 writer.Write((Int32)msg.Type, TypeBits);
                 writer.Write(optionCount, OptionCountBits);
-                writer.Write(msg.Code, CodeBits);
+                writer.Write(code, CodeBits);
                 writer.Write(msg.ID, IDBits);
 
                 // write options
@@ -979,7 +979,7 @@ namespace CoAP
                     writer.Write(optionCount, OptionCountBits);
                 else
                     writer.Write(15, OptionCountBits);
-                writer.Write(msg.Code, CodeBits);
+                writer.Write(code, CodeBits);
                 writer.Write(msg.ID, IDBits);
 
                 // write options
@@ -1240,7 +1240,7 @@ namespace CoAP
                 writer.Write(Version, VersionBits);
                 writer.Write((Int32)msg.Type, TypeBits);
                 writer.Write(msg.Token.Length, TokenLengthBits);
-                writer.Write(msg.Code, CodeBits);
+                writer.Write(code, CodeBits);
                 writer.Write(msg.ID, IDBits);
 
                 // write token, which may be 0 to 8 bytes, given by token length field
