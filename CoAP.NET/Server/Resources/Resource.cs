@@ -123,7 +123,11 @@ namespace CoAP.Server.Resources
         public Boolean Observable
         {
             get { return _observable; }
-            set { _observable = value; }
+            set
+            {
+                _observable = value;
+                Attributes.Observable = value;
+            }
         }
 
         /// <summary>
