@@ -189,8 +189,20 @@ namespace CoAP.Server.Resources
         {
             if (child.Name == null)
                 throw new ArgumentException("Child must have a name", "child");
-            _children[child.Name] = child;
-            child.Parent = this;
+            lock (this)
+            {
+                _children[child.Name] = child;
+                child.Parent = this;
+            }
+        }
+
+        public Resource Add(Resource child)
+        {
+            lock (this)
+            {
+                Add((IResource)child);
+            }
+            return this;
         }
 
         /// <inheritdoc/>

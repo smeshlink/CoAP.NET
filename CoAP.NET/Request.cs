@@ -159,11 +159,12 @@ namespace CoAP
             }
         }
 
-        public void SetUri(String uri)
+        public Request SetUri(String uri)
         {
             if (!uri.StartsWith("coap://") && !uri.StartsWith("coaps://"))
                 uri = "coap://" + uri;
             URI = new Uri(uri);
+            return this;
         }
 
         /// <summary>
