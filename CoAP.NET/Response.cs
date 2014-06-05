@@ -20,24 +20,28 @@ namespace CoAP
     /// </summary>
     public class Response : Message
     {
+        private readonly StatusCode _statusCode;
         private Request _request;
         private Double _rtt;
         private Boolean _last = true;
 
         /// <summary>
-        /// Initializes a response message with default code.
-        /// </summary>
-        public Response()
-            : this(CoAP.Code.Valid)
-        { }
-
-        /// <summary>
         /// Initializes a response message.
         /// </summary>
         /// <param name="code">The code of this response</param>
-        public Response(Int32 code)
-            : base(MessageType.Unknown, code)
-        { }
+        public Response(StatusCode code)
+            : base(MessageType.Unknown, (Int32)code)
+        {
+            _statusCode = code;
+        }
+
+        /// <summary>
+        /// Gets the response status code.
+        /// </summary>
+        public StatusCode StatusCode
+        {
+            get { return _statusCode; }
+        }
 
         /// <summary>
         /// Gets or sets the request related to this response.
@@ -70,7 +74,7 @@ namespace CoAP
         /// Creates a piggy-backed response with the specified response code
         /// to the specified request.
         /// </summary>
-        public static Response CreatePiggybackedResponse(Request request, Int32 code)
+        public static Response CreatePiggybackedResponse(Request request, StatusCode code)
         {
             Response response = new Response(code);
             response.ID = request.ID;
@@ -86,7 +90,7 @@ namespace CoAP
 	    /// address of the request. The response has the same token as the request
         /// but needs another MID from the CoAP network stack.
         /// </summary>
-        public static Response CreateSeparateResponse(Request request, Int32 code)
+        public static Response CreateSeparateResponse(Request request, StatusCode code)
         {
             Response response = new Response(code);
             response.Destination = request.Source;

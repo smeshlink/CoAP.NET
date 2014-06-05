@@ -22,7 +22,7 @@ namespace CoAP.Examples.Resources
             else
             {
                 String subtree = LinkFormat.Serialize(this, null);
-                exchange.Respond(Code.Content, subtree, MediaType.ApplicationLinkFormat);
+                exchange.Respond(StatusCode.Content, subtree, MediaType.ApplicationLinkFormat);
             }
         }
 
@@ -35,7 +35,7 @@ namespace CoAP.Examples.Resources
             String[] path = payload.Split('/');
             IResource resource = Create(new LinkedList<String>(path));
 
-            Response response = new Response(Code.Created);
+            Response response = new Response(StatusCode.Created);
             response.LocationPath = resource.Uri;
             exchange.Respond(response);
         }
@@ -43,13 +43,13 @@ namespace CoAP.Examples.Resources
         protected override void DoPut(CoapExchange exchange)
         {
             _content = exchange.Request.PayloadString;
-            exchange.Respond(Code.Changed);
+            exchange.Respond(StatusCode.Changed);
         }
 
         protected override void DoDelete(CoapExchange exchange)
         {
             this.Delete();
-            exchange.Respond(Code.Deleted);
+            exchange.Respond(StatusCode.Deleted);
         }
 
         private IResource Create(LinkedList<String> path)

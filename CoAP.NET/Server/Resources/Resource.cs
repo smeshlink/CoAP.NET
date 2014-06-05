@@ -223,7 +223,7 @@ namespace CoAP.Server.Resources
                 if (parent != null)
                     parent.Remove(this);
                 if (Observable)
-                    ClearAndNotifyObserveRelations(Code.NotFound);
+                    ClearAndNotifyObserveRelations(StatusCode.NotFound);
             }
         }
 
@@ -254,7 +254,7 @@ namespace CoAP.Server.Resources
         /// Remove all observe relations to CoAP clients and notify them that the
         /// observe relation has been canceled.
         /// </summary>
-        public void ClearAndNotifyObserveRelations(Int32 code)
+        public void ClearAndNotifyObserveRelations(StatusCode code)
         {
             /*
              * draft-ietf-core-observe-08, chapter 3.2 Notification states:
@@ -276,18 +276,18 @@ namespace CoAP.Server.Resources
         public virtual void HandleRequest(Exchange exchange)
         {
             CoapExchange ce = new CoapExchange(exchange, this);
-            switch (exchange.Request.Code)
+            switch (exchange.Request.Method)
             {
-                case Code.GET:
+                case Method.GET:
                     DoGet(ce);
                     break;
-                case Code.POST:
+                case Method.POST:
                     DoPost(ce);
                     break;
-                case Code.PUT:
+                case Method.PUT:
                     DoPut(ce);
                     break;
-                case Code.DELETE:
+                case Method.DELETE:
                     DoDelete(ce);
                     break;
                 default:
@@ -300,7 +300,7 @@ namespace CoAP.Server.Resources
         /// </summary>
         protected virtual void DoGet(CoapExchange exchange)
         {
-            exchange.Respond(Code.MethodNotAllowed);
+            exchange.Respond(StatusCode.MethodNotAllowed);
         }
 
         /// <summary>
@@ -308,7 +308,7 @@ namespace CoAP.Server.Resources
         /// </summary>
         protected virtual void DoPost(CoapExchange exchange)
         {
-            exchange.Respond(Code.MethodNotAllowed);
+            exchange.Respond(StatusCode.MethodNotAllowed);
         }
 
         /// <summary>
@@ -316,7 +316,7 @@ namespace CoAP.Server.Resources
         /// </summary>
         protected virtual void DoPut(CoapExchange exchange)
         {
-            exchange.Respond(Code.MethodNotAllowed);
+            exchange.Respond(StatusCode.MethodNotAllowed);
         }
 
         /// <summary>
@@ -324,7 +324,7 @@ namespace CoAP.Server.Resources
         /// </summary>
         protected virtual void DoDelete(CoapExchange exchange)
         {
-            exchange.Respond(Code.MethodNotAllowed);
+            exchange.Respond(StatusCode.MethodNotAllowed);
         }
 
         /// <summary>

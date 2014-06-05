@@ -34,7 +34,7 @@ namespace CoAP.Examples.Resources
             if ((ct = MediaType.NegotiationContent(ct, _supported, request.GetOptions(OptionType.Accept)))
                 == MediaType.Undefined)
             {
-                exchange.Respond(Code.NotAcceptable);
+                exchange.Respond(StatusCode.NotAcceptable);
             }
             else
             {
@@ -49,18 +49,18 @@ namespace CoAP.Examples.Resources
                     }
                     catch (Exception ex)
                     {
-                        exchange.Respond(Code.InternalServerError, "IO error");
+                        exchange.Respond(StatusCode.InternalServerError, "IO error");
                         Console.WriteLine(ex.Message);
                     }
 
-                    Response response = new Response(Code.Content);
+                    Response response = new Response(StatusCode.Content);
                     response.Payload = data;
                     response.ContentType = ct;
                     exchange.Respond(response);
                 }
                 else
                 {
-                    exchange.Respond(Code.InternalServerError, "Image file not found");
+                    exchange.Respond(StatusCode.InternalServerError, "Image file not found");
                 }
             }
         }

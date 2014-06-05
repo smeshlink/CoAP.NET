@@ -36,7 +36,7 @@ namespace CoAP.Proxy.Resources
             {
                 if (log.IsWarnEnabled)
                     log.Warn("Proxy-uri option not set.");
-                return new Response(Code.BadOption);
+                return new Response(StatusCode.BadOption);
             }
 
             // remove the fake uri-path
@@ -58,13 +58,13 @@ namespace CoAP.Proxy.Resources
             {
                 if (log.IsWarnEnabled)
                     log.Warn("Proxy-uri option malformed: " + ex.Message);
-                return new Response(Code.BadOption);
+                return new Response(StatusCode.BadOption);
             }
             catch (System.IO.IOException ex)
             {
                 if (log.IsWarnEnabled)
                     log.Warn("Failed to execute request: " + ex.Message);
-                return new Response(Code.InternalServerError);
+                return new Response(StatusCode.InternalServerError);
             }
 
             // receive the response
@@ -78,12 +78,12 @@ namespace CoAP.Proxy.Resources
             {
                 if (log.IsWarnEnabled)
                     log.Warn("Receiving of response interrupted: " + ex.Message);
-                return new Response(Code.InternalServerError);
+                return new Response(StatusCode.InternalServerError);
             }
 
             if (receivedResponse == null)
             {
-                return new Response(Code.GatewayTimeout);
+                return new Response(StatusCode.GatewayTimeout);
             }
             else
             {

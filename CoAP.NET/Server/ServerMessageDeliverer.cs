@@ -54,7 +54,7 @@ namespace CoAP.Server
             }
             else
             {
-                exchange.SendResponse(new Response(Code.NotFound));
+                exchange.SendResponse(new Response(StatusCode.NotFound));
             }
         }
 
@@ -86,7 +86,7 @@ namespace CoAP.Server
         private void CheckForObserveOption(Exchange exchange, IResource resource)
         {
             Request request = exchange.Request;
-            if (request.Code != Code.GET)
+            if (request.Method != Method.GET)
                 return;
 
             System.Net.EndPoint source = request.Source;

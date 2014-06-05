@@ -102,7 +102,7 @@ namespace CoAP.Server.Resources
         /// <summary>
         /// Responds the specified response code and no payload.
         /// </summary>
-        public void Respond(Int32 code)
+        public void Respond(StatusCode code)
         {
             Respond(new Response(code));
         }
@@ -112,13 +112,13 @@ namespace CoAP.Server.Resources
         /// </summary>
         public void Respond(String payload)
         {
-            Respond(Code.Content, payload);
+            Respond(StatusCode.Content, payload);
         }
 
         /// <summary>
         /// Responds with the specified response code and payload.
         /// </summary>
-        public void Respond(Int32 code, String payload)
+        public void Respond(StatusCode code, String payload)
         {
             Response response = new Response(code);
             response.SetPayload(payload, MediaType.TextPlain);
@@ -128,7 +128,7 @@ namespace CoAP.Server.Resources
         /// <summary>
         /// Responds with the specified response code and payload.
         /// </summary>
-        public void Respond(Int32 code, Byte[] payload)
+        public void Respond(StatusCode code, Byte[] payload)
         {
             Response response = new Response(code);
             response.Payload = payload;
@@ -138,7 +138,7 @@ namespace CoAP.Server.Resources
         /// <summary>
         /// Responds with the specified response code, payload and content-type.
         /// </summary>
-        public void Respond(Int32 code, Byte[] payload, Int32 contentType)
+        public void Respond(StatusCode code, Byte[] payload, Int32 contentType)
         {
             Response response = new Response(code);
             response.Payload = payload;
@@ -149,7 +149,7 @@ namespace CoAP.Server.Resources
         /// <summary>
         /// Responds with the specified response code, payload and content-type.
         /// </summary>
-        public void Respond(Int32 code, String payload, Int32 contentType)
+        public void Respond(StatusCode code, String payload, Int32 contentType)
         {
             Response response = new Response(code);
             response.SetPayload(payload, contentType);

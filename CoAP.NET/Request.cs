@@ -61,6 +61,9 @@ namespace CoAP
             this.Cancel += (o, e) => NotifyResponse();
         }
 
+        /// <summary>
+        /// Gets the request method.
+        /// </summary>
         public Method Method
         {
             get { return _method; }

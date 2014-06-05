@@ -93,7 +93,7 @@ namespace CoAP.Proxy
             if (incomingResponse == null)
                 throw ThrowHelper.ArgumentNull("incomingResponse");
 
-            Response outgoingResponse = new Response(incomingResponse.Code);
+            Response outgoingResponse = new Response(incomingResponse.StatusCode);
 
             // copy payload
             Byte[] payload = incomingResponse.Payload;

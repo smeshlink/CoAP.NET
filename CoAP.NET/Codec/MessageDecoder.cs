@@ -91,7 +91,7 @@ namespace CoAP.Codec
         public Response DecodeResponse()
         {
             System.Diagnostics.Debug.Assert(IsResponse);
-            Response response = new Response(_code);
+            Response response = new Response((StatusCode)_code);
             response.Type = _type;
             response.ID = _id;
             ParseMessage(response);

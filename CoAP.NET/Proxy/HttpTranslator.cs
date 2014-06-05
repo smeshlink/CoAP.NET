@@ -22,7 +22,7 @@ namespace CoAP.Proxy
 {
     static class HttpTranslator
     {
-        private static readonly Dictionary<HttpStatusCode, Int32> http2coapCode = new Dictionary<HttpStatusCode, Int32>();
+        private static readonly Dictionary<HttpStatusCode, StatusCode> http2coapCode = new Dictionary<HttpStatusCode, StatusCode>();
         private static readonly Dictionary<String, OptionType> http2coapOption = new Dictionary<String, OptionType>(StringComparer.OrdinalIgnoreCase);
         private static readonly Dictionary<OptionType, String> coap2httpHeader = new Dictionary<OptionType, String>();
         private static readonly Dictionary<String, Int32> http2coapMediaType = new Dictionary<String, Int32>(StringComparer.OrdinalIgnoreCase);
@@ -66,44 +66,44 @@ namespace CoAP.Proxy
             coap2httpContentType[MediaType.ApplicationXml] = "application/xml";
             coap2httpContentType[MediaType.ApplicationJson] = "application/json; charset=UTF-8";
             coap2httpContentType[MediaType.ApplicationLinkFormat] = "application/link-format";
-            
-            http2coapCode[HttpStatusCode.Continue] = Code.BadGateway;
-            http2coapCode[HttpStatusCode.SwitchingProtocols] = Code.BadGateway;
-            http2coapCode[HttpStatusCode.OK] = Code.Content;
-            http2coapCode[HttpStatusCode.Created] = Code.Created;
-            http2coapCode[HttpStatusCode.Accepted] = Code.Content;
-            http2coapCode[HttpStatusCode.NonAuthoritativeInformation] = Code.Content;
-            http2coapCode[HttpStatusCode.ResetContent] = Code.Content;
+
+            http2coapCode[HttpStatusCode.Continue] = StatusCode.BadGateway;
+            http2coapCode[HttpStatusCode.SwitchingProtocols] = StatusCode.BadGateway;
+            http2coapCode[HttpStatusCode.OK] = StatusCode.Content;
+            http2coapCode[HttpStatusCode.Created] = StatusCode.Created;
+            http2coapCode[HttpStatusCode.Accepted] = StatusCode.Content;
+            http2coapCode[HttpStatusCode.NonAuthoritativeInformation] = StatusCode.Content;
+            http2coapCode[HttpStatusCode.ResetContent] = StatusCode.Content;
             http2coapCode[HttpStatusCode.PartialContent] = 0;
-            http2coapCode[HttpStatusCode.MultipleChoices] = Code.BadGateway;
-            http2coapCode[HttpStatusCode.Moved] = Code.BadGateway;
-            http2coapCode[HttpStatusCode.Redirect] = Code.BadGateway;
-            http2coapCode[HttpStatusCode.RedirectMethod] = Code.BadGateway;
-            http2coapCode[HttpStatusCode.NotModified] = Code.Valid;
-            http2coapCode[HttpStatusCode.UseProxy] = Code.BadGateway;
-            http2coapCode[HttpStatusCode.TemporaryRedirect] = Code.BadGateway;
-            http2coapCode[HttpStatusCode.BadRequest] = Code.BadRequest;
-            http2coapCode[HttpStatusCode.Unauthorized] = Code.Unauthorized;
-            http2coapCode[HttpStatusCode.PaymentRequired] = Code.BadRequest;
-            http2coapCode[HttpStatusCode.Forbidden] = Code.Forbidden;
-            http2coapCode[HttpStatusCode.NotFound] = Code.NotFound;
-            http2coapCode[HttpStatusCode.MethodNotAllowed] = Code.MethodNotAllowed;
-            http2coapCode[HttpStatusCode.NotAcceptable] = Code.NotAcceptable;
-            http2coapCode[HttpStatusCode.Gone] = Code.BadRequest;
-            http2coapCode[HttpStatusCode.LengthRequired] = Code.BadRequest;
-            http2coapCode[HttpStatusCode.PreconditionFailed] = Code.PreconditionFailed;
-            http2coapCode[HttpStatusCode.RequestEntityTooLarge] = Code.RequestEntityTooLarge;
-            http2coapCode[HttpStatusCode.RequestUriTooLong] = Code.BadRequest;
-            http2coapCode[HttpStatusCode.UnsupportedMediaType] = Code.BadRequest;
-            http2coapCode[HttpStatusCode.RequestedRangeNotSatisfiable] = Code.BadRequest;
-            http2coapCode[HttpStatusCode.ExpectationFailed] = Code.BadRequest;
-            http2coapCode[HttpStatusCode.InternalServerError] = Code.InternalServerError;
-            http2coapCode[HttpStatusCode.NotImplemented] = Code.NotImplemented;
-            http2coapCode[HttpStatusCode.BadGateway] = Code.BadGateway;
-            http2coapCode[HttpStatusCode.ServiceUnavailable] = Code.ServiceUnavailable;
-            http2coapCode[HttpStatusCode.GatewayTimeout] = Code.GatewayTimeout;
-            http2coapCode[HttpStatusCode.HttpVersionNotSupported] = Code.BadGateway;
-            http2coapCode[(HttpStatusCode)507] = Code.InternalServerError;
+            http2coapCode[HttpStatusCode.MultipleChoices] = StatusCode.BadGateway;
+            http2coapCode[HttpStatusCode.Moved] = StatusCode.BadGateway;
+            http2coapCode[HttpStatusCode.Redirect] = StatusCode.BadGateway;
+            http2coapCode[HttpStatusCode.RedirectMethod] = StatusCode.BadGateway;
+            http2coapCode[HttpStatusCode.NotModified] = StatusCode.Valid;
+            http2coapCode[HttpStatusCode.UseProxy] = StatusCode.BadGateway;
+            http2coapCode[HttpStatusCode.TemporaryRedirect] = StatusCode.BadGateway;
+            http2coapCode[HttpStatusCode.BadRequest] = StatusCode.BadRequest;
+            http2coapCode[HttpStatusCode.Unauthorized] = StatusCode.Unauthorized;
+            http2coapCode[HttpStatusCode.PaymentRequired] = StatusCode.BadRequest;
+            http2coapCode[HttpStatusCode.Forbidden] = StatusCode.Forbidden;
+            http2coapCode[HttpStatusCode.NotFound] = StatusCode.NotFound;
+            http2coapCode[HttpStatusCode.MethodNotAllowed] = StatusCode.MethodNotAllowed;
+            http2coapCode[HttpStatusCode.NotAcceptable] = StatusCode.NotAcceptable;
+            http2coapCode[HttpStatusCode.Gone] = StatusCode.BadRequest;
+            http2coapCode[HttpStatusCode.LengthRequired] = StatusCode.BadRequest;
+            http2coapCode[HttpStatusCode.PreconditionFailed] = StatusCode.PreconditionFailed;
+            http2coapCode[HttpStatusCode.RequestEntityTooLarge] = StatusCode.RequestEntityTooLarge;
+            http2coapCode[HttpStatusCode.RequestUriTooLong] = StatusCode.BadRequest;
+            http2coapCode[HttpStatusCode.UnsupportedMediaType] = StatusCode.BadRequest;
+            http2coapCode[HttpStatusCode.RequestedRangeNotSatisfiable] = StatusCode.BadRequest;
+            http2coapCode[HttpStatusCode.ExpectationFailed] = StatusCode.BadRequest;
+            http2coapCode[HttpStatusCode.InternalServerError] = StatusCode.InternalServerError;
+            http2coapCode[HttpStatusCode.NotImplemented] = StatusCode.NotImplemented;
+            http2coapCode[HttpStatusCode.BadGateway] = StatusCode.BadGateway;
+            http2coapCode[HttpStatusCode.ServiceUnavailable] = StatusCode.ServiceUnavailable;
+            http2coapCode[HttpStatusCode.GatewayTimeout] = StatusCode.GatewayTimeout;
+            http2coapCode[HttpStatusCode.HttpVersionNotSupported] = StatusCode.BadGateway;
+            http2coapCode[(HttpStatusCode)507] = StatusCode.InternalServerError;
 
             http2coapMethod["get"] = Method.GET; ;
             http2coapMethod["post"] = Method.POST;
@@ -136,17 +136,17 @@ namespace CoAP.Proxy
                 throw ThrowHelper.ArgumentNull("coapRequest");
 
             HttpStatusCode httpCode = httpResponse.StatusCode;
-            Int32 coapCode = 0;
+            StatusCode coapCode = 0;
 
             // the code 204-"no content" should be managed
             // separately because it can be mapped to different coap codes
             // depending on the request that has originated the response
             if (httpCode == HttpStatusCode.NoContent)
             {
-                if (coapRequest.Code == Code.DELETE)
-                    coapCode = Code.Deleted;
+                if (coapRequest.Method == Method.DELETE)
+                    coapCode = StatusCode.Deleted;
                 else
-                    coapCode = Code.Changed;
+                    coapCode = StatusCode.Changed;
             }
             else
             {
@@ -166,7 +166,7 @@ namespace CoAP.Proxy
             {
                 // The Max-Age Option for responses to POST, PUT or DELETE requests
                 // should always be set to 0 (draft-castellani-core-http-mapping).
-                coapResponse.MaxAge = coapRequest.Code == Code.GET ? CoapConstants.DefaultMaxAge : 0;
+                coapResponse.MaxAge = coapRequest.Method == Method.GET ? CoapConstants.DefaultMaxAge : 0;
             }
 
             Byte[] buffer = new Byte[4096];
@@ -465,7 +465,7 @@ namespace CoAP.Proxy
             if (proxyUri == null)
                 throw new TranslationException("Cannot get the proxy-uri from the coap message");
 
-            String coapMethod = Code.ToString(coapRequest.Code);
+            String coapMethod = coapRequest.Method.ToString();
             
             WebRequest httpRequest = WebRequest.Create(proxyUri);
             httpRequest.Method = coapMethod;

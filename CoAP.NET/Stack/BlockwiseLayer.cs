@@ -82,7 +82,7 @@ namespace CoAP.Stack
                     }
                     else
                     {
-                        Response error = Response.CreatePiggybackedResponse(request, Code.RequestEntityIncomplete);
+                        Response error = Response.CreatePiggybackedResponse(request, StatusCode.RequestEntityIncomplete);
                         error.AddOption(new BlockOption(OptionType.Block1, block1.NUM, block1.SZX, block1.M));
                         error.SetPayload("Changed Content-Format");
                         request.Acknowledged = true;
@@ -99,7 +99,7 @@ namespace CoAP.Stack
 
                         if (request.Type == MessageType.CON)
                         {
-                            Response piggybacked = Response.CreatePiggybackedResponse(request, Code.Continue);
+                            Response piggybacked = Response.CreatePiggybackedResponse(request, StatusCode.Continue);
                             piggybacked.AddOption(new BlockOption(OptionType.Block1, block1.NUM, block1.SZX, true));
                             piggybacked.Last = false;
                             request.Acknowledged = true;
@@ -132,7 +132,7 @@ namespace CoAP.Stack
                     // ERROR, wrong number, Incomplete
                     if (log.IsWarnEnabled)
                         log.Warn("Wrong block number. Expected " + status.CurrentNUM + " but received " + block1.NUM + ". Respond with 4.08 (Request Entity Incomplete).");
-                    Response error = Response.CreatePiggybackedResponse(request, Code.RequestEntityIncomplete);
+                    Response error = Response.CreatePiggybackedResponse(request, StatusCode.RequestEntityIncomplete);
                     error.AddOption(new BlockOption(OptionType.Block1, block1.NUM, block1.SZX, block1.M));
                     error.SetPayload("Wrong block number");
                     request.Acknowledged = true;
@@ -320,7 +320,7 @@ namespace CoAP.Stack
                     {
                         if (log.IsDebugEnabled)
                             log.Debug("We have received all " + status.BlockCount + " blocks of the response. Assemble and deliver.");
-                        Response assembled = new Response(response.Code);
+                        Response assembled = new Response(response.StatusCode);
                         AssembleMessage(status, assembled, response);
                         assembled.Type = response.Type;
 
@@ -438,7 +438,7 @@ namespace CoAP.Stack
         {
             Int32 szx = status.CurrentSZX;
             Int32 num = status.CurrentNUM;
-            Response block = new Response(response.Code);
+            Response block = new Response(response.StatusCode);
             // block.setType(response.getType()); // NO! First block has type from origin response, all other depend on current request
             block.Destination = response.Destination;
             block.Token = response.Token;
@@ -497,7 +497,7 @@ namespace CoAP.Stack
 
         private Boolean RequiresBlockwise(Request request)
         {
-            if (request.Code == Code.PUT || request.Code == Code.POST)
+            if (request.Method == Method.PUT || request.Method == Method.POST)
                 return request.PayloadSize > _maxMessageSize;
             else
                 return false;

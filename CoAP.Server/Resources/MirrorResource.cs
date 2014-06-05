@@ -27,7 +27,7 @@ namespace CoAP.Examples.Resources
                 .Append("\n").Append("Token: ").Append(request.TokenString)
                 //.Append("\n").Append(request.Options)
                 ;
-            Response response = new Response(Code.Content);
+            Response response = new Response(StatusCode.Content);
             response.PayloadString = buffer.ToString();
             exchange.SendResponse(response);
         }

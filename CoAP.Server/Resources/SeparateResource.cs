@@ -25,7 +25,7 @@ namespace CoAP.Examples.Resources
             Thread.Sleep(2000);
 
             // Now respond the previous request.
-            Response response = new Response(Code.Content);
+            Response response = new Response(StatusCode.Content);
             response.PayloadString = "This message was sent by a separate response.\n" +
                 "Your client will need to acknowledge it, otherwise it will be retransmitted.";
 

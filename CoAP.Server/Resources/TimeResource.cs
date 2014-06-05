@@ -27,7 +27,7 @@ namespace CoAP.Examples.Resources
 
         protected override void DoGet(CoapExchange exchange)
         {
-            exchange.Respond(Code.Content, _now.ToString(), MediaType.TextPlain);
+            exchange.Respond(StatusCode.Content, _now.ToString(), MediaType.TextPlain);
         }
     }
 }

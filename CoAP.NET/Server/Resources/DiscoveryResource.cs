@@ -40,7 +40,7 @@ namespace CoAP.Server.Resources
         /// <inheritdoc/>
         protected override void DoGet(CoapExchange exchange)
         {
-            exchange.Respond(Code.Content,
+            exchange.Respond(StatusCode.Content,
                 LinkFormat.Serialize(_root, exchange.Request.GetOptions(OptionType.UriQuery)),
                 MediaType.ApplicationLinkFormat);
         }

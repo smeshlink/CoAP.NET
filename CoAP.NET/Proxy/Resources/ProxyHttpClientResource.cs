@@ -37,7 +37,7 @@ namespace CoAP.Proxy.Resources
             {
                 if (log.IsWarnEnabled)
                     log.Warn("Proxy-uri option not set.");
-                return new Response(Code.BadOption);
+                return new Response(StatusCode.BadOption);
             }
 
             // remove the fake uri-path
@@ -53,7 +53,7 @@ namespace CoAP.Proxy.Resources
             {
                 if (log.IsWarnEnabled)
                     log.Warn("Proxy-uri option malformed: " + e.Message);
-                return new Response(Code.BadOption);
+                return new Response(StatusCode.BadOption);
             }
 
             WebRequest httpRequest = null;
@@ -65,7 +65,7 @@ namespace CoAP.Proxy.Resources
             {
                 if (log.IsWarnEnabled)
                     log.Warn("Problems during the http/coap translation: " + e.Message);
-                return new Response(Code.BadGateway);
+                return new Response(StatusCode.BadGateway);
             }
 
             HttpWebResponse httpResponse = (HttpWebResponse)httpRequest.GetResponse();
@@ -80,7 +80,7 @@ namespace CoAP.Proxy.Resources
             {
                 if (log.IsWarnEnabled)
                     log.Warn("Problems during the http/coap translation: " + e.Message);
-                return new Response(Code.BadGateway);
+                return new Response(StatusCode.BadGateway);
             }
         }
     }
