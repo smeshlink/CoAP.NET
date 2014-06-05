@@ -154,12 +154,11 @@ namespace CoAP
 
         public IEnumerable<WebLink> Discover(String query)
         {
-            Request discover = Request.NewGet();
-            discover.URI = _uri;
+            Request discover = Prepare(Request.NewGet());
             discover.ClearUriPath().ClearUriQuery().UriPath = CoapConstants.DefaultWellKnownURI;
             if (!String.IsNullOrEmpty(query))
                 discover.UriQuery = query;
-            Response links = Send(discover);
+            Response links = discover.Send().WaitForResponse(_timeout);
             return links.ContentType == MediaType.ApplicationLinkFormat ? 
                 LinkFormat.Parse(links.PayloadString) : EmptyLinks;
         }
