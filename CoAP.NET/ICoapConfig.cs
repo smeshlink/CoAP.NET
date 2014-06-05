@@ -57,10 +57,6 @@ namespace CoAP
         Int32 ChannelReceiveBufferSize { get; }
         Int32 ChannelSendBufferSize { get; }
         Int32 ChannelReceivePacketSize { get; }
-        /// <summary>
-        /// Gets the overall timeout for CoAP request/response(s).
-        /// </summary>
-        Int32 SequenceTimeout { get; }
 #if COAPALL
         /// <summary>
         /// Gets the specification to apply.

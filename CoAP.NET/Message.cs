@@ -307,11 +307,12 @@ namespace CoAP
         /// Sets the payload of this CoAP message.
         /// </summary>
         /// <param name="payload">The string representation of the payload</param>
-        public void SetPayload(String payload)
+        public Message SetPayload(String payload)
         {
             if (payload == null)
                 payload = String.Empty;
             Payload = System.Text.Encoding.UTF8.GetBytes(payload);
+            return this;
         }
 
         /// <summary>
@@ -319,12 +320,25 @@ namespace CoAP
         /// </summary>
         /// <param name="payload">The string representation of the payload</param>
         /// <param name="mediaType">The content-type of the payload</param>
-        public void SetPayload(String payload, Int32 mediaType)
+        public Message SetPayload(String payload, Int32 mediaType)
         {
             if (payload == null)
                 payload = String.Empty;
             Payload = System.Text.Encoding.UTF8.GetBytes(payload);
             ContentType = mediaType;
+            return this;
+        }
+
+        /// <summary>
+        /// Sets the payload of this CoAP message.
+        /// </summary>
+        /// <param name="payload">the payload bytes</param>
+        /// <param name="mediaType">the content-type of the payload</param>
+        public Message SetPayload(Byte[] payload, Int32 mediaType)
+        {
+            Payload = payload;
+            ContentType = mediaType;
+            return this;
         }
 
         internal void FireRetransmitting()
@@ -495,6 +509,13 @@ namespace CoAP
         public Boolean IfNoneMatch
         {
             get { return HasOption(OptionType.IfNoneMatch); }
+            set
+            {
+                if (value)
+                    SetOption(Option.Create(OptionType.IfNoneMatch));
+                else
+                    RemoveOptions(OptionType.IfNoneMatch);
+            }
         }
 
         public String UriHost

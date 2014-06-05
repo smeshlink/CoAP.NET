@@ -108,6 +108,10 @@ namespace CoAP
         /// <returns></returns>
         public static Int32 EncodeSZX(Int32 blockSize)
         {
+            if (blockSize < 16)
+                return 0;
+            if (blockSize > 1024)
+                return 6;
             return (Int32)(Math.Log(blockSize) / Math.Log(2)) - 4;
         }
 
