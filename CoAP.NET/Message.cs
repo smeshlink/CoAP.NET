@@ -974,6 +974,13 @@ namespace CoAP
             if (option == null)
                 throw new ArgumentNullException("opt");
 
+            if (option.Type == OptionType.Token)
+            {
+                // be compatible with draft 13-
+                Token = option.RawValue;
+                return this;
+            }
+
             LinkedList<Option> list;
             if (!_optionMap.TryGetValue(option.Type, out list))
             {
@@ -982,9 +989,6 @@ namespace CoAP
             }
 
             list.AddLast(option);
-
-            if (option.Type == OptionType.Token)
-                Token = option.RawValue;
 
             return this;
         }
@@ -1076,7 +1080,7 @@ namespace CoAP
         /// Gets a sorted list of all options.
         /// </summary>
         /// <returns></returns>
-        public IList<Option> GetOptions()
+        public IEnumerable<Option> GetOptions()
         {
             List<Option> list = new List<Option>();
             foreach (ICollection<Option> opts in _optionMap.Values)
@@ -1085,15 +1089,6 @@ namespace CoAP
                     list.AddRange(opts);
             }
             return list;
-        }
-
-        /// <summary>
-        /// Gets the number of all options of this CoAP message.
-        /// </summary>
-        /// <returns></returns>
-        public Int32 GetOptionCount()
-        {
-            return GetOptions().Count;
         }
 
         #endregion

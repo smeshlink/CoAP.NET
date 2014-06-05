@@ -70,6 +70,11 @@ namespace CoAP
             set { _last = value; }
         }
 
+        public String ResponseText
+        {
+            get { return this.PayloadString; }
+        }
+
         /// <summary>
         /// Creates a piggy-backed response with the specified response code
         /// to the specified request.

@@ -63,9 +63,6 @@ namespace CoAP
         private Int32 _channelSendBufferSize;
         private Int32 _channelReceivePacketSize = 2048;
 
-        protected CoapConfig()
-        { }
-
 #if COAPALL
         private ISpec _spec = CoAP.Spec.Draft13;
 

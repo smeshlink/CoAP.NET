@@ -40,6 +40,13 @@ namespace CoAP.Net
         { }
 
         /// <summary>
+        /// Instantiates a new endpoint with the specified configuration.
+        /// </summary>
+        public CoAPEndPoint(ICoapConfig config)
+            : this(0, config)
+        { }
+
+        /// <summary>
         /// Instantiates a new endpoint with the specified port.
         /// </summary>
         public CoAPEndPoint(Int32 port)

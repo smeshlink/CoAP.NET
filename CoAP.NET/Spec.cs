@@ -261,7 +261,10 @@ namespace CoAP
                 Int32 optionCount = 0;
                 Int32 lastOptionNumber = 0;
 
-                List<Option> options = (List<Option>)msg.GetOptions();
+                IEnumerable<Option> opts = msg.GetOptions();
+                IList<Option> options = opts as IList<Option> ?? new List<Option>(opts);
+                if (msg.Token != null && msg.Token.Length > 0 && !msg.HasOption(OptionType.Token))
+                    options.Add(Option.Create(OptionType.Token, msg.Token));
                 Utils.InsertionSort(options, delegate(Option o1, Option o2)
                 {
                     return GetOptionNumber(o1.Type).CompareTo(GetOptionNumber(o2.Type));
@@ -630,7 +633,10 @@ namespace CoAP
                 Int32 optionCount = 0;
                 Int32 lastOptionNumber = 0;
 
-                List<Option> options = (List<Option>)msg.GetOptions();
+                IEnumerable<Option> opts = msg.GetOptions();
+                IList<Option> options = opts as IList<Option> ?? new List<Option>(opts);
+                if (msg.Token != null && msg.Token.Length > 0 && !msg.HasOption(OptionType.Token))
+                    options.Add(Option.Create(OptionType.Token, msg.Token));
                 Utils.InsertionSort(options, delegate(Option o1, Option o2)
                 {
                     return GetOptionNumber(o1.Type).CompareTo(GetOptionNumber(o2.Type));
@@ -875,7 +881,10 @@ namespace CoAP
                 Int32 optionCount = 0;
                 Int32 lastOptionNumber = 0;
 
-                List<Option> options = (List<Option>)msg.GetOptions();
+                IEnumerable<Option> opts = msg.GetOptions();
+                IList<Option> options = opts as IList<Option> ?? new List<Option>(opts);
+                if (msg.Token != null && msg.Token.Length > 0 && !msg.HasOption(OptionType.Token))
+                    options.Add(Option.Create(OptionType.Token, msg.Token));
                 Utils.InsertionSort(options, delegate(Option o1, Option o2)
                 {
                     return GetOptionNumber(o1.Type).CompareTo(GetOptionNumber(o2.Type));
@@ -1164,16 +1173,6 @@ namespace CoAP
             return NewMessageDecoder(bytes).Decode();
         }
 
-        private static Int32 GetOptionNumber(OptionType optionType)
-        {
-            return (Int32)optionType;
-        }
-
-        private static OptionType GetOptionType(Int32 optionNumber)
-        {
-            return (OptionType)optionNumber;
-        }
-
         /// <summary>
         /// Calculates the value used in the extended option fields as specified
         /// in draft-ietf-core-coap-13, section 3.1.
@@ -1247,11 +1246,7 @@ namespace CoAP
                 writer.WriteBytes(msg.Token);
 
                 Int32 lastOptionNumber = 0;
-                List<Option> options = (List<Option>)msg.GetOptions();
-                Utils.InsertionSort(options, delegate(Option o1, Option o2)
-                {
-                    return GetOptionNumber(o1.Type).CompareTo(GetOptionNumber(o2.Type));
-                });
+                IEnumerable<Option> options = msg.GetOptions();
 
                 foreach (Option opt in options)
                 {
@@ -1261,7 +1256,7 @@ namespace CoAP
                         continue;
 
                     // write 4-bit option delta
-                    Int32 optNum = GetOptionNumber(opt.Type);
+                    Int32 optNum = (Int32)opt.Type;
                     Int32 optionDelta = optNum - lastOptionNumber;
                     Int32 optionDeltaNibble = GetOptionNibble(optionDelta);
                     writer.Write(optionDeltaNibble, OptionDeltaBits);
@@ -1365,7 +1360,7 @@ namespace CoAP
                         Int32 optionLength = GetValueFromOptionNibble(optionLengthNibble, _reader);
 
                         // read option
-                        OptionType currentOptionType = GetOptionType(currentOption);
+                        OptionType currentOptionType = (OptionType)currentOption;
                         Option opt = Option.Create(currentOptionType);
                         opt.RawValue = _reader.ReadBytes(optionLength);
 

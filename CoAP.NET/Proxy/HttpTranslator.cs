@@ -514,12 +514,12 @@ namespace CoAP.Proxy
         /// <param name="optionList"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"></exception>
-        public static NameValueCollection GetHttpHeaders(IList<Option> optionList)
+        public static NameValueCollection GetHttpHeaders(IEnumerable<Option> optionList)
         {
             if (optionList == null)
                 throw ThrowHelper.ArgumentNull("optionList");
 
-            NameValueCollection headers = new NameValueCollection(optionList.Count);
+            NameValueCollection headers = new NameValueCollection();
 
             foreach (Option opt in optionList)
             {

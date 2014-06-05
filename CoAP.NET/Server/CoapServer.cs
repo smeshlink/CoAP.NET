@@ -81,6 +81,19 @@ namespace CoAP.Server
             get { return _endpoints; }
         }
 
+        public IMessageDeliverer MessageDeliverer
+        {
+            get { return _deliverer; }
+            set
+            {
+                _deliverer = value;
+                foreach (IEndPoint endpoint in _endpoints)
+                {
+                   endpoint.MessageDeliverer = value;
+                }
+            }
+        }
+
         /// <inheritdoc/>
         public void AddEndPoint(IEndPoint endpoint)
         {
