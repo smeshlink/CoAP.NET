@@ -45,11 +45,13 @@
     </CodeAnalysisDependentAssemblyPaths>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assert.cs" />
+    <Compile Include="BlockOptionTest.cs" />
+    <Compile Include="BlockwiseTransferTest.cs" />
+    <Compile Include="CoapClientTest.cs" />
     <Compile Include="Codec\DatagramReadWriteTest.cs" />
-    <Compile Include="MessageTest.cs" />
+    <Compile Include="Codec\MessageTest.cs" />
+    <Compile Include="MessageTypeTest.cs" />
     <Compile Include="OptionTest.cs" />
-    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ResourceTest.cs" />
   </ItemGroup>
