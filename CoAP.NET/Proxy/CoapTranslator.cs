@@ -34,7 +34,7 @@ namespace CoAP.Proxy
             if (incomingRequest == null)
                 throw ThrowHelper.ArgumentNull("incomingRequest");
 
-            Request outgoingRequest = new Request(incomingRequest.Code, incomingRequest.Type == MessageType.CON);
+            Request outgoingRequest = new Request(incomingRequest.Method, incomingRequest.Type == MessageType.CON);
 
             // copy payload
             Byte[] payload = incomingRequest.Payload;

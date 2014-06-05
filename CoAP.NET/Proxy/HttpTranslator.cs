@@ -27,7 +27,7 @@ namespace CoAP.Proxy
         private static readonly Dictionary<OptionType, String> coap2httpHeader = new Dictionary<OptionType, String>();
         private static readonly Dictionary<String, Int32> http2coapMediaType = new Dictionary<String, Int32>(StringComparer.OrdinalIgnoreCase);
         private static readonly Dictionary<Int32, String> coap2httpContentType = new Dictionary<Int32, String>();
-        private static readonly Dictionary<String, Int32> http2coapMethod = new Dictionary<String, Int32>(StringComparer.OrdinalIgnoreCase);
+        private static readonly Dictionary<String, Method> http2coapMethod = new Dictionary<String, Method>(StringComparer.OrdinalIgnoreCase);
 
         static HttpTranslator()
         {
@@ -105,11 +105,11 @@ namespace CoAP.Proxy
             http2coapCode[HttpStatusCode.HttpVersionNotSupported] = Code.BadGateway;
             http2coapCode[(HttpStatusCode)507] = Code.InternalServerError;
 
-            http2coapMethod["get"] = Code.GET;;
-            http2coapMethod["post"] = Code.POST;
-            http2coapMethod["put"] = Code.PUT;
-            http2coapMethod["delete"] = Code.DELETE;
-            http2coapMethod["head"] = Code.GET;
+            http2coapMethod["get"] = Method.GET; ;
+            http2coapMethod["post"] = Method.POST;
+            http2coapMethod["put"] = Method.PUT;
+            http2coapMethod["delete"] = Method.DELETE;
+            http2coapMethod["head"] = Method.GET;
         }
 
         /// <summary>
@@ -212,7 +212,7 @@ namespace CoAP.Proxy
             if (proxyResource == null)
                 throw ThrowHelper.ArgumentNull("proxyResource");
 
-            Int32 coapMethod;
+            Method coapMethod;
             if (!http2coapMethod.TryGetValue(httpRequest.Method, out coapMethod))
                 throw ThrowHelper.TranslationException(httpRequest.Method + " method not mapped");
 

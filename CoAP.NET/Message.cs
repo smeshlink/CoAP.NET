@@ -124,6 +124,38 @@ namespace CoAP
         }
 
         /// <summary>
+        /// Gets the code of this CoAP message.
+        /// </summary>
+        public Int32 Code
+        {
+            get { return _code; }
+        }
+
+        /// <summary>
+        /// Gets the code's string representation of this CoAP message.
+        /// </summary>
+        public String CodeString
+        {
+            get { return CoAP.Code.ToString(_code); }
+        }
+
+        /// <summary>
+        /// Gets a value that indicates whether this CoAP message is a request message.
+        /// </summary>
+        public Boolean IsRequest
+        {
+            get { return CoAP.Code.IsRequest(_code); }
+        }
+
+        /// <summary>
+        /// Gets a value that indicates whether this CoAP message is a response message.
+        /// </summary>
+        public Boolean IsResponse
+        {
+            get { return CoAP.Code.IsResponse(_code); }
+        }
+
+        /// <summary>
         /// Gets or sets the 0-8 byte token.
         /// </summary>
         public Byte[] Token
@@ -1062,42 +1094,6 @@ namespace CoAP
         public Int32 GetOptionCount()
         {
             return GetOptions().Count;
-        }
-
-        #endregion
-
-        #region Properties
-
-        /// <summary>
-        /// Gets the code of this CoAP message.
-        /// </summary>
-        public Int32 Code
-        {
-            get { return _code; }
-        }
-
-        /// <summary>
-        /// Gets the code's string representation of this CoAP message.
-        /// </summary>
-        public String CodeString
-        {
-            get { return CoAP.Code.ToString(_code); }
-        }
-
-        /// <summary>
-        /// Gets a value that indicates whether this CoAP message is a request message.
-        /// </summary>
-        public Boolean IsRequest
-        {
-            get { return CoAP.Code.IsRequest(_code); }
-        }
-
-        /// <summary>
-        /// Gets a value that indicates whether this CoAP message is a response message.
-        /// </summary>
-        public Boolean IsResponse
-        {
-            get { return CoAP.Code.IsResponse(_code); }
         }
 
         #endregion

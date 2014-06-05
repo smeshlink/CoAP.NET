@@ -120,7 +120,7 @@ namespace CoAP.Stack
                         EarlyBlock2Negotiation(exchange, request);
 
                         // Assemble and deliver
-                        Request assembled = new Request(request.Code); // getAssembledRequest(status, request);
+                        Request assembled = new Request(request.Method); // getAssembledRequest(status, request);
                         AssembleMessage(status, assembled, request);
                         // assembled.setAcknowledged(true); // TODO: prevents accept from sending ACK. Maybe the resource uses separate...
                         exchange.Request = assembled;
@@ -296,7 +296,7 @@ namespace CoAP.Stack
                         Int32 num = block2.NUM + 1;
                         Int32 szx = block2.SZX;
                         Boolean m = false;
-                        Request block = new Request(request.Code);
+                        Request block = new Request(request.Method);
                         block.SetOptions(request.GetOptions());
                         block.Destination = request.Destination;
 
@@ -413,7 +413,7 @@ namespace CoAP.Stack
         {
             Int32 num = status.CurrentNUM;
             Int32 szx = status.CurrentSZX;
-            Request block = new Request(request.Code);
+            Request block = new Request(request.Method);
             block.SetOptions(request.GetOptions());
             block.Destination = request.Destination;
             block.Token = request.Token;

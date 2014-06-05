@@ -27,6 +27,7 @@ namespace CoAP
     {
         private static readonly ILogger log = LogManager.GetLogger(typeof(Request));
 
+        private readonly Method _method;
         private Boolean _multicast;
         private Uri _uri;
         private Response _currentResponse;
@@ -42,7 +43,7 @@ namespace CoAP
         /// <summary>
         /// Initializes a request message.
         /// </summary>
-        public Request(Int32 method)
+        public Request(Method method)
             : this(method, true)
         { }
 
@@ -51,12 +52,18 @@ namespace CoAP
         /// </summary>
         /// <param name="method">The method code of the message</param>
         /// <param name="confirmable">True if the request is Confirmable</param>
-        public Request(Int32 method, Boolean confirmable)
-            : base(confirmable ? MessageType.CON : MessageType.NON, method)
+        public Request(Method method, Boolean confirmable)
+            : base(confirmable ? MessageType.CON : MessageType.NON, (Int32)method)
         {
+            _method = method;
             this.Reject += (o, e) => NotifyResponse();
             this.Timeout += (o, e) => NotifyResponse();
             this.Cancel += (o, e) => NotifyResponse();
+        }
+
+        public Method Method
+        {
+            get { return _method; }
         }
 
         /// <summary>
@@ -279,7 +286,7 @@ namespace CoAP
         /// </summary>
         public static Request NewGet()
         {
-            return new Request(CoAP.Code.GET);
+            return new Request(CoAP.Method.GET);
         }
 
         /// <summary>
@@ -287,7 +294,7 @@ namespace CoAP
         /// </summary>
         public static Request NewPost()
         {
-            return new Request(CoAP.Code.POST);
+            return new Request(CoAP.Method.POST);
         }
 
         /// <summary>
@@ -295,7 +302,7 @@ namespace CoAP
         /// </summary>
         public static Request NewPut()
         {
-            return new Request(CoAP.Code.PUT);
+            return new Request(CoAP.Method.PUT);
         }
 
         /// <summary>
@@ -303,7 +310,7 @@ namespace CoAP
         /// </summary>
         public static Request NewDelete()
         {
-            return new Request(CoAP.Code.DELETE);
+            return new Request(CoAP.Method.DELETE);
         }
     }
 }

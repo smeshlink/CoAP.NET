@@ -80,7 +80,7 @@ namespace CoAP.Codec
         public Request DecodeRequest()
         {
             System.Diagnostics.Debug.Assert(IsRequest);
-            Request request = new Request(_code);
+            Request request = new Request((Method)_code);
             request.Type = _type;
             request.ID = _id;
             ParseMessage(request);
