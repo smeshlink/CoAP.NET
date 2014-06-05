@@ -156,7 +156,8 @@ namespace CoAP.Util
 
             StringBuilder sb = new StringBuilder();
             appendIfNotNullOrEmpty(sb, "If-Match", ToString(msg.IfMatches, bs => ByteArrayUtils.ToHexString(bs)));
-            appendIfNotNullOrEmpty(sb, "URI-Host", msg.UriHost);
+            if (msg.HasOption(OptionType.UriHost))
+                appendIfNotNullOrEmpty(sb, "URI-Host", msg.UriHost);
             appendIfNotNullOrEmpty(sb, "ETag", ToString(msg.ETags, bs => ByteArrayUtils.ToHexString(bs)));
             if (msg.IfNoneMatch)
                 appendIfNotNullOrEmpty(sb, "If-None-Match", msg.IfNoneMatch.ToString());

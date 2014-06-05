@@ -243,9 +243,9 @@ namespace CoAP
             }
         }
 
-        private static Boolean IsFencepost(OptionType type)
+        private static Boolean IsFencepost(Int32 type)
         {
-            return (Int32)type % (Int32)FencepostDivisor == 0;
+            return type % (Int32)FencepostDivisor == 0;
         }
 
         private static Int32 NextFencepost(Int32 optionNumber)
@@ -397,7 +397,7 @@ namespace CoAP
                     currentOption += optionDelta;
                     OptionType currentOptionType = GetOptionType(currentOption);
 
-                    if (IsFencepost(currentOptionType))
+                    if (IsFencepost(currentOption))
                     {
                         // read number of options
                         _reader.Read(OptionLengthBaseBits);
@@ -606,9 +606,9 @@ namespace CoAP
         /// </summary>
         /// <param name="type">The option type to check</param>
         /// <returns>True iff the option is a fencepost option</returns>
-        private static Boolean IsFencepost(OptionType type)
+        private static Boolean IsFencepost(Int32 type)
         {
-            return (Int32)type % (Int32)FencepostDivisor == 0;
+            return type % (Int32)FencepostDivisor == 0;
         }
 
         /// <summary>
@@ -756,7 +756,7 @@ namespace CoAP
                     currentOption += optionDelta;
                     OptionType currentOptionType = GetOptionType(currentOption);
 
-                    if (IsFencepost(currentOptionType))
+                    if (IsFencepost(currentOption))
                     {
                         // read number of options
                         _reader.Read(OptionLengthBaseBits);
@@ -1239,7 +1239,7 @@ namespace CoAP
                 // write fixed-size CoAP headers
                 writer.Write(Version, VersionBits);
                 writer.Write((Int32)msg.Type, TypeBits);
-                writer.Write(msg.Token.Length, TokenLengthBits);
+                writer.Write(msg.Token == null ? 0 : msg.Token.Length, TokenLengthBits);
                 writer.Write(code, CodeBits);
                 writer.Write(msg.ID, IDBits);
 
