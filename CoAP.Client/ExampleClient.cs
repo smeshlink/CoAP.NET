@@ -92,7 +92,7 @@ namespace CoAP.Examples
             {
                 if (byEvent)
                 {
-                    request.Responded += delegate(Object sender, ResponseEventArgs e)
+                    request.Respond += delegate(Object sender, ResponseEventArgs e)
                     {
                         Response response = e.Response;
                         if (response == null)
@@ -115,7 +115,7 @@ namespace CoAP.Examples
                 }
                 else
                 {
-                    request.AckTimeout = -1;
+                    //request.AckTimeout = -1;
                     request.Send();
 
                     do

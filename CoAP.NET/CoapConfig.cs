@@ -62,7 +62,9 @@ namespace CoAP
         private Int32 _channelReceiveBufferSize;
         private Int32 _channelSendBufferSize;
         private Int32 _channelReceivePacketSize = 2048;
-        private Int32 _sequenceTimeout = CoapConstants.DefaultOverallTimeout;
+
+        protected CoapConfig()
+        { }
 
 #if COAPALL
         private ISpec _spec = CoAP.Spec.Draft13;
@@ -228,15 +230,9 @@ namespace CoAP
             set { _channelReceivePacketSize = value; }
         }
 
-        public Int32 SequenceTimeout
-        {
-            get { return _sequenceTimeout; }
-            set { _sequenceTimeout = value; }
-        }
-
         private static ICoapConfig LoadConfig()
         {
-            // may have configuration file here
+            // TODO may have configuration file here
             return new CoapConfig();
         }
     }

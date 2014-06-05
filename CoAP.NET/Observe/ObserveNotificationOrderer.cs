@@ -11,6 +11,7 @@
 
 using System;
 using System.Threading;
+using CoAP.Util;
 
 namespace CoAP.Observe
 {
@@ -20,8 +21,18 @@ namespace CoAP.Observe
     /// </summary>
     class ObserveNotificationOrderer
     {
+        readonly ICoapConfig _config;
         private Int32 _number;
-        private Int64 _timestamp;
+        private DateTime _timestamp;
+
+        public ObserveNotificationOrderer()
+            : this(null)
+        { }
+
+        public ObserveNotificationOrderer(ICoapConfig config)
+        {
+            _config = config;
+        }
 
         /// <summary>
         /// Gets a new observe option number.
@@ -46,15 +57,42 @@ namespace CoAP.Observe
             get { return _number; }
         }
 
+        public DateTime Timestamp
+        {
+            get { return _timestamp; }
+            set { _timestamp = value; }
+        }
+
         public Boolean IsNew(Response response)
         {
+            Int32? obs = response.Observe;
+            if (!obs.HasValue)
+            {
+                // this is a final response, e.g., error or proactive cancellation
+                return true;
+            }
+
             // Multiple responses with different notification numbers might
             // arrive and be processed by different threads. We have to
             // ensure that only the most fresh one is being delivered.
             // We use the notation from the observe draft-08.
-            
-            // TODO
-            throw new NotImplementedException();
+            DateTime T1 = Timestamp;
+            DateTime T2 = DateTime.Now;
+            Int32 V1 = Current;
+            Int32 V2 = obs.Value;
+            Int64 notifMaxAge = (_config ?? CoapConfig.Default).NotificationMaxAge;
+            if (V1 < V2 && V2 - V1 < 1 << 23
+                    || V1 > V2 && V1 - V2 > 1 << 23
+                    || T2 > T1.AddMilliseconds(notifMaxAge))
+            {
+                Timestamp = T2;
+                _number = V2;
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
     }
 }

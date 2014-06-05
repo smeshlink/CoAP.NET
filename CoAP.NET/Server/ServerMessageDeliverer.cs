@@ -26,6 +26,7 @@ namespace CoAP.Server
     public class ServerMessageDeliverer : IMessageDeliverer
     {
         static readonly ILogger log = LogManager.GetLogger(typeof(ServerMessageDeliverer));
+        readonly ICoapConfig _config;
         readonly IResource _root;
         readonly ObserveManager _observeManager = new ObserveManager();
 
@@ -33,8 +34,9 @@ namespace CoAP.Server
         /// Constructs a default message deliverer that delivers requests
         /// to the resources rooted at the specified root.
         /// </summary>
-        public ServerMessageDeliverer(IResource root)
+        public ServerMessageDeliverer(ICoapConfig config, IResource root)
         {
+            _config = config;
             _root = root;
         }
 
@@ -97,7 +99,7 @@ namespace CoAP.Server
                     if (log.IsDebugEnabled)
                         log.Debug("Initiate an observe relation between " + source + " and resource " + resource.Uri);
                     ObservingEndpoint remote = _observeManager.FindObservingEndpoint(source);
-                    ObserveRelation relation = new ObserveRelation(remote, resource, exchange);
+                    ObserveRelation relation = new ObserveRelation(_config, remote, resource, exchange);
                     remote.AddObserveRelation(relation);
                     exchange.Relation = relation;
                     // all that's left is to add the relation to the resource which

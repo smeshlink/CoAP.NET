@@ -13,6 +13,7 @@ using System;
 using CoAP.Log;
 using CoAP.Net;
 using CoAP.Server.Resources;
+using CoAP.Util;
 
 namespace CoAP.Observe
 {
@@ -22,12 +23,11 @@ namespace CoAP.Observe
     public class ObserveRelation
     {
         static readonly ILogger log = LogManager.GetLogger(typeof(ObserveRelation));
-        readonly ObserveNotificationOrderer _orderer = new ObserveNotificationOrderer();
+        readonly ICoapConfig _config;
+        readonly ObserveNotificationOrderer _orderer;
         readonly ObservingEndpoint _endpoint;
         readonly IResource _resource;
         readonly Exchange _exchange;
-        readonly Int64 _checkIntervalTime = 24 * 60 * 60 * 1000;
-        readonly Int32 _checkIntervalCount = 100;
         private Response _recentControlNotification;
         private Response _nextControlNotification;
         private Boolean _established;
@@ -40,14 +40,18 @@ namespace CoAP.Observe
         /// <param name="endpoint">the observing endpoint</param>
         /// <param name="resource">the observed resource</param>
         /// <param name="exchange">the exchange that tries to establish the observe relation</param>
-        public ObserveRelation(ObservingEndpoint endpoint, IResource resource, Exchange exchange)
+        public ObserveRelation(ICoapConfig config, ObservingEndpoint endpoint, IResource resource, Exchange exchange)
         {
+            if (config == null)
+                throw ThrowHelper.ArgumentNull("config");
             if (endpoint == null)
-                throw new ArgumentNullException("endpoint");
+                throw ThrowHelper.ArgumentNull("endpoint");
             if (resource == null)
-                throw new ArgumentNullException("resource");
+                throw ThrowHelper.ArgumentNull("resource");
             if (exchange == null)
-                throw new ArgumentNullException("exchange");
+                throw ThrowHelper.ArgumentNull("exchange");
+            _config = config;
+            _orderer = new ObserveNotificationOrderer(config);
             _endpoint = endpoint;
             _resource = resource;
             _exchange = exchange;
@@ -132,8 +136,8 @@ namespace CoAP.Observe
         {
             Boolean check = false;
             DateTime now = DateTime.Now;
-            check |= _interestCheckTime.AddMilliseconds(_checkIntervalTime) < now;
-            check |= (++_interestCheckCounter >= _checkIntervalCount);
+            check |= _interestCheckTime.AddMilliseconds(_config.NotificationCheckIntervalTime) < now;
+            check |= (++_interestCheckCounter >= _config.NotificationCheckIntervalCount);
             if (check)
             {
                 _interestCheckTime = now;

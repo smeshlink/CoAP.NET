@@ -377,7 +377,7 @@ namespace CoAP
 
         private CoapObserveRelation Observe(Request request, Action<Response> notify, Action<FailReason> error)
         {
-            ObserveNotificationOrderer orderer = new ObserveNotificationOrderer();
+            ObserveNotificationOrderer orderer = new ObserveNotificationOrderer(_config);
             CoapObserveRelation relation = new CoapObserveRelation(request);
 
             EventHandler<ResponseEventArgs> onResponse = (o, e) =>
@@ -420,7 +420,7 @@ namespace CoAP
 
         private CoapObserveRelation ObserveAsync(Request request, Action<Response> notify, Action<FailReason> error)
         {
-            ObserveNotificationOrderer orderer = new ObserveNotificationOrderer();
+            ObserveNotificationOrderer orderer = new ObserveNotificationOrderer(_config);
             CoapObserveRelation relation = new CoapObserveRelation(request);
 
             EventHandler<ResponseEventArgs> onResponse = (o, e) =>
@@ -564,9 +564,7 @@ namespace CoAP
             cancel.Token = _request.Token;
             cancel.Destination = _request.Destination;
             
-            // TODO dispatch final response to the same message observers
-            //for (MessageObserver mo: request.getMessageObservers())
-            //    cancel.addMessageObserver(mo);
+            // dispatch final response to the same message observers
             cancel.Respond += _onResponse;
             cancel.Reject += _onReject;
             cancel.Timeout += _onTimeout;

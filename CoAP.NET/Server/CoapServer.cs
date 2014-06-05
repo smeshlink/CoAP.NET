@@ -53,7 +53,7 @@ namespace CoAP.Server
         {
             _config = config ?? CoapConfig.Default;
             _root = new RootResource(this);
-            _deliverer = new ServerMessageDeliverer(_root);
+            _deliverer = new ServerMessageDeliverer(_config, _root);
 
             Resource wellKnown = new Resource(".well-known", false);
             wellKnown.Add(new DiscoveryResource(_root));
