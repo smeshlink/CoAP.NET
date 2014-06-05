@@ -172,7 +172,7 @@ namespace CoAP.Channel
         /// <inheritdoc/>
         public void Dispose()
         {
-            throw new NotImplementedException();
+            Stop();
         }
 
         private void BeginReceive()
@@ -182,14 +182,29 @@ namespace CoAP.Channel
                 System.Net.EndPoint remoteEP = new IPEndPoint(
                     _socket.Socket.AddressFamily == AddressFamily.InterNetwork ?
                     IPAddress.Any : IPAddress.IPv6Any, 0);
-                _socket.Socket.BeginReceiveFrom(_socket.Buffer, 0, _socket.Buffer.Length,
-                    SocketFlags.None, ref remoteEP, ReceiveCallback, _socket);
+
+                try
+                {
+                    _socket.Socket.BeginReceiveFrom(_socket.Buffer, 0, _socket.Buffer.Length,
+                        SocketFlags.None, ref remoteEP, ReceiveCallback, _socket);
+                }
+                catch (ObjectDisposedException)
+                {
+                    // do nothing
+                }
 
                 if (_socketBackup != null)
                 {
                     System.Net.EndPoint remoteV4 = new IPEndPoint(IPAddress.Any, 0);
-                    _socketBackup.Socket.BeginReceiveFrom(_socketBackup.Buffer, 0, _socketBackup.Buffer.Length,
-                        SocketFlags.None, ref remoteV4, ReceiveCallback, _socketBackup);
+                    try
+                    {
+                        _socketBackup.Socket.BeginReceiveFrom(_socketBackup.Buffer, 0, _socketBackup.Buffer.Length,
+                            SocketFlags.None, ref remoteV4, ReceiveCallback, _socketBackup);
+                    }
+                    catch (ObjectDisposedException)
+                    {
+                        // do nothing
+                    }
                 }
             }
         }
@@ -205,6 +220,11 @@ namespace CoAP.Channel
             try
             {
                 count = socket.Socket.EndReceiveFrom(ar, ref remoteEP);
+            }
+            catch (ObjectDisposedException)
+            {
+                // do nothing
+                return;
             }
             catch (SocketException)
             {
@@ -264,13 +284,28 @@ namespace CoAP.Channel
                 }
             }
 
-            socket.Socket.BeginSendTo(raw.Data, 0, raw.Data.Length, SocketFlags.None, remoteEP, SendCallback, socket);
+            try
+            {
+                socket.Socket.BeginSendTo(raw.Data, 0, raw.Data.Length, SocketFlags.None, remoteEP, SendCallback, socket);
+            }
+            catch (ObjectDisposedException)
+            {
+                // do nothing
+            }
         }
 
         private void SendCallback(IAsyncResult ar)
         {
             UDPSocket socket = (UDPSocket)ar.AsyncState;
-            socket.Socket.EndSendTo(ar);
+            try
+            {
+                socket.Socket.EndSendTo(ar);
+            }
+            catch (ObjectDisposedException)
+            {
+                // do nothing
+                return;
+            }
             BeginSend();
         }
 
