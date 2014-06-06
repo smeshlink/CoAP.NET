@@ -11,9 +11,9 @@
 
 using System;
 using System.Collections.Generic;
+using CoAP.Codec;
 using CoAP.Log;
 using CoAP.Util;
-using CoAP.Codec;
 
 namespace CoAP
 {
