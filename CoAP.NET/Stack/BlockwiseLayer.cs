@@ -454,7 +454,7 @@ namespace CoAP.Stack
             block.Destination = response.Destination;
             block.Token = response.Token;
             block.SetOptions(response.GetOptions());
-            //block.addMessageObserver(new TimeoutForwarder(response));
+            block.Timeout += (o, e) => response.TimedOut = true;
 
             if (response.PayloadSize > 0)
             {
