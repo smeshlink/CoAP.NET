@@ -159,7 +159,7 @@ namespace CoAP.Stack
         /// </summary>
         public override void ReceiveResponse(INextLayer nextLayer, Exchange exchange, Response response)
         {
-            TransmissionContext ctx = exchange.Get<TransmissionContext>(TransmissionContextKey);
+            TransmissionContext ctx = (TransmissionContext)exchange.Remove(TransmissionContextKey);
             if (ctx != null)
             {
                 exchange.CurrentRequest.Acknowledged = true;
@@ -211,7 +211,7 @@ namespace CoAP.Stack
                     break;
             }
 
-            TransmissionContext ctx = exchange.Get<TransmissionContext>(TransmissionContextKey);
+            TransmissionContext ctx = (TransmissionContext)exchange.Remove(TransmissionContextKey);
             if (ctx != null)
                 ctx.Cancel();
 
@@ -291,7 +291,6 @@ namespace CoAP.Stack
             public void Cancel()
             {
                 _timer.Stop();
-                _exchange.Remove(TransmissionContextKey);
                 if (log.IsDebugEnabled)
                 {
                     log.Debug("Cancel retransmission for -->");
@@ -353,6 +352,7 @@ namespace CoAP.Stack
                         log.Debug("Timeout: retransmission limit reached, exchange failed, message: " + _message);
                     _exchange.TimedOut = true;
                     _message.TimedOut = true;
+                    _exchange.Remove(TransmissionContextKey);
                     Cancel();
                 }
             }
