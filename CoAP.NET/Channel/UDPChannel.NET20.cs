@@ -117,6 +117,11 @@ namespace CoAP.Channel
                 Socket = new Socket(addressFamily, SocketType.Dgram, ProtocolType.Udp);
                 Buffer = new Byte[bufferSize];
             }
+
+            public void Dispose()
+            {
+                Socket.Close();
+            }
         }
     }
 }

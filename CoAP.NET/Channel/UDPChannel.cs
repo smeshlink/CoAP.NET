@@ -147,12 +147,12 @@ namespace CoAP.Channel
 
             if (_socket != null)
             {
-                _socket.Socket.Close();
+                _socket.Dispose();
                 _socket = null;
             }
             if (_socketBackup != null)
             {
-                _socketBackup.Socket.Close();
+                _socketBackup.Dispose();
                 _socketBackup = null;
             }
         }
@@ -292,7 +292,7 @@ namespace CoAP.Channel
             return new IPAddress(newAddress);
         }
 
-        partial class UDPSocket
+        partial class UDPSocket : IDisposable
         {
             public readonly Socket Socket;
         }

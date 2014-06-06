@@ -141,6 +141,13 @@ namespace CoAP.Channel
                 WriteBuffer.Completed += completed;
                 WriteBuffer.UserToken = this;
             }
+
+            public void Dispose()
+            {
+                Socket.Close();
+                ReadBuffer.Dispose();
+                WriteBuffer.Dispose();
+            }
         }
     }
 }
