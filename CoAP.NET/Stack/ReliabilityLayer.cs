@@ -221,7 +221,7 @@ namespace CoAP.Stack
         private void PrepareRetransmission(Exchange exchange, Message msg, Action<TransmissionContext> retransmit)
         {
             TransmissionContext ctx = exchange.GetOrAdd<TransmissionContext>(
-                TransmissionContextKey, _ => new TransmissionContext(exchange, msg, retransmit));
+                TransmissionContextKey, _ => new TransmissionContext(_config, exchange, msg, retransmit));
             
             if (ctx.FailedTransmissionCount > 0)
             {
@@ -245,6 +245,7 @@ namespace CoAP.Stack
 
         class TransmissionContext : IDisposable
         {
+            readonly ICoapConfig _config;
             readonly Exchange _exchange;
             readonly Message _message;
             private Int32 _currentTimeout;
@@ -252,8 +253,9 @@ namespace CoAP.Stack
             private Timer _timer;
             private Action<TransmissionContext> _retransmit;
 
-            public TransmissionContext(Exchange exchange, Message message, Action<TransmissionContext> retransmit)
+            public TransmissionContext(ICoapConfig config, Exchange exchange, Message message, Action<TransmissionContext> retransmit)
             {
+                _config = config;
                 _exchange = exchange;
                 _message = message;
                 _retransmit = retransmit;
@@ -298,12 +300,13 @@ namespace CoAP.Stack
                     else
                         log.Debug(_exchange.CurrentResponse);
                 }
-                Dispose();
+                _timer.Dispose();
+                _timer = null;
             }
 
             public void Dispose()
             {
-                _timer.Dispose();
+                Cancel();
             }
 
             void timer_Elapsed(Object sender, ElapsedEventArgs e)
@@ -333,7 +336,7 @@ namespace CoAP.Stack
                         log.Debug("Timeout: canceled (ID=" + _message.ID + "), do not retransmit");
                     return;
                 }
-                else if (failedCount < (_message.MaxRetransmit < 0 ? CoapConstants.MaxRetransmit : _message.MaxRetransmit))
+                else if (failedCount <= (_message.MaxRetransmit != 0 ? _message.MaxRetransmit : _config.MaxRetransmit))
                 {
                     if (log.IsDebugEnabled)
                         log.Debug("Timeout: retransmit message, failed: " + failedCount + ", message: " + _message);

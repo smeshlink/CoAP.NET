@@ -50,7 +50,7 @@ namespace CoAP
         private Boolean _duplicate;
         private Byte[] _bytes;
         private DateTime _timestamp;
-        private Int32 _maxRetransmit = CoapConstants.MaxRetransmit;
+        private Int32 _maxRetransmit;
         private Int32 _ackTimeout;
 
         /// <summary>
@@ -281,9 +281,10 @@ namespace CoAP
         }
 
         /// <summary>
-        /// Gets or sets the max times this message should be retransmissioned.
-        /// By default the value is equal to <code>CoapConstants.MaxRetransmit</code>.
-        /// A value of 0 indicates that this message will not be retransmissioned when timeout.
+        /// Gets or sets the max times this message should be retransmitted if no ACK received.
+        /// A value of 0 means that the <see cref="ICoapConfig.MaxRetransmit"/>
+        /// shoud be taken into account, while a negative means NO retransmission.
+        /// The default value is 0.
         /// </summary>
         public Int32 MaxRetransmit
         {
