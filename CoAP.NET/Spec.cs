@@ -20,23 +20,19 @@ namespace CoAP
 #if COAPALL
     public static class Spec
     {
-        public const Int32 SupportedVersion = 1;
-        public const Int32 DefaultPort = 5683;
         public static readonly ISpec Draft03 = new CoAP.Draft03();
         public static readonly ISpec Draft08 = new CoAP.Draft08();
         public static readonly ISpec Draft12 = new CoAP.Draft12();
         public static readonly ISpec Draft13 = new CoAP.Draft13();
+        public static readonly ISpec Draft18 = new CoAP.Draft18();
     }
 
     public interface ISpec
     {
         String Name { get; }
-        //Int32 SupportedVersion { get; }
         Int32 DefaultPort { get; }
-        Int32 DefaultBlockSize { get; }
         Byte[] Encode(Message msg);
         Message Decode(Byte[] bytes);
-        //OptionType GetOptionType(Int32 optionNumber);
         IMessageEncoder NewMessageEncoder();
         IMessageDecoder NewMessageDecoder(Byte[] data);
     }
@@ -67,13 +63,10 @@ namespace CoAP
 
 #if COAP03
         public const String Name = "draft-ietf-core-coap-03";
-        public const Int32 SupportedVersion = 1;
         public const Int32 DefaultPort = 5683;
-        public const Int32 DefaultBlockSize = 512;
 #else
         public String Name { get { return "draft-ietf-core-coap-03"; } }
         public Int32 DefaultPort { get { return 5683; } }
-        public Int32 DefaultBlockSize { get { return 512; } }
 #endif
 
 #if COAP03
@@ -465,13 +458,10 @@ namespace CoAP
 
 #if COAP08
         public const String Name = "draft-ietf-core-coap-08";
-        public const Int32 SupportedVersion = 1;
         public const Int32 DefaultPort = 5683;
-        public const Int32 DefaultBlockSize = 512;
 #else
         public String Name { get { return "draft-ietf-core-coap-08"; } }
         public Int32 DefaultPort { get { return 5683; } }
-        public Int32 DefaultBlockSize { get { return 512; } }
 #endif
 
 #if COAP08
@@ -817,13 +807,10 @@ namespace CoAP
 
 #if COAP12
         public const String Name = "draft-ietf-core-coap-12";
-        public const Int32 SupportedVersion = 1;
         public const Int32 DefaultPort = 5683;
-        public const Int32 DefaultBlockSize = 512;
 #else
         public String Name { get { return "draft-ietf-core-coap-12"; } }
         public Int32 DefaultPort { get { return 5683; } }
-        public Int32 DefaultBlockSize { get { return 512; } }
 #endif
 
 #if COAP12
@@ -1128,13 +1115,10 @@ namespace CoAP
 
 #if COAP13
         public const String Name = "draft-ietf-core-coap-13";
-        public const Int32 SupportedVersion = 1;
         public const Int32 DefaultPort = 5683;
-        public const Int32 DefaultBlockSize = 512;
 #else
         public String Name { get { return "draft-ietf-core-coap-13"; } }
         public Int32 DefaultPort { get { return 5683; } }
-        public Int32 DefaultBlockSize { get { return 512; } }
 #endif
 
 #if COAP13
@@ -1362,6 +1346,245 @@ namespace CoAP
                         // read option
                         OptionType currentOptionType = (OptionType)currentOption;
                         Option opt = Option.Create(currentOptionType);
+                        opt.RawValue = _reader.ReadBytes(optionLength);
+
+                        msg.AddOption(opt);
+                    }
+                }
+            }
+        }
+    }
+#endif
+    #endregion
+
+    #region CoAP 18
+#if COAPALL || COAP18
+#if COAP18
+    public static class Spec
+#else
+    class Draft18 : ISpec
+#endif
+    {
+        const Int32 Version = 1;
+        const Int32 VersionBits = 2;
+        const Int32 TypeBits = 2;
+        const Int32 TokenLengthBits = 4;
+        const Int32 CodeBits = 8;
+        const Int32 IDBits = 16;
+        const Int32 OptionDeltaBits = 4;
+        const Int32 OptionLengthBits = 4;
+        const Byte PayloadMarker = 0xFF;
+
+#if COAP18
+        public const String Name = "draft-ietf-core-coap-18";
+        public const Int32 DefaultPort = 5683;
+#else
+        public String Name { get { return "draft-ietf-core-coap-18"; } }
+        public Int32 DefaultPort { get { return 5683; } }
+#endif
+
+#if COAP18
+        public static IMessageEncoder NewMessageEncoder()
+#else
+        public IMessageEncoder NewMessageEncoder()
+#endif
+        {
+            return new MessageEncoder18();
+        }
+
+#if COAP18
+        public static IMessageDecoder NewMessageDecoder(Byte[] data)
+#else
+        public IMessageDecoder NewMessageDecoder(Byte[] data)
+#endif
+        {
+            return new MessageDecoder18(data);
+        }
+
+#if COAP18
+        public static Byte[] Encode(Message msg)
+#else
+        public Byte[] Encode(Message msg)
+#endif
+        {
+            return NewMessageEncoder().Encode(msg);
+        }
+
+#if COAP18
+        public static Message Decode(Byte[] bytes)
+#else
+        public Message Decode(Byte[] bytes)
+#endif
+        {
+            return NewMessageDecoder(bytes).Decode();
+        }
+
+        /// <summary>
+        /// Returns the 4-bit option header value.
+        /// </summary>
+        /// <param name="optionValue">the option value (delta or length) to be encoded</param>
+        /// <returns>the 4-bit option header value</returns>
+        private static Int32 GetOptionNibble(Int32 optionValue)
+        {
+            if (optionValue <= 12)
+                return optionValue;
+            else if (optionValue <= 255 + 13)
+                return 13;
+            else if (optionValue <= 65535 + 269)
+                return 14;
+            else
+                throw ThrowHelper.Argument("optionValue", "Unsupported option delta " + optionValue);
+        }
+
+        /// <summary>
+        /// Calculates the value used in the extended option fields as specified
+        /// in draft-ietf-core-coap-14, section 3.1.
+        /// </summary>
+        /// <param name="nibble">the 4-bit option header value</param>
+        /// <param name="datagram">the datagram</param>
+        /// <returns>the value calculated from the nibble and the extended option value</returns>
+        private static Int32 GetValueFromOptionNibble(Int32 nibble, DatagramReader datagram)
+        {
+            if (nibble < 13)
+                return nibble;
+            else if (nibble == 13)
+                return datagram.Read(8) + 13;
+            else if (nibble == 14)
+                return datagram.Read(16) + 269;
+            else
+                throw ThrowHelper.Argument("nibble", "Unsupported option delta " + nibble);
+        }
+
+        class MessageEncoder18 : MessageEncoder
+        {
+            protected override void Serialize(DatagramWriter writer, Message msg, Int32 code)
+            {
+                // write fixed-size CoAP headers
+                writer.Write(Version, VersionBits);
+                writer.Write((Int32)msg.Type, TypeBits);
+                writer.Write(msg.Token == null ? 0 : msg.Token.Length, TokenLengthBits);
+                writer.Write(code, CodeBits);
+                writer.Write(msg.ID, IDBits);
+
+                // write token, which may be 0 to 8 bytes, given by token length field
+                writer.WriteBytes(msg.Token);
+
+                Int32 lastOptionNumber = 0;
+                IEnumerable<Option> options = msg.GetOptions();
+
+                foreach (Option opt in options)
+                {
+                    if (opt.Type == OptionType.Token)
+                        continue;
+
+                    // write 4-bit option delta
+                    Int32 optNum = (Int32)opt.Type;
+                    Int32 optionDelta = optNum - lastOptionNumber;
+                    Int32 optionDeltaNibble = GetOptionNibble(optionDelta);
+                    writer.Write(optionDeltaNibble, OptionDeltaBits);
+
+                    // write 4-bit option length
+                    Int32 optionLength = opt.Length;
+                    Int32 optionLengthNibble = GetOptionNibble(optionLength);
+                    writer.Write(optionLengthNibble, OptionLengthBits);
+
+                    // write extended option delta field (0 - 2 bytes)
+                    if (optionDeltaNibble == 13)
+                    {
+                        writer.Write(optionDelta - 13, 8);
+                    }
+                    else if (optionDeltaNibble == 14)
+                    {
+                        writer.Write(optionDelta - 269, 16);
+                    }
+
+                    // write extended option length field (0 - 2 bytes)
+                    if (optionLengthNibble == 13)
+                    {
+                        writer.Write(optionLength - 13, 8);
+                    }
+                    else if (optionLengthNibble == 14)
+                    {
+                        writer.Write(optionLength - 269, 16);
+                    }
+
+                    // write option value
+                    writer.WriteBytes(opt.RawValue);
+
+                    // update last option number
+                    lastOptionNumber = optNum;
+                }
+
+                Byte[] payload = msg.Payload;
+                if (payload != null && payload.Length > 0)
+                {
+                    // if payload is present and of non-zero length, it is prefixed by
+                    // an one-byte Payload Marker (0xFF) which indicates the end of
+                    // options and the start of the payload
+                    writer.WriteByte(PayloadMarker);
+                    writer.WriteBytes(payload);
+                }
+            }
+        }
+
+        class MessageDecoder18 : MessageDecoder
+        {
+            public MessageDecoder18(Byte[] data)
+                : base(data)
+            {
+                ReadProtocol();
+            }
+
+            public override Boolean IsWellFormed
+            {
+                get { return _version == Version; }
+            }
+
+            protected override void ReadProtocol()
+            {
+                // read headers
+                _version = _reader.Read(VersionBits);
+                _type = (MessageType)_reader.Read(TypeBits);
+                _tokenLength = _reader.Read(TokenLengthBits);
+                _code = _reader.Read(CodeBits);
+                _id = _reader.Read(IDBits);
+            }
+
+            protected override void ParseMessage(Message msg)
+            {
+                // read token
+                if (_tokenLength > 0)
+                    msg.Token = _reader.ReadBytes(_tokenLength);
+                else
+                    msg.Token = CoapConstants.EmptyToken;
+
+                // read options
+                Int32 currentOption = 0;
+                while (_reader.BytesAvailable)
+                {
+                    Byte nextByte = _reader.ReadNextByte();
+                    if (nextByte == PayloadMarker)
+                    {
+                        if (!_reader.BytesAvailable)
+                            // the presence of a marker followed by a zero-length payload
+                            // must be processed as a message format error
+                            throw new InvalidOperationException();
+
+                        msg.Payload = _reader.ReadBytesLeft();
+                        break;
+                    }
+                    else
+                    {
+                        // the first 4 bits of the byte represent the option delta
+                        Int32 optionDeltaNibble = (0xF0 & nextByte) >> 4;
+                        currentOption += GetValueFromOptionNibble(optionDeltaNibble, _reader);
+
+                        // the second 4 bits represent the option length
+                        Int32 optionLengthNibble = (0x0F & nextByte);
+                        Int32 optionLength = GetValueFromOptionNibble(optionLengthNibble, _reader);
+
+                        // read option
+                        Option opt = Option.Create((OptionType)currentOption);
                         opt.RawValue = _reader.ReadBytes(optionLength);
 
                         msg.AddOption(opt);

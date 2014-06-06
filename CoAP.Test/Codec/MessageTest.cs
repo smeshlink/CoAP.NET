@@ -53,6 +53,16 @@ namespace CoAP.Codec
             TestRequestParsing(CoAP.Spec.Draft13);
             TestResponseParsing(CoAP.Spec.Draft13);
         }
+
+        [TestMethod]
+        public void TestDraft18()
+        {
+            TestMessage(CoAP.Spec.Draft18);
+            TestMessageWithOptions(CoAP.Spec.Draft18);
+            TestMessageWithExtendedOption(CoAP.Spec.Draft18);
+            TestRequestParsing(CoAP.Spec.Draft18);
+            TestResponseParsing(CoAP.Spec.Draft18);
+        }
 #endif
 
 #if COAPALL

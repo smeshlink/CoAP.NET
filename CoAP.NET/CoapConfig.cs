@@ -64,7 +64,7 @@ namespace CoAP
         private Int32 _channelReceivePacketSize = 2048;
 
 #if COAPALL
-        private ISpec _spec = CoAP.Spec.Draft13;
+        private ISpec _spec = CoAP.Spec.Draft18;
 
         public ISpec Spec
         {
