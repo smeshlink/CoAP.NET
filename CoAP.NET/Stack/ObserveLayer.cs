@@ -202,7 +202,7 @@ namespace CoAP.Stack
                             next.Type = MessageType.CON; // Force the next to be a Confirmable as well
                         }
                         relation.CurrentControlNotification = next;
-                        // TODO: make this as new task
+                        // TODO: make this as new task?
                         // Create a new task for sending next response so that we can leave the sync-block
                         SendResponse(nextLayer, exchange, next);
                     }

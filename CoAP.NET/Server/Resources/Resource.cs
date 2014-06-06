@@ -12,9 +12,10 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using CoAP.Log;
 using CoAP.Net;
 using CoAP.Observe;
-using CoAP.Log;
+using CoAP.Threading;
 
 namespace CoAP.Server.Resources
 {
@@ -152,6 +153,12 @@ namespace CoAP.Server.Resources
         }
 
         /// <inheritdoc/>
+        public virtual IExecutor Executor
+        {
+            get { return _parent != null ? _parent.Executor : null; }
+        }
+
+        /// <inheritdoc/>
         public IEnumerable<IEndPoint> EndPoints
         {
             get { return _parent == null ? EmptyEndPoints : _parent.EndPoints; }
@@ -258,7 +265,7 @@ namespace CoAP.Server.Resources
         /// <summary>
         /// Cancel all observe relations to CoAP clients.
         /// </summary>
-        public void clearObserveRelations()
+        public void ClearObserveRelations()
         {
             foreach (ObserveRelation relation in _observeRelations.Keys)
             {
@@ -353,8 +360,11 @@ namespace CoAP.Server.Resources
         /// </summary>
         public void Changed()
         {
-            // TODO threading
-            NotifyObserverRelations();
+            IExecutor executor = this.Executor;
+            if (executor != null)
+                executor.Start(() => NotifyObserverRelations());
+            else
+                NotifyObserverRelations();
         }
 
         private void NotifyObserverRelations()

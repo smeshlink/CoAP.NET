@@ -124,6 +124,10 @@
     <Compile Include="Stack\ObserveLayer.cs" />
     <Compile Include="Stack\ReliabilityLayer.cs" />
     <Compile Include="Stack\TokenLayer.cs" />
+    <Compile Include="Threading\Executors.NET20.cs" />
+    <Compile Include="Threading\IExecutor.cs" />
+    <Compile Include="Threading\NoThreadingExecutor.cs" />
+    <Compile Include="Threading\ThreadPoolExecutor.cs" />
     <Compile Include="Util\ArrayEqualityComparer.cs" />
     <Compile Include="Util\ByteArrayUtils.cs" />
     <Compile Include="Util\Delegates.cs" />

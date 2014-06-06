@@ -13,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using CoAP.Net;
 using CoAP.Observe;
+using CoAP.Threading;
 
 namespace CoAP.Server.Resources
 {
@@ -53,7 +54,14 @@ namespace CoAP.Server.Resources
         /// Checks if this resource is observable by remote CoAP clients.
         /// </summary>
         Boolean Observable { get; }
+        /// <summary>
+        /// Gets the attributes of this resource.
+        /// </summary>
         ResourceAttributes Attributes { get; }
+        /// <summary>
+        /// Gets the executor of this resource.
+        /// </summary>
+        IExecutor Executor { get; }
         /// <summary>
         /// Gets the endpoints this resource is bound to.
         /// </summary>

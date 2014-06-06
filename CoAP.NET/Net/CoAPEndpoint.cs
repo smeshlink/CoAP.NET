@@ -14,6 +14,7 @@ using CoAP.Channel;
 using CoAP.Codec;
 using CoAP.Log;
 using CoAP.Stack;
+using CoAP.Threading;
 
 namespace CoAP.Net
 {
@@ -31,6 +32,7 @@ namespace CoAP.Net
         private IMatcher _matcher;
         private Int32 _running;
         private System.Net.EndPoint _localEP;
+        private IExecutor _executor = Executors.Default;
 
         /// <summary>
         /// Instantiates a new endpoint.
@@ -107,6 +109,15 @@ namespace CoAP.Net
         public ICoapConfig Config
         {
             get { return _config; }
+        }
+
+        public IExecutor Executor
+        {
+            get { return _executor; }
+            set
+            {
+                _executor = value ?? Executors.NoThreading;
+            }
         }
 
         /// <inheritdoc/>
@@ -194,29 +205,28 @@ namespace CoAP.Net
         /// <inheritdoc/>
         public void SendRequest(Request request)
         {
-            // TODO thread
-            _coapStack.SendRequest(request);
+            _executor.Start(() => _coapStack.SendRequest(request));
         }
 
         /// <inheritdoc/>
         public void SendResponse(Exchange exchange, Response response)
         {
-            // TODO thread
-            _coapStack.SendResponse(exchange, response);
+            _executor.Start(() => _coapStack.SendResponse(exchange, response));
         }
 
         /// <inheritdoc/>
         public void SendEmptyMessage(Exchange exchange, EmptyMessage message)
         {
-            // TODO thread
-            _coapStack.SendEmptyMessage(exchange, message);
+            _executor.Start(() => _coapStack.SendEmptyMessage(exchange, message));
         }
 
         private void ReceiveData(Object sender, DataReceivedEventArgs e)
         {
-            // TODO new thread
-            // TODO may have more or less than one message in the incoming bytes
+            _executor.Start(() => ReceiveData(e));
+        }
 
+        private void ReceiveData(DataReceivedEventArgs e)
+        {
             IMessageDecoder decoder = Spec.NewMessageDecoder(e.Data);
             if (decoder.IsRequest)
             {

@@ -16,6 +16,7 @@ using CoAP.Net;
 using CoAP.Observe;
 using CoAP.Server.Resources;
 using CoAP.Util;
+using CoAP.Threading;
 
 namespace CoAP.Server
 {
@@ -49,8 +50,12 @@ namespace CoAP.Server
             {
                 CheckForObserveOption(exchange, resource);
 
-                // TODO threading
-                resource.HandleRequest(exchange);
+                // Get the executor and let it process the request
+                IExecutor executor = resource.Executor;
+                if (executor != null)
+                    executor.Start(() => resource.HandleRequest(exchange));
+                else
+                    resource.HandleRequest(exchange);
             }
             else
             {
