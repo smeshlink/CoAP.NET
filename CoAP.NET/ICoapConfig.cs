@@ -16,7 +16,7 @@ namespace CoAP
     /// <summary>
     /// Provides configuration for CoAP communication.
     /// </summary>
-    public interface ICoapConfig
+    public interface ICoapConfig : System.ComponentModel.INotifyPropertyChanged
     {
         /// <summary>
         /// Gets the default CoAP port for normal CoAP communication (not secure).

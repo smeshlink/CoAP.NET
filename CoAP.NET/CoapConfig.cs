@@ -10,6 +10,7 @@
  */
 
 using System;
+using System.ComponentModel;
 
 namespace CoAP
 {
@@ -69,7 +70,7 @@ namespace CoAP
         public ISpec Spec
         {
             get { return _spec; }
-            set { _spec = value; }
+            set { _spec = value; NotifyPropertyChanged("Spec"); }
         }
 #endif
         
@@ -77,160 +78,258 @@ namespace CoAP
         public Int32 DefaultPort
         {
             get { return _port; }
-            set { _port = value; }
+            set
+            {
+                _port = value;
+                NotifyPropertyChanged("DefaultPort");
+            }
         }
 
         /// <inheritdoc/>
         public Int32 DefaultSecurePort
         {
             get { return _securePort; }
-            set { _securePort = value; }
+            set
+            {
+                _securePort = value;
+                NotifyPropertyChanged("DefaultSecurePort");
+            }
         }
 
         /// <inheritdoc/>
         public Int32 HttpPort
         {
             get { return _httpPort; }
-            set { _httpPort = value; }
+            set
+            {
+                _httpPort = value;
+                NotifyPropertyChanged("HttpPort");
+            }
         }
 
         /// <inheritdoc/>
         public Int32 AckTimeout
         {
             get { return _ackTimeout; }
-            set { _ackTimeout = value; }
+            set
+            {
+                _ackTimeout = value;
+                NotifyPropertyChanged("AckTimeout");
+            }
         }
 
         /// <inheritdoc/>
         public Double AckRandomFactor
         {
             get { return _ackRandomFactor; }
-            set { _ackRandomFactor = value; }
+            set
+            {
+                _ackRandomFactor = value;
+                NotifyPropertyChanged("AckRandomFactor");
+            }
         }
 
         /// <inheritdoc/>
         public Int32 AckTimeoutScale
         {
             get { return _ackTimeoutScale; }
-            set { _ackTimeoutScale = value; }
+            set
+            {
+                _ackTimeoutScale = value;
+                NotifyPropertyChanged("AckTimeoutScale");
+            }
         }
 
         /// <inheritdoc/>
         public Int32 MaxRetransmit
         {
             get { return _maxRetransmit; }
-            set { _maxRetransmit = value; }
+            set
+            {
+                _maxRetransmit = value;
+                NotifyPropertyChanged("MaxRetransmit");
+            }
         }
 
         /// <inheritdoc/>
         public Int32 MaxMessageSize
         {
             get { return _maxMessageSize; }
-            set { _maxMessageSize = value; }
+            set
+            {
+                _maxMessageSize = value;
+                NotifyPropertyChanged("MaxMessageSize");
+            }
         }
 
         /// <inheritdoc/>
         public Int32 DefaultBlockSize
         {
             get { return _defaultBlockSize; }
-            set { _defaultBlockSize = value; }
+            set
+            {
+                _defaultBlockSize = value;
+                NotifyPropertyChanged("DefaultBlockSize");
+            }
         }
 
         /// <inheritdoc/>
         public Boolean UseRandomIDStart
         {
             get { return _useRandomIDStart; }
-            set { _useRandomIDStart = value; }
+            set
+            {
+                _useRandomIDStart = value;
+                NotifyPropertyChanged("UseRandomIDStart");
+            }
         }
 
         /// <inheritdoc/>
         public Boolean UseRandomTokenStart
         {
             get { return _useRandomTokenStart; }
-            set { _useRandomTokenStart = value; }
+            set
+            {
+                _useRandomTokenStart = value;
+                NotifyPropertyChanged("UseRandomTokenStart");
+            }
         }
 
         /// <inheritdoc/>
         public String Deduplicator
         {
             get { return _deduplicator; }
-            set { _deduplicator = value; }
+            set
+            {
+                _deduplicator = value;
+                NotifyPropertyChanged("Deduplicator");
+            }
         }
 
         /// <inheritdoc/>
         public Int32 CropRotationPeriod
         {
             get { return _cropRotationPeriod; }
-            set { _cropRotationPeriod = value; }
+            set
+            {
+                _cropRotationPeriod = value;
+                NotifyPropertyChanged("CropRotationPeriod");
+            }
         }
 
         /// <inheritdoc/>
         public Int32 ExchangeLifecycle
         {
             get { return _exchangeLifecycle; }
-            set { _exchangeLifecycle = value; }
+            set
+            {
+                _exchangeLifecycle = value;
+                NotifyPropertyChanged("ExchangeLifecycle");
+            }
         }
 
         /// <inheritdoc/>
         public Int64 MarkAndSweepInterval
         {
             get { return _markAndSweepInterval; }
-            set { _markAndSweepInterval = value; }
+            set
+            {
+                _markAndSweepInterval = value;
+                NotifyPropertyChanged("MarkAndSweepInterval");
+            }
         }
 
         /// <inheritdoc/>
         public Int64 NotificationMaxAge
         {
             get { return _notificationMaxAge; }
-            set { _notificationMaxAge = value; }
+            set
+            {
+                _notificationMaxAge = value;
+                NotifyPropertyChanged("NotificationMaxAge");
+            }
         }
 
         /// <inheritdoc/>
         public Int64 NotificationCheckIntervalTime
         {
             get { return _notificationCheckIntervalTime; }
-            set { _notificationCheckIntervalTime = value; }
+            set
+            {
+                _notificationCheckIntervalTime = value;
+                NotifyPropertyChanged("NotificationCheckIntervalTime");
+            }
         }
 
         /// <inheritdoc/>
         public Int32 NotificationCheckIntervalCount
         {
             get { return _notificationCheckIntervalCount; }
-            set { _notificationCheckIntervalCount = value; }
+            set
+            {
+                _notificationCheckIntervalCount = value;
+                NotifyPropertyChanged("NotificationCheckIntervalCount");
+            }
         }
 
         /// <inheritdoc/>
         public Int32 NotificationReregistrationBackoff
         {
             get { return _notificationReregistrationBackoff; }
-            set { _notificationReregistrationBackoff = value; }
+            set
+            {
+                _notificationReregistrationBackoff = value;
+                NotifyPropertyChanged("NotificationReregistrationBackoff");
+            }
         }
 
         /// <inheritdoc/>
         public Int32 ChannelReceiveBufferSize
         {
             get { return _channelReceiveBufferSize; }
-            set { _channelReceiveBufferSize = value; }
+            set
+            {
+                _channelReceiveBufferSize = value;
+                NotifyPropertyChanged("ChannelReceiveBufferSize");
+            }
         }
 
         /// <inheritdoc/>
         public Int32 ChannelSendBufferSize
         {
             get { return _channelSendBufferSize; }
-            set { _channelSendBufferSize = value; }
+            set
+            {
+                _channelSendBufferSize = value;
+                NotifyPropertyChanged("ChannelSendBufferSize");
+            }
         }
 
         /// <inheritdoc/>
         public Int32 ChannelReceivePacketSize
         {
             get { return _channelReceivePacketSize; }
-            set { _channelReceivePacketSize = value; }
+            set
+            {
+                _channelReceivePacketSize = value;
+                NotifyPropertyChanged("ChannelReceivePacketSize");
+            }
         }
 
         private static ICoapConfig LoadConfig()
         {
             // TODO may have configuration file here
             return new CoapConfig();
+        }
+        
+        /// <inheritdoc/>
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        private void NotifyPropertyChanged(String propertyName)
+        {
+            PropertyChangedEventHandler handler = PropertyChanged;
+            if (handler != null)
+                handler(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

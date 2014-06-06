@@ -31,6 +31,17 @@ namespace CoAP.Stack
             _defaultBlockSize = config.DefaultBlockSize;
             if (log.IsDebugEnabled)
                 log.Debug("Blockwise14 layer uses MaxMessageSize: " + _maxMessageSize + " and DefaultBlockSize:" + _defaultBlockSize);
+
+            config.PropertyChanged += ConfigChanged;
+        }
+
+        void ConfigChanged(Object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            ICoapConfig config = (ICoapConfig)sender;
+            if (String.Equals(e.PropertyName, "MaxMessageSize"))
+                _maxMessageSize = config.MaxMessageSize;
+            else if (String.Equals(e.PropertyName, "DefaultBlockSize"))
+                _defaultBlockSize = config.DefaultBlockSize;
         }
 
         /// <inheritdoc/>
