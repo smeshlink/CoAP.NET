@@ -56,7 +56,7 @@ namespace CoAP.Channel
 
         private void BeginSend(UDPSocket socket, Byte[] data, System.Net.EndPoint destination)
         {
-            socket.WriteBuffer.SetBuffer(data, 0, data.Length);
+            socket.SetWriteBuffer(data, 0, data.Length);
             socket.WriteBuffer.RemoteEndPoint = destination;
 
             Boolean willRaiseEvent;
@@ -127,6 +127,8 @@ namespace CoAP.Channel
         {
             public readonly SocketAsyncEventArgs ReadBuffer;
             public readonly SocketAsyncEventArgs WriteBuffer;
+            readonly Byte[] _writeBuffer;
+            private Boolean _isOuterBuffer;
 
             public UDPSocket(AddressFamily addressFamily, Int32 bufferSize,
                 EventHandler<SocketAsyncEventArgs> completed)
@@ -136,10 +138,31 @@ namespace CoAP.Channel
                 ReadBuffer.SetBuffer(new Byte[bufferSize], 0, bufferSize);
                 ReadBuffer.Completed += completed;
                 ReadBuffer.UserToken = this;
+
+                _writeBuffer = new Byte[bufferSize];
                 WriteBuffer = new SocketAsyncEventArgs();
-                //WriteBuffer.SetBuffer(new Byte[bufferSize], 0, bufferSize);
+                WriteBuffer.SetBuffer(_writeBuffer, 0, bufferSize);
                 WriteBuffer.Completed += completed;
                 WriteBuffer.UserToken = this;
+            }
+
+            public void SetWriteBuffer(Byte[] data, Int32 offset, Int32 count)
+            {
+                if (count > _writeBuffer.Length)
+                {
+                    WriteBuffer.SetBuffer(data, offset, count);
+                    _isOuterBuffer = true;
+                }
+                else
+                {
+                    if (_isOuterBuffer)
+                    {
+                        WriteBuffer.SetBuffer(_writeBuffer, 0, _writeBuffer.Length);
+                        _isOuterBuffer = false;
+                    }
+                    Buffer.BlockCopy(data, offset, _writeBuffer, 0, count);
+                    WriteBuffer.SetBuffer(0, count);
+                }
             }
 
             public void Dispose()
