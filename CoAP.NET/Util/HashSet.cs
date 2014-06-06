@@ -111,12 +111,12 @@ namespace System.Collections.Generic
                 throw new ArgumentNullException("collection");
 
             int capacity = 0;
-            var col = collection as ICollection<T>;
+            ICollection<T> col = collection as ICollection<T>;
             if (col != null)
                 capacity = col.Count;
 
             Init(capacity, comparer);
-            foreach (var item in collection)
+            foreach (T item in collection)
                 Add(item);
         }
 
@@ -204,8 +204,8 @@ namespace System.Collections.Generic
             int newSize = HashPrimeNumbers.ToPrime((table.Length << 1) | 1);
 
             // allocate new hash table and link slots array
-            var newTable = new int[newSize];
-            var newLinks = new Link[newSize];
+            Int32[] newTable = new int[newSize];
+            Link[] newLinks = new Link[newSize];
 
             for (int i = 0; i < table.Length; i++)
             {
@@ -224,7 +224,7 @@ namespace System.Collections.Generic
             links = newLinks;
 
             // allocate new data slots, copy data
-            var newSlots = new T[newSize];
+            T[] newSlots = new T[newSize];
             Array.Copy(slots, 0, newSlots, 0, touched);
             slots = newSlots;
 
@@ -362,13 +362,13 @@ namespace System.Collections.Generic
             if (match == null)
                 throw new ArgumentNullException("match");
 
-            var candidates = new List<T>();
+            List<T> candidates = new List<T>();
 
-            foreach (var item in this)
+            foreach (T item in this)
                 if (match(item))
                     candidates.Add(item);
 
-            foreach (var item in candidates)
+            foreach (T item in candidates)
                 Remove(item);
 
             return candidates.Count;
@@ -386,9 +386,9 @@ namespace System.Collections.Generic
             if (other == null)
                 throw new ArgumentNullException("other");
 
-            var other_set = ToSet(other);
+            HashSet<T> other_set = ToSet(other);
 
-            RemoveWhere(item => !other_set.Contains(item));
+            RemoveWhere(delegate(T item) { return !other_set.Contains(item); });
         }
 
         public void ExceptWith(IEnumerable<T> other)
@@ -396,7 +396,7 @@ namespace System.Collections.Generic
             if (other == null)
                 throw new ArgumentNullException("other");
 
-            foreach (var item in other)
+            foreach (T item in other)
                 Remove(item);
         }
 
@@ -405,7 +405,7 @@ namespace System.Collections.Generic
             if (other == null)
                 throw new ArgumentNullException("other");
 
-            foreach (var item in other)
+            foreach (T item in other)
                 if (Contains(item))
                     return true;
 
@@ -417,12 +417,12 @@ namespace System.Collections.Generic
             if (other == null)
                 throw new ArgumentNullException("other");
 
-            var other_set = ToSet(other);
+            HashSet<T> other_set = ToSet(other);
 
             if (count != other_set.Count)
                 return false;
 
-            foreach (var item in this)
+            foreach (T item in this)
                 if (!other_set.Contains(item))
                     return false;
 
@@ -434,14 +434,14 @@ namespace System.Collections.Generic
             if (other == null)
                 throw new ArgumentNullException("other");
 
-            foreach (var item in ToSet(other))
+            foreach (T item in ToSet(other))
                 if (!Add(item))
                     Remove(item);
         }
 
         HashSet<T> ToSet(IEnumerable<T> enumerable)
         {
-            var set = enumerable as HashSet<T>;
+            HashSet<T> set = enumerable as HashSet<T>;
             if (set == null || !Comparer.Equals(set.Comparer))
                 set = new HashSet<T>(enumerable, Comparer);
 
@@ -453,7 +453,7 @@ namespace System.Collections.Generic
             if (other == null)
                 throw new ArgumentNullException("other");
 
-            foreach (var item in other)
+            foreach (T item in other)
                 Add(item);
         }
 
@@ -462,7 +462,7 @@ namespace System.Collections.Generic
             if (other == null)
                 throw new ArgumentNullException("other");
 
-            foreach (var item in this)
+            foreach (T item in this)
                 if (!other.Contains(item))
                     return false;
 
@@ -477,7 +477,7 @@ namespace System.Collections.Generic
             if (count == 0)
                 return true;
 
-            var other_set = ToSet(other);
+            HashSet<T> other_set = ToSet(other);
 
             if (count > other_set.Count)
                 return false;
@@ -493,7 +493,7 @@ namespace System.Collections.Generic
             if (count == 0)
                 return true;
 
-            var other_set = ToSet(other);
+            HashSet<T> other_set = ToSet(other);
 
             if (count >= other_set.Count)
                 return false;
@@ -506,7 +506,7 @@ namespace System.Collections.Generic
             if (other == null)
                 throw new ArgumentNullException("other");
 
-            foreach (var item in other)
+            foreach (T item in other)
                 if (!Contains(item))
                     return false;
 
@@ -518,7 +518,7 @@ namespace System.Collections.Generic
             if (other == null)
                 throw new ArgumentNullException("other");
 
-            var other_set = ToSet(other);
+            HashSet<T> other_set = ToSet(other);
 
             if (count < other_set.Count)
                 return false;
@@ -531,7 +531,7 @@ namespace System.Collections.Generic
             if (other == null)
                 throw new ArgumentNullException("other");
 
-            var other_set = ToSet(other);
+            HashSet<T> other_set = ToSet(other);
 
             if (count <= other_set.Count)
                 return false;
@@ -705,7 +705,7 @@ namespace System.Collections.Generic
             if (lhs == null || rhs == null || lhs.Count != rhs.Count)
                 return false;
 
-            foreach (var item in lhs)
+            foreach (T item in lhs)
                 if (!rhs.Contains(item))
                     return false;
 
@@ -719,7 +719,7 @@ namespace System.Collections.Generic
 
             IEqualityComparer<T> comparer = EqualityComparer<T>.Default;
             int hash = 0;
-            foreach (var item in hashset)
+            foreach (T item in hashset)
                 hash ^= comparer.GetHashCode(item);
 
             return hash;

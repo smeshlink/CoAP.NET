@@ -24,26 +24,33 @@ namespace CoAP.Http
         private IDictionary<String, Object> _parameters;
         private IDictionary<Object, Object> _data;
         private NameValueCollection _headers = new NameValueCollection();
+        private String _url;
+        private String _requestUri;
+        private String _queryString;
+        private String _method;
+        private Stream _inputStream;
+        private String _host;
+        private String _userAgent;
 
         public RemotingHttpRequest(ITransportHeaders headers, Stream stream)
         {
-            Method = (String)headers["__RequestVerb"];
-            Host = (String)headers["Host"];
-            UserAgent = (String)headers["User-Agent"];
+            _method = (String)headers["__RequestVerb"];
+            _host = (String)headers["Host"];
+            _userAgent = (String)headers["User-Agent"];
 
             String requestUri = (String)headers["__RequestUri"];
-            Url = "http://" + Host + requestUri;
+            _url = "http://" + Host + requestUri;
 
             Int32 offset = requestUri.IndexOf('?');
             if (offset >= 0)
             {
-                RequestUri = requestUri.Substring(0, offset);
-                QueryString = requestUri.Substring(offset + 1);
+                _requestUri = requestUri.Substring(0, offset);
+                _queryString = requestUri.Substring(offset + 1);
             }
             else
             {
-                RequestUri = requestUri;
-                QueryString = null;
+                _requestUri = requestUri;
+                _queryString = null;
             }
 
             foreach (DictionaryEntry item in headers)
@@ -52,27 +59,48 @@ namespace CoAP.Http
                     _headers.Add((String)item.Key, (String)item.Value);
             }
 
-            InputStream = stream;
+            _inputStream = stream;
         }
 
-        public String Url { get; set; }
+        public String Url
+        {
+            get { return _url; }
+        }
 
-        public String RequestUri { get; set; }
+        public String RequestUri
+        {
+            get { return _requestUri; }
+        }
 
-        public String QueryString { get; set; }
+        public String QueryString
+        {
+            get { return _queryString; }
+        }
 
-        public String Method { get; set; }
+        public String Method
+        {
+            get { return _method; }
+        }
 
         public NameValueCollection Headers
         {
             get { return _headers; }
         }
 
-        public Stream InputStream { get; set; }
+        public Stream InputStream
+        {
+            get { return _inputStream; }
+        }
 
-        public String Host { get; set; }
+        public String Host
+        {
+            get { return _host; }
+        }
 
-        public String UserAgent { get; set; }
+        public String UserAgent
+        {
+            get { return _userAgent; }
+        }
 
         public String CharacterEncoding
         {

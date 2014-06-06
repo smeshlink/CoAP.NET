@@ -81,14 +81,18 @@ namespace CoAP.Http
         class WebServerChannelSink : IServerChannelSink
         {
             private readonly WebServer _webServer;
+            private readonly IServerChannelSink _nextChannelSink;
 
             public WebServerChannelSink(IServerChannelSink next, IChannelReceiver channel, WebServer webServer)
             {
                 _webServer = webServer;
-                NextChannelSink = next;
+                _nextChannelSink = next;
             }
 
-            public IServerChannelSink NextChannelSink { get; private set; }
+            public IServerChannelSink NextChannelSink
+            {
+                get { return _nextChannelSink; }
+            }
 
             public IDictionary Properties
             {
@@ -116,7 +120,7 @@ namespace CoAP.Http
                 IHttpRequest request = GetRequest(requestHeaders, requestStream);
                 IHttpResponse response = GetResponse(request);
 
-                foreach (var provider in _webServer._serviceProviders)
+                foreach (IServiceProvider provider in _webServer._serviceProviders)
                 {
                     if (provider.Accept(request))
                     {
