@@ -19,7 +19,7 @@ namespace CoAP.Channel
     /// <summary>
     /// Channel via UDP protocol.
     /// </summary>
-    public class UDPChannel : IChannel
+    public partial class UDPChannel : IChannel
     {
         /// <summary>
         /// Default size of buffer for receiving packet.
@@ -100,7 +100,7 @@ namespace CoAP.Channel
 
             if (_localEP == null)
             {
-                _socket = new UDPSocket(AddressFamily.InterNetworkV6, _receivePacketSize + 1); // +1 to check for > ReceivePacketSize
+                _socket = NewUDPSocket(AddressFamily.InterNetworkV6, _receivePacketSize + 1); // +1 to check for > ReceivePacketSize
 
                 try
                 {
@@ -110,7 +110,7 @@ namespace CoAP.Channel
                 catch
                 {
                     // IPv4-mapped address seems not to be supported, set up a separated socket of IPv4.
-                    _socketBackup = new UDPSocket(AddressFamily.InterNetwork, _receivePacketSize + 1);
+                    _socketBackup = NewUDPSocket(AddressFamily.InterNetwork, _receivePacketSize + 1);
                 }
 
                 _socket.Socket.Bind(new IPEndPoint(IPAddress.IPv6Any, _port));
@@ -119,7 +119,7 @@ namespace CoAP.Channel
             }
             else
             {
-                _socket = new UDPSocket(_localEP.AddressFamily, _receivePacketSize + 1);
+                _socket = NewUDPSocket(_localEP.AddressFamily, _receivePacketSize + 1);
                 _socket.Socket.Bind(_localEP);
             }
 
@@ -179,73 +179,36 @@ namespace CoAP.Channel
         {
             if (_running > 0)
             {
-                System.Net.EndPoint remoteEP = new IPEndPoint(
-                    _socket.Socket.AddressFamily == AddressFamily.InterNetwork ?
-                    IPAddress.Any : IPAddress.IPv6Any, 0);
-
-                try
-                {
-                    _socket.Socket.BeginReceiveFrom(_socket.Buffer, 0, _socket.Buffer.Length,
-                        SocketFlags.None, ref remoteEP, ReceiveCallback, _socket);
-                }
-                catch (ObjectDisposedException)
-                {
-                    // do nothing
-                }
+                BeginReceive(_socket);
 
                 if (_socketBackup != null)
-                {
-                    System.Net.EndPoint remoteV4 = new IPEndPoint(IPAddress.Any, 0);
-                    try
-                    {
-                        _socketBackup.Socket.BeginReceiveFrom(_socketBackup.Buffer, 0, _socketBackup.Buffer.Length,
-                            SocketFlags.None, ref remoteV4, ReceiveCallback, _socketBackup);
-                    }
-                    catch (ObjectDisposedException)
-                    {
-                        // do nothing
-                    }
-                }
+                    BeginReceive(_socketBackup);
             }
         }
 
-        private void ReceiveCallback(IAsyncResult ar)
+        private void EndReceive(UDPSocket socket, Byte[] buffer, Int32 offset, Int32 count, System.Net.EndPoint ep)
         {
-            UDPSocket socket = (UDPSocket)ar.AsyncState;
-            System.Net.EndPoint remoteEP = new IPEndPoint(
-                socket.Socket.AddressFamily == AddressFamily.InterNetwork ?
-                IPAddress.Any : IPAddress.IPv6Any, 0);
-
-            Int32 count = 0;
-            try
-            {
-                count = socket.Socket.EndReceiveFrom(ar, ref remoteEP);
-            }
-            catch (ObjectDisposedException)
-            {
-                // do nothing
-                return;
-            }
-            catch (SocketException)
-            {
-                // ignore it
-                //if (log.IsFatalEnabled)
-                //    log.Fatal("UDPLayer - Failed receive datagram", ex);
-            }
-            
             if (count > 0)
             {
                 Byte[] bytes = new Byte[count];
-                Buffer.BlockCopy(socket.Buffer, 0, bytes, 0, count);
-                if (remoteEP.AddressFamily == AddressFamily.InterNetworkV6)
+                Buffer.BlockCopy(buffer, 0, bytes, 0, count);
+
+                if (ep.AddressFamily == AddressFamily.InterNetworkV6)
                 {
-                    IPEndPoint ipep = (IPEndPoint)remoteEP;
+                    IPEndPoint ipep = (IPEndPoint)ep;
                     if (IsIPv4MappedToIPv6(ipep.Address))
                         ipep.Address = MapToIPv4(ipep.Address);
                 }
-                FireDataReceived(bytes, remoteEP);
+
+                FireDataReceived(bytes, ep);
             }
 
+            BeginReceive(socket);
+        }
+
+        private void EndReceive(UDPSocket socket, Exception ex)
+        {
+            // TODO may log exception?
             BeginReceive();
         }
 
@@ -284,28 +247,17 @@ namespace CoAP.Channel
                 }
             }
 
-            try
-            {
-                socket.Socket.BeginSendTo(raw.Data, 0, raw.Data.Length, SocketFlags.None, remoteEP, SendCallback, socket);
-            }
-            catch (ObjectDisposedException)
-            {
-                // do nothing
-            }
+            BeginSend(socket, raw.Data, remoteEP);
         }
 
-        private void SendCallback(IAsyncResult ar)
+        private void EndSend(UDPSocket socket, Int32 bytesTransferred)
         {
-            UDPSocket socket = (UDPSocket)ar.AsyncState;
-            try
-            {
-                socket.Socket.EndSendTo(ar);
-            }
-            catch (ObjectDisposedException)
-            {
-                // do nothing
-                return;
-            }
+            BeginSend();
+        }
+
+        private void EndSend(UDPSocket socket, Exception ex)
+        {
+            // TODO may log exception?
             BeginSend();
         }
 
@@ -340,16 +292,9 @@ namespace CoAP.Channel
             return new IPAddress(newAddress);
         }
 
-        class UDPSocket
+        partial class UDPSocket
         {
             public readonly Socket Socket;
-            public readonly Byte[] Buffer;
-
-            public UDPSocket(AddressFamily addressFamily, Int32 bufferSize)
-            {
-                Socket = new Socket(addressFamily, SocketType.Dgram, ProtocolType.Udp);
-                Buffer = new Byte[bufferSize];
-            }
         }
 
         class RawData

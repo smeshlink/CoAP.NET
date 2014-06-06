@@ -47,6 +47,7 @@
     <Compile Include="Channel\DataReceivedEventArgs.cs" />
     <Compile Include="Channel\IChannel.cs" />
     <Compile Include="Channel\UDPChannel.cs" />
+    <Compile Include="Channel\UDPChannel.NET40.cs" />
     <Compile Include="CoapClient.cs" />
     <Compile Include="CoapConfig.cs" />
     <Compile Include="CoapConstants.cs" />
