@@ -63,7 +63,7 @@ namespace CoAP
 
 #if COAP03
         public const String Name = "draft-ietf-core-coap-03";
-        public const Int32 DefaultPort = 5683;
+        public const Int32 DefaultPort = 61616;
 #else
         public String Name { get { return "draft-ietf-core-coap-03"; } }
         public Int32 DefaultPort { get { return 5683; } }
