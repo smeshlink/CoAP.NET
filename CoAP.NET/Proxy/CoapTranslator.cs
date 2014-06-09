@@ -44,15 +44,16 @@ namespace CoAP.Proxy
             Uri serverUri = null;
             try
             {
+                /*
+                 * The new draft (14) only allows one proxy-uri option. Thus, this
+                 * code segment has changed.
+                 */
                 serverUri = incomingRequest.ProxyUri;
             }
             catch (UriFormatException e)
             {
                 throw new TranslationException("Cannot translate the server uri", e);
             }
-
-            if (serverUri != null)
-                outgoingRequest.URI = serverUri;
 
             // copy every option from the original message
             foreach (Option opt in incomingRequest.GetOptions())
@@ -77,6 +78,9 @@ namespace CoAP.Proxy
                 outgoingRequest.AddOption(opt);
             }
 
+            if (serverUri != null)
+                outgoingRequest.URI = serverUri;
+
             return outgoingRequest;
         }
 
@@ -99,20 +103,11 @@ namespace CoAP.Proxy
             Byte[] payload = incomingResponse.Payload;
             outgoingResponse.Payload = payload;
 
-            // copy every option
-            foreach (Option opt in incomingResponse.GetOptions())
-            {
-                // do not copy the token option because it is a local option and
-                // have to be assigned by the proper layer
-                // do not copy the block* option because it is a local option and
-                // have to be assigned by the proper layer
-                if (opt.Type == OptionType.Block1
-                    || opt.Type == OptionType.Block2
-                    || opt.Type == OptionType.Token)
-                    continue;
+            // copy the timestamp
+            outgoingResponse.Timestamp = incomingResponse.Timestamp;
 
-                outgoingResponse.AddOption(opt);
-            }
+            // copy every option
+            outgoingResponse.SetOptions(incomingResponse.GetOptions());
 
             return outgoingResponse;
         }

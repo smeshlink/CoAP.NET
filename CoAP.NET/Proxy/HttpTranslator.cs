@@ -23,6 +23,7 @@ namespace CoAP.Proxy
     static class HttpTranslator
     {
         private static readonly Dictionary<HttpStatusCode, StatusCode> http2coapCode = new Dictionary<HttpStatusCode, StatusCode>();
+        private static readonly Dictionary<StatusCode, HttpStatusCode> coap2httpCode = new Dictionary<StatusCode, HttpStatusCode>();
         private static readonly Dictionary<String, OptionType> http2coapOption = new Dictionary<String, OptionType>(StringComparer.OrdinalIgnoreCase);
         private static readonly Dictionary<OptionType, String> coap2httpHeader = new Dictionary<OptionType, String>();
         private static readonly Dictionary<String, Int32> http2coapMediaType = new Dictionary<String, Int32>(StringComparer.OrdinalIgnoreCase);
@@ -94,7 +95,7 @@ namespace CoAP.Proxy
             http2coapCode[HttpStatusCode.PreconditionFailed] = StatusCode.PreconditionFailed;
             http2coapCode[HttpStatusCode.RequestEntityTooLarge] = StatusCode.RequestEntityTooLarge;
             http2coapCode[HttpStatusCode.RequestUriTooLong] = StatusCode.BadRequest;
-            http2coapCode[HttpStatusCode.UnsupportedMediaType] = StatusCode.BadRequest;
+            http2coapCode[HttpStatusCode.UnsupportedMediaType] = StatusCode.UnsupportedMediaType;
             http2coapCode[HttpStatusCode.RequestedRangeNotSatisfiable] = StatusCode.BadRequest;
             http2coapCode[HttpStatusCode.ExpectationFailed] = StatusCode.BadRequest;
             http2coapCode[HttpStatusCode.InternalServerError] = StatusCode.InternalServerError;
@@ -104,6 +105,28 @@ namespace CoAP.Proxy
             http2coapCode[HttpStatusCode.GatewayTimeout] = StatusCode.GatewayTimeout;
             http2coapCode[HttpStatusCode.HttpVersionNotSupported] = StatusCode.BadGateway;
             http2coapCode[(HttpStatusCode)507] = StatusCode.InternalServerError;
+
+            coap2httpCode[StatusCode.Created] = HttpStatusCode.Created;
+            coap2httpCode[StatusCode.Deleted] = HttpStatusCode.NoContent;
+            coap2httpCode[StatusCode.Valid] = HttpStatusCode.NotModified;
+            coap2httpCode[StatusCode.Changed] = HttpStatusCode.NoContent;
+            coap2httpCode[StatusCode.Content] = HttpStatusCode.OK;
+            coap2httpCode[StatusCode.BadRequest] = HttpStatusCode.BadRequest;
+            coap2httpCode[StatusCode.Unauthorized] = HttpStatusCode.Unauthorized;
+            coap2httpCode[StatusCode.BadOption] = HttpStatusCode.BadRequest;
+            coap2httpCode[StatusCode.Forbidden] = HttpStatusCode.Forbidden;
+            coap2httpCode[StatusCode.NotFound] = HttpStatusCode.NotFound;
+            coap2httpCode[StatusCode.MethodNotAllowed] = HttpStatusCode.MethodNotAllowed;
+            coap2httpCode[StatusCode.NotAcceptable] = HttpStatusCode.NotAcceptable;
+            coap2httpCode[StatusCode.PreconditionFailed] = HttpStatusCode.PreconditionFailed;
+            coap2httpCode[StatusCode.RequestEntityTooLarge] = HttpStatusCode.RequestEntityTooLarge;
+            coap2httpCode[StatusCode.UnsupportedMediaType] = HttpStatusCode.UnsupportedMediaType;
+            coap2httpCode[StatusCode.InternalServerError] = HttpStatusCode.InternalServerError;
+            coap2httpCode[StatusCode.NotImplemented] = HttpStatusCode.NotImplemented;
+            coap2httpCode[StatusCode.BadGateway] = HttpStatusCode.BadGateway;
+            coap2httpCode[StatusCode.ServiceUnavailable] = HttpStatusCode.ServiceUnavailable;
+            coap2httpCode[StatusCode.GatewayTimeout] = HttpStatusCode.GatewayTimeout;
+            coap2httpCode[StatusCode.ProxyingNotSupported] = HttpStatusCode.BadGateway;
 
             http2coapMethod["get"] = Method.GET; ;
             http2coapMethod["post"] = Method.POST;
@@ -253,8 +276,7 @@ namespace CoAP.Proxy
 
                     // the uri will be set as a proxy-uri option
                     // set the proxy-uri option to allow the lower layers to underes
-                    Option proxyUriOption = Option.Create(OptionType.ProxyUri, uriString);
-                    coapRequest.AddOption(proxyUriOption);
+                    coapRequest.SetOption(Option.Create(OptionType.ProxyUri, uriString));
                 }
                 else
                 {
@@ -270,8 +292,7 @@ namespace CoAP.Proxy
                 // request is local to the proxy and it shouldn't be forwarded
 
                 // set the uri string as uri-path option
-                Option uriPathOption = Option.Create(OptionType.UriPath, uriString);
-                coapRequest.SetOption(uriPathOption);
+                coapRequest.UriPath = uriString;
             }
 
             // translate the http headers in coap options
@@ -289,8 +310,7 @@ namespace CoAP.Proxy
                     ms.Write(tmp, 0, read);
                 }
                 coapRequest.Payload = ms.ToArray();
-                // TODO convert content type
-                //coapRequest.ContentType = GetCoapMediaType(httpRequest.GetHeader("content-type"));
+                coapRequest.ContentType = GetCoapMediaType(httpRequest.Headers["content-type"]);
             }
 
             return coapRequest;
@@ -355,6 +375,12 @@ namespace CoAP.Proxy
                 if (!http2coapOption.TryGetValue(key, out ot))
                     continue;
 
+                // FIXME: CoAP does no longer support multiple accept-options.
+                // If an HTTP request contains multiple accepts, this method
+                // fails. Therefore, we currently skip accepts at the moment.
+                if (ot == OptionType.Accept)
+                    continue;
+
                 // ignore the content-type because it will be handled within the payload
                 if (ot == OptionType.ContentType)
                     continue;
@@ -386,8 +412,7 @@ namespace CoAP.Proxy
                                 if (coapContentType != MediaType.Undefined)
                                 {
                                     // create the option
-                                    Option option = Option.Create(ot);
-                                    option.IntValue = coapContentType;
+                                    Option option = Option.Create(ot, coapContentType);
                                     list.Add(option);
                                 }
                             }
@@ -408,8 +433,7 @@ namespace CoAP.Proxy
                         }
                     }
                     // create the option
-                    Option option = Option.Create(ot);
-                    option.IntValue = maxAge;
+                    Option option = Option.Create(ot, maxAge);
                     list.Add(option);
                 }
                 else
@@ -553,6 +577,51 @@ namespace CoAP.Proxy
             }
 
             return headers;
+        }
+
+        /// <summary>
+        /// Sets the parameters of the incoming http response from a CoAP response.
+	    /// The status code is mapped through the properties file and is set through
+	    /// the StatusLine. The options are translated to the corresponding headers
+	    /// and the max-age (in the header cache-control) is set to the default value
+	    /// (60 seconds) if not already present. If the request method was not HEAD
+	    /// and the coap response has a payload, the entity and the content-type are
+        /// set in the http response.
+        /// </summary>
+        public static void GetHttpResponse(IHttpRequest httpRequest, Response coapResponse, IHttpResponse httpResponse)
+        {
+            if (httpRequest == null)
+                throw ThrowHelper.ArgumentNull("httpRequest");
+            if (coapResponse == null)
+                throw ThrowHelper.ArgumentNull("coapResponse");
+            if (httpResponse == null)
+                throw ThrowHelper.ArgumentNull("httpResponse");
+
+            HttpStatusCode httpCode;
+
+            if (!coap2httpCode.TryGetValue(coapResponse.StatusCode, out httpCode))
+                throw ThrowHelper.TranslationException("Cannot convert the coap code in http status code: " + coapResponse.StatusCode);
+
+            httpResponse.StatusCode = (Int32)httpCode;
+
+            NameValueCollection nvc = GetHttpHeaders(coapResponse.GetOptions());
+            // set max-age if not already set
+            if (nvc["cache-control"] == null)
+                nvc.Set("cache-control", "max-age=" + CoapConstants.DefaultMaxAge);
+
+            foreach (String key in nvc.Keys)
+            {
+                httpResponse.AppendHeader(key, nvc[key]);
+            }
+
+            Byte[] payload = coapResponse.Payload;
+            if (payload != null)
+            {
+                httpResponse.OutputStream.Write(payload, 0, payload.Length);
+                String contentType;
+                if (coap2httpContentType.TryGetValue(coapResponse.ContentType, out contentType))
+                    httpResponse.AppendHeader("content-type", contentType);
+            }
         }
     }
 }

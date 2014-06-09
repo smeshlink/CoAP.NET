@@ -11,8 +11,9 @@
 
 using System;
 using CoAP.Net;
+using CoAP.Server.Resources;
 
-namespace CoAP.Server.Resources
+namespace CoAP.Proxy.Resources
 {
     public abstract class ForwardingResource : Resource
     {

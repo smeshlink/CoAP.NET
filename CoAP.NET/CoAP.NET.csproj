@@ -95,7 +95,9 @@
     <Compile Include="OptionType.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Proxy\CoapTranslator.cs" />
+    <Compile Include="Proxy\HttpStack.cs" />
     <Compile Include="Proxy\HttpTranslator.cs" />
+    <Compile Include="Proxy\Resources\ForwardingResource.cs" />
     <Compile Include="Proxy\Resources\ProxyCoapClientResource.cs" />
     <Compile Include="Proxy\Resources\ProxyHttpClientResource.cs" />
     <Compile Include="Proxy\TranslationException.cs" />
@@ -106,7 +108,6 @@
     <Compile Include="Server\IServer.cs" />
     <Compile Include="Server\Resources\CoapExchange.cs" />
     <Compile Include="Server\Resources\DiscoveryResource.cs" />
-    <Compile Include="Server\Resources\ForwardingResource.cs" />
     <Compile Include="Server\Resources\IResource.cs" />
     <Compile Include="Server\Resources\Resource.cs" />
     <Compile Include="Server\Resources\ResourceAttributes.cs" />
@@ -142,6 +143,7 @@
     <Compile Include="Util\System.Collections.Generic\SynchronizedCollection.cs" />
     <Compile Include="Util\ThrowHelper.cs" />
     <Compile Include="Util\Utils.cs" />
+    <Compile Include="Util\WaitFuture.cs" />
     <Compile Include="WebLink.cs" />
   </ItemGroup>
   <ItemGroup>
