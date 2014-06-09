@@ -25,8 +25,6 @@ namespace CoAP
     /// </summary>
     public class Request : Message
     {
-        private static readonly ILogger log = LogManager.GetLogger(typeof(Request));
-
         private readonly Method _method;
         private Boolean _multicast;
         private Uri _uri;

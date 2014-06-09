@@ -32,7 +32,7 @@ namespace CoAP.Examples.Resources
             if (payload == null)
                 payload = String.Empty;
             String[] parts = payload.Split('\\');
-            String[] path = payload.Split('/');
+            String[] path = parts[0].Split('/');
             IResource resource = Create(new LinkedList<String>(path));
 
             Response response = new Response(StatusCode.Created);

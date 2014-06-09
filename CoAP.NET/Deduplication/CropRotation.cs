@@ -19,8 +19,6 @@ namespace CoAP.Deduplication
 {
     class CropRotation : IDeduplicator, IDisposable
     {
-        static readonly ILogger log = LogManager.GetLogger(typeof(CropRotation));
-
         private ConcurrentDictionary<Exchange.KeyID, Exchange>[] _maps;
         private Int32 _first;
         private Int32 _second;

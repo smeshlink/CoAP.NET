@@ -416,9 +416,9 @@ namespace CoAP
                         if (attrName.Equals(LinkFormat.Link))
                         {
                             if (expected.EndsWith("*"))
-                                return resource.Path.StartsWith(expected.Substring(0, expected.Length - 1));
+                                return path.StartsWith(expected.Substring(0, expected.Length - 1));
                             else
-                                return resource.Path.Equals(expected);
+                                return path.Equals(expected);
                         }
                         else if (attributes.Contains(attrName))
                         {
