@@ -204,6 +204,12 @@ namespace CoAP
             return null;
         }
 
+        [Obsolete("Call Send() instead")]
+        public void Execute()
+        {
+            Send();
+        }
+
         /// <summary>
         /// Sends this message.
         /// </summary>
