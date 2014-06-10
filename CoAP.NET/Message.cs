@@ -556,19 +556,7 @@ namespace CoAP
             get
             {
                 Option host = GetFirstOption(OptionType.UriHost);
-                if (host == null)
-                {
-                    if (Destination != null)
-                    {
-                        return Destination.ToString();
-                    }
-                    else
-                        return "localhost";
-                }
-                else
-                {
-                    return host.StringValue;
-                }
+                return host == null ? null : host.StringValue;
             }
             set
             {
