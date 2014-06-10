@@ -296,6 +296,9 @@ namespace CoAP.Stack
                     if (obs.HasValue)
                         status.Observe = obs.Value;
 
+                    // notify blocking progress
+                    exchange.Request.FireResponding(response);
+
                     if (block2.M)
                     {
                         if (log.IsDebugEnabled)

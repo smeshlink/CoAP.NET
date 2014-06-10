@@ -276,7 +276,7 @@ namespace CoAP
                 h(this, new ResponseEventArgs(response));
         }
 
-        private void FireResponding(Response response)
+        internal void FireResponding(Response response)
         {
             EventHandler<ResponseEventArgs> h = Responding;
             if (h != null)
