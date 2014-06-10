@@ -108,7 +108,8 @@ namespace CoAP.Stack
         /// </summary>
         public void AddBlock(Byte[] block)
         {
-            _blocks.Add(block);
+            if (block != null)
+                _blocks.Add(block);
         }
 
         /// <inheritdoc/>

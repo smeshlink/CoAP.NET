@@ -115,33 +115,40 @@ namespace CoAP.Stack
             if (request.Duplicate)
             {
                 // Request is a duplicate, so resend ACK, RST or response
-                if (exchange.CurrentRequest != null)
+                if (exchange.CurrentResponse != null)
                 {
                     if (log.IsDebugEnabled)
                         log.Debug("Respond with the current response to the duplicate request");
                     base.SendResponse(nextLayer, exchange, exchange.CurrentResponse);
                 }
-                else if (exchange.CurrentRequest.Acknowledged)
+                else if (exchange.CurrentRequest != null)
                 {
-                    if (log.IsDebugEnabled)
-                        log.Debug("The duplicate request was acknowledged but no response computed yet. Retransmit ACK.");
-                    EmptyMessage ack = EmptyMessage.NewACK(request);
-                    SendEmptyMessage(nextLayer, exchange, ack);
-                }
-                else if (exchange.CurrentRequest.Rejected)
-                {
-                    if (log.IsDebugEnabled)
-                        log.Debug("The duplicate request was rejected. Reject again.");
-                    EmptyMessage rst = EmptyMessage.NewRST(request);
-                    SendEmptyMessage(nextLayer, exchange, rst);
+                    if (exchange.CurrentRequest.Acknowledged)
+                    {
+                        if (log.IsDebugEnabled)
+                            log.Debug("The duplicate request was acknowledged but no response computed yet. Retransmit ACK.");
+                        EmptyMessage ack = EmptyMessage.NewACK(request);
+                        SendEmptyMessage(nextLayer, exchange, ack);
+                    }
+                    else if (exchange.CurrentRequest.Rejected)
+                    {
+                        if (log.IsDebugEnabled)
+                            log.Debug("The duplicate request was rejected. Reject again.");
+                        EmptyMessage rst = EmptyMessage.NewRST(request);
+                        SendEmptyMessage(nextLayer, exchange, rst);
+                    }
+                    else
+                    {
+                        if (log.IsDebugEnabled)
+                            log.Debug("The server has not yet decided what to do with the request. We ignore the duplicate.");
+                        // The server has not yet decided, whether to acknowledge or
+                        // reject the request. We know for sure that the server has
+                        // received the request though and can drop this duplicate here.
+                    }
                 }
                 else
                 {
-                    if (log.IsDebugEnabled)
-                        log.Debug("The server has not yet decided what to do with the request. We ignore the duplicate.");
-                    // The server has not yet decided, whether to acknowledge or
-                    // reject the request. We know for sure that the server has
-                    // received the request though and can drop this duplicate here.
+                    // Lost the current request. The server has not yet decided what to do.
                 }
             }
             else
