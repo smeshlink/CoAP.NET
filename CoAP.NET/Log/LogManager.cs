@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2011-2012, Longxiang He <helongxiang@smeshlink.com>,
+ * Copyright (c) 2011-2014, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
  * This program is distributed in the hope that it will be useful,
@@ -15,7 +15,26 @@ namespace CoAP.Log
 {
     public static class LogManager
     {
-        private static LogLevel _level = LogLevel.All;
+        static LogLevel _level = LogLevel.All;
+        static ILogManager _manager;
+
+        static LogManager()
+        {
+            Type test;
+            try
+            {
+                test = Type.GetType("Common.Logging.LogManager, Common.Logging");
+            }
+            catch
+            {
+                test = null;
+            }
+
+            if (test == null)
+                _manager = new ConsoleLogManager();
+            else
+                _manager = new CommonLoggingManager();
+        }
 
         public static LogLevel Level
         {
@@ -23,164 +42,34 @@ namespace CoAP.Log
             set { _level = value; }
         }
 
-        public enum LogLevel
-        { 
-            All,
-            Debug,
-            Info,
-            Warning,
-            Error,
-            Fatal
-        }
-
-        internal static ILogger GetLogger(Type type)
+        /// <summary>
+        /// Gets or sets the <see cref="ILogManager"/> to provide loggers.
+        /// </summary>
+        public static ILogManager Instance
         {
-            return GetLogger(type.FullName);
+            get { return _manager; }
+            set { _manager = value ?? NopLogManager.Instance; }
         }
 
-        internal static ILogger GetLogger(String name)
+        public static ILogger GetLogger(Type type)
         {
-            return new ConsoleLogger();
+            return _manager.GetLogger(type);
         }
 
-        class ConsoleLogger : ILogger
+        public static ILogger GetLogger(String name)
         {
-            private System.IO.TextWriter _writer;
-
-            public ConsoleLogger() : this(Console.Out) { }
-
-            public ConsoleLogger(System.IO.TextWriter writer)
-            {
-                _writer = writer;
-            }
-
-            public Boolean IsDebugEnabled
-            {
-                get { return LogLevel.Debug >= Level; }
-            }
-
-            public Boolean IsInfoEnabled
-            {
-                get { return LogLevel.Info >= Level; }
-            }
-
-            public Boolean IsErrorEnabled
-            {
-                get { return LogLevel.Error >= Level; }
-            }
-
-            public Boolean IsFatalEnabled
-            {
-                get { return LogLevel.Fatal >= Level; }
-            }
-
-            public Boolean IsWarnEnabled
-            {
-                get { return LogLevel.Warning >= Level; }
-            }
-
-            public void Error(Object sender, String msg, params Object[] args)
-            {
-                String format = String.Format("ERROR - {0}\n", msg);
-                if (sender != null)
-                {
-                    format = "[" + sender.GetType().Name + "] " + format;
-                }
-
-                _writer.Write(format, args);
-            }
-
-            public void Warning(Object sender, String msg, params Object[] args)
-            {
-                String format = String.Format("WARNING - {0}\n", msg);
-                if (sender != null)
-                {
-                    format = "[" + sender.GetType().Name + "] " + format;
-                }
-
-                _writer.Write(format, args);
-            }
-
-            public void Info(Object sender, String msg, params Object[] args)
-            {
-                String format = String.Format("INFO - {0}\n", msg);
-                if (sender != null)
-                {
-                    format = "[" + sender.GetType().Name + "] " + format;
-                }
-
-                _writer.Write(format, args);
-            }
-
-            public void Debug(Object sender, String msg, params Object[] args)
-            {
-                String format = String.Format("DEBUG - {0}\n", msg);
-                if (sender != null)
-                {
-                    format = "[" + sender.GetType().Name + "] " + format;
-                }
-
-                _writer.Write(format, args);
-            }
-
-            public void Debug(Object message)
-            {
-                Log("DEBUG", message, null);
-            }
-
-            private void Log(String level, Object message, Exception exception)
-            {
-                _writer.Write(level);
-                _writer.Write(" - ");
-                _writer.WriteLine(message);
-                if (exception != null)
-                    _writer.WriteLine(exception);
-            }
-
-            public void Debug(Object message, Exception exception)
-            {
-                Log("DEBUG", message, exception);
-            }
-
-            public void Error(Object message)
-            {
-                Log("Error", message, null);
-            }
-
-            public void Error(Object message, Exception exception)
-            {
-                Log("Error", message, exception);
-            }
-
-            public void Fatal(Object message)
-            {
-                Log("Fatal", message, null);
-            }
-
-            public void Fatal(Object message, Exception exception)
-            {
-                Log("Fatal", message, exception);
-            }
-
-            public void Info(Object message)
-            {
-                Log("Info", message, null);
-            }
-
-            public void Info(Object message, Exception exception)
-            {
-                Log("Info", message, exception);
-            }
-
-            public void Warn(Object message)
-            {
-                Log("Warn", message, null);
-            }
-
-            public void Warn(Object message, Exception exception)
-            {
-                Log("Warn", message, exception);
-            }
+            return _manager.GetLogger(name);
         }
+    }
+
+    public enum LogLevel
+    {
+        All,
+        Debug,
+        Info,
+        Warning,
+        Error,
+        Fatal,
+        None
     }
 }

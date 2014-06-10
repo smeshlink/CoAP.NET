@@ -37,7 +37,7 @@ namespace CoAP
         [TestInitialize]
         public void SetupServer()
         {
-            Log.LogManager.Level = Log.LogManager.LogLevel.Fatal;
+            Log.LogManager.Level = Log.LogLevel.Fatal;
             CreateServer();
         }
 

@@ -38,7 +38,7 @@ namespace CoAP
         [TestInitialize]
         public void SetupServer()
         {
-            Log.LogManager.Level = Log.LogManager.LogLevel.Fatal;
+            Log.LogManager.Level = Log.LogLevel.Fatal;
             _config = new CoapConfig();
             _config.DefaultBlockSize = 32;
             _config.MaxMessageSize = 32;

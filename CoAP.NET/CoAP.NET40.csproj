@@ -39,6 +39,9 @@
     <AssemblyOriginatorKeyFile>coapnet.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Common.Logging">
+      <HintPath>lib\NET40\Common.Logging.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Runtime.Remoting" />
   </ItemGroup>
@@ -74,8 +77,13 @@
     <Compile Include="ICoapConfig.cs" />
     <Compile Include="LinkAttribute.cs" />
     <Compile Include="LinkFormat.cs" />
+    <Compile Include="Log\CommonLoggingManager.cs" />
+    <Compile Include="Log\ConsoleLogManager.cs" />
     <Compile Include="Log\ILogger.cs" />
+    <Compile Include="Log\ILogManager.cs" />
     <Compile Include="Log\LogManager.cs" />
+    <Compile Include="Log\NopLogManager.cs" />
+    <Compile Include="Log\TextWriterLogger.cs" />
     <Compile Include="MediaType.cs" />
     <Compile Include="Message.cs" />
     <Compile Include="MessageType.cs" />

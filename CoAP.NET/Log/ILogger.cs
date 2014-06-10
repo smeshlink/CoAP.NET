@@ -13,7 +13,10 @@ using System;
 
 namespace CoAP.Log
 {
-    interface ILogger
+    /// <summary>
+    /// Provides methods to log messages.
+    /// </summary>
+    public interface ILogger
     {
         Boolean IsDebugEnabled { get; }
         Boolean IsErrorEnabled { get; }
