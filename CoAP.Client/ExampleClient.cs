@@ -16,8 +16,6 @@ namespace CoAP.Examples
             Boolean loop = false;
             Boolean byEvent = true;
 
-            args = new String[] { "OBSERVE", "coap://127.0.0.1/obs" };
-
             if (args.Length == 0)
                 PrintUsage();
 
@@ -86,7 +84,10 @@ namespace CoAP.Examples
             request.URI = uri;
             request.SetPayload(payload, MediaType.TextPlain);
 
-            Console.WriteLine(request);
+            // uncomment the next line if you want to specify a draft to use
+            // request.EndPoint = CoAP.Net.EndPointManager.Draft13;
+
+            Console.WriteLine(Utils.ToString(request));
 
             try
             {
@@ -101,7 +102,7 @@ namespace CoAP.Examples
                         }
                         else
                         {
-                            Console.WriteLine(response);
+                            Console.WriteLine(Utils.ToString(response));
                             Console.WriteLine("Time (ms): " + response.RTT);
                         }
                         if (!loop)
@@ -115,7 +116,9 @@ namespace CoAP.Examples
                 }
                 else
                 {
-                    //request.AckTimeout = -1;
+                    // uncomment the next line if you need retransmission disabled.
+                    // request.AckTimeout = -1;
+
                     request.Send();
 
                     do
