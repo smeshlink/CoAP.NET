@@ -27,54 +27,55 @@ and receive its **[Response] (CoAP.NET/Request.cs)**(s).
 
 ```csharp
   // new a GET request
-  Request request = new Request(Code.GET);
+  Request request = new Request(Method.GET);
   request.URI = new Uri("coap://[::1]/hello-world");
-  request.Execute();
+  request.Send();
   
-  // receive one response
-  Response response = request.ReceiveResponse();
+  // wait for one response
+  Response response = request.WaitForResponse();
 ```
 
 There are 4 types of request: GET, POST, PUT, DELETE, defined as
-<code>Code.GET</code>, <code>Code.POST</code>, <code>Code.PUT</code>,
-<code>Code.DELETE</code>.
+<code>Method.GET</code>, <code>Method.POST</code>, <code>Method.PUT</code>,
+<code>Method.DELETE</code>.
 
-Responses can be received in two ways. By calling <code>request.ReceiveResponse()</code>
+Responses can be received in two ways. By calling <code>request.WaitForResponse()</code>
 a response will be received synchronously, which means it will 
 block until timeout or a response is arrived. If more responses
-are expected, call <code>ReceiveResponse()</code> again.
+are expected, call <code>WaitForResponse()</code> again.
 
 To receive responses asynchronously, register a event handler to
-the event <code>request.Responded</code> before executing.
+the event <code>request.Respond</code> before executing.
 
 > #### Parsing Link Format
-> Use <code>RemoteResource.NewRoot()</code> to parse a link-format
-  response. The returned root resource contains all resources stated
-  in the given link-format string.
+> Use <code>LinkFormat.Parse(String)</code> to parse a link-format
+  response. The returned enumeration of <code>WebLink</code>
+  contains all resources stated in the given link-format string.
 > ```csharp
-  Request request = new Request(Code.GET);
+  Request request = new Request(Method.GET);
   request.URI = new Uri("coap://[::1]/.well-known/core");
-  request.Execute();
-  Response response = request.ReceiveResponse();
-  Resource root = RemoteResource.NewRoot(response.PayloadString);
+  request.Send();
+  Response response = request.WaitForResponse();
+  IEnumerable<WebLink> links = LinkFormat.Parse(response.PayloadString);
   ```
 
 See [CoAP Example Client] (CoAP.Client) for more.
 
 ### CoAP Server
 
-A new CoAP server can be easily built by just inheriting the class
-[**LocalEndPoint**] (CoAP.NET/EndPoint/LocalEndPoint.cs)
+A new CoAP server can be easily built with help of the class
+[**CoapServer**] (CoAP.NET/Server/CoapServer.cs)
 
 ```csharp
-  class CoAPServer : LocalEndPoint
-  {
-  }
-  
   static void Main(String[] args)
   {
-    CoAPServer server = new CoAPServer();
-    Console.WriteLine("CoAP server started on port {0}", server.Communicator.Port);
+    CoapServer server = new CoapServer();
+    
+    server.Add(new HelloWorldResource("hello"));
+    
+    server.Start();
+    
+    Console.ReadKey();
   }
 ```
 
@@ -83,7 +84,7 @@ See [CoAP Example Server] (CoAP.Server) for more.
 ### CoAP Resource
 
 CoAP resources are classes that can be accessed by a URI via CoAP.
-In CoAP.NET, a resource is defined as a subclass of [**LocalResource**] (CoAP.NET/EndPoint/LocalResource.cs).
+In CoAP.NET, a resource is defined as a subclass of [**Resource**] (CoAP.NET/Server/Resources/Resource.cs).
 By overriding methods <code>DoGet</code>, <code>DoPost</code>,
 <code>DoPut</code> or <code>DoDelete</code>, one resource accepts
 GET, POST, PUT or DELETE requests.
@@ -93,26 +94,27 @@ can be visited by sending a GET request to "/hello-world", and
 respones a plain string in code "2.05 Content".
 
 ```csharp
-  class HelloWorldResource : LocalResource
+  class HelloWorldResource : Resource
   {
       public HelloWorldResource()
           : base("hello-world")
       {
+          Attributes.Title = "GET a friendly greeting!";
       }
 
-      public override void DoGet(Request request)
+      protected override void DoGet(CoapExchange exchange)
       {
-          Response response = new Response(Code.Content);
-          response.PayloadString = "Hello World from CoAP.NET!";
-          request.Respond(response);
+          exchange.Respond("Hello World from CoAP.NET!");
       }
   }
   
-  class CoAPServer : LocalEndPoint
+  class Server
   {
-      public CoAPServer()
+      static void Main(String[] args)
       {
-          AddResource(new HelloWorldResource());
+          CoapServer server = new CoapServer();
+          server.Add(new HelloWorldResource());
+          server.Start();
       }
   }
 ```
@@ -130,6 +132,7 @@ CoAP:
 - COAP08  -- [draft-ietf-core-coap-08] (http://tools.ietf.org/html/draft-ietf-core-coap-08)
 - COAP12  -- [draft-ietf-core-coap-12] (http://tools.ietf.org/html/draft-ietf-core-coap-12)
 - COAP13  -- [draft-ietf-core-coap-13] (http://tools.ietf.org/html/draft-ietf-core-coap-13)
+- COAP18  -- [draft-ietf-core-coap-18] (http://tools.ietf.org/html/draft-ietf-core-coap-18)
 
 With COAPALL defined, all supported drafts will be available in class
 [**Spec**] (CoAP.NET/Spec.cs):
@@ -141,18 +144,21 @@ With COAPALL defined, all supported drafts will be available in class
     public static readonly ISpec Draft08;
     public static readonly ISpec Draft12;
     public static readonly ISpec Draft13;
+    public static readonly ISpec Draft18;
   }
 ```
 
-With one of the other symbols defined (i.e. COAP08), only a specific
+With one of the other symbols defined (i.e. COAP18), only a specific
 version of draft will be compiled as the class [**Spec**] (CoAP.NET/Spec.cs),
 with constants and static methods instead of various drafts:
 
 ```csharp
   public static class Spec
   {
-    public const String Name = "draft-ietf-core-coap-08";
+    public const String Name = "draft-ietf-core-coap-18";
     public const Int32 DefaultPort = 5683;
+    public static IMessageEncoder NewMessageEncoder();
+    public static IMessageDecoder NewMessageDecoder(Byte[] data);
     public static Byte[] Encode(Message msg);
     public static Message Decode(Byte[] bytes);
   }
