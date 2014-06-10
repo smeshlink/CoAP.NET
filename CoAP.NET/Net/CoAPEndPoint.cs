@@ -235,7 +235,7 @@ namespace CoAP.Net
                 {
                     request = decoder.DecodeRequest();
                 }
-                catch (InvalidOperationException)
+                catch (Exception)
                 {
                     if (decoder.IsReply)
                     {
