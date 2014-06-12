@@ -40,7 +40,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\CoAP.NET\CoAP.NET.csproj">
+    <ProjectReference Include="..\..\CoAP.NET\CoAP.NET.csproj">
       <Project>{45DB1E45-4831-4E4A-BB1E-AE92EEA182E3}</Project>
       <Name>CoAP.NET</Name>
     </ProjectReference>

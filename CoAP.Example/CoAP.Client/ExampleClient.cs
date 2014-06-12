@@ -1,6 +1,4 @@
 ﻿using System;
-using CoAP.EndPoint;
-using CoAP.EndPoint.Resources;
 using System.Collections.Generic;
 using CoAP.Util;
 

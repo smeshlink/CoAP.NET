@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CoAP.Server", "CoAP.Example
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CoAP.Proxy", "CoAP.Example\CoAP.Proxy\CoAP.Proxy.csproj", "{96DBCEFE-CE81-4592-9101-9A3659BEC488}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Example", "Example", "{3EA3A946-6E2C-4389-BE83-0F61C6244E77}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -74,6 +76,11 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{30223FF5-4DCB-45B8-9B06-61EB9FBF9FA8} = {3EA3A946-6E2C-4389-BE83-0F61C6244E77}
+		{96DBCEFE-CE81-4592-9101-9A3659BEC488} = {3EA3A946-6E2C-4389-BE83-0F61C6244E77}
+		{05CC2E5E-B663-4560-844C-C8E52ED1C9D1} = {3EA3A946-6E2C-4389-BE83-0F61C6244E77}
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
 		StartupItem = CoAP.NET\CoAP.NET.csproj
