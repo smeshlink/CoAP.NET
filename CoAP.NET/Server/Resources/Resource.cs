@@ -83,6 +83,12 @@ namespace CoAP.Server.Resources
             }
         }
 
+        public String Title
+        {
+            get { return Attributes.Title; }
+            set { Attributes.Title = value; }
+        }
+
         /// <inheritdoc/>
         public String Path
         {
