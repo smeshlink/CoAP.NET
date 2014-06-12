@@ -355,7 +355,7 @@ namespace CoAP.Net
                 KeyUri other = obj as KeyUri;
                 if (other == null)
                     return false;
-                return _uri == other._uri && _endpoint == other._endpoint;
+                return Object.Equals(_uri, other._uri) && Object.Equals(_endpoint, other._endpoint);
             }
 
             /// <inheritdoc/>
