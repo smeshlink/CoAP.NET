@@ -1,0 +1,126 @@
+---
+layout: default
+title: Documentation
+excerpt: Documentation of CoAP.NET.
+doc: true
+permalink: /doc/
+---
+
+		<div class="container">
+			<div class="row">
+				<div class="span9">
+					<section>
+						<h1 id="content" class="anchor page-header">Content</h1>
+						<ul>
+							<li><a href="{{ site.url }}/getting-started/">Getting Started</a></li>
+							<li>
+								<a href="#coap">Introducing CoAP</a>
+								<ul>
+									<li><a href="#basics">CoAP Basics</a></li>
+									<li><a href="#discovery">Resource Discovery</a></li>
+									<li><a href="#separate">Piggy-backed Response</a></li>
+									<li><a href="#blockwise">Block-wise Transfer</a></li>
+									<li><a href="#observe">Observe</a></li>
+								</ul>
+							</li>
+							<li>
+								<a href="#message">Messages</a>
+								<ul>
+									<li><a href="#request">Request</a></li>
+									<li><a href="#response">Response</a></li>
+									<li><a href="#empty">Empty Message</a></li>
+								</ul>
+							</li>
+							<li><a href="#endpoint">Endpoint</a></li>
+							<li><a>Client</a></li>
+							<li>
+								<a>Server</a>
+								<ul>
+									<li><a>Resources</a></li>
+								</ul>
+							</li>
+							<li><a>Logging</a></li>
+							<li><a>Configuration</a></li>
+							<li>
+								<a>Advanced Topics</a>
+								<ul>
+									<li><a>Layer Stack</a></li>
+									<li><a>Datagram Channel</a></li>
+									<li><a>Threading</a></li>
+									<li><a>Deduplication</a></li>
+								</ul>
+							</li>
+						</ul>
+					</section>
+					<section>
+						<h1 id="coap" class="anchor page-header">Introducing CoAP</h1>
+						<p class="lead">CoAP (the Constrained Application Protocol) is a specialized web transfer protocol for IoTs. CoAP is designed to allow machines to interact with each other using RESTful methods (HTTP-like), while keeping low message overhead and parsing complexity.</p>
+						<p>This part introduces the CoAP protocol briefly. For further reading, follow related links below:</p>
+						<ul>
+							<li><a target="_blank" href="http://tools.ietf.org/html/draft-ietf-core-coap">The CoAP specification</a></li>
+							<li><a target="_blank" href="http://tools.ietf.org/html/rfc6690">The CoRE Link Format specification</a></li>
+							<li><a target="_blank" href="http://tools.ietf.org/html/draft-ietf-core-block">Observing Resources in CoAP</a></li>
+							<li><a target="_blank" href="http://tools.ietf.org/html/draft-ietf-core-observe">Blockwise transfers in CoAP</a></li>
+						</ul>
+						<h2 id="basics" class="anchor">CoAP Basics</h2>
+						<p class="muted">// TBD</p>
+						<h2 id="discovery" class="anchor">Resource Discovery</h2>
+						<p class="muted">// TBD</p>
+						<h2 id="separate" class="anchor">Piggy-backed Response</h2>
+						<p class="muted">// TBD</p>
+						<h2 id="blockwise" class="anchor">Block-wise Transfer</h2>
+						<p class="muted">// TBD</p>
+						<h2 id="observe" class="anchor">Observe</h2>
+						<p class="muted">// TBD</p>
+					</section>
+					<section>
+						<h1 id="message" class="anchor page-header">Messages</h1>
+						<p class="lead">CoAP messages are of type <a href="#request">Request</a>, <a href="#response">Response</a> or <a href="#empty">EmptyMessage</a>. Each message has a <code>MessageType</code> (Type), a message identifier (ID), a token (0-8 bytes), a collection of options and a payload.</p>
+						<p>Furthermore, a message can be acknowledged, rejected, canceled, or time out. Those events can be observed by add event handler to events <code>Message.Acknowledge</code>, <code>Message.Reject</code>, <code>Message.Cancel</code> and <code>Message.Timeout</code>.</p>
+						<h2 id="request" class="anchor">Request</h2>
+						<p>
+						Request represents a CoAP request and has either the Type <code>CON</code> or <code>NON</code> and one of the method <code>GET</code>, <code>POST</code>, <code>PUT</code> or <code>DELETE</code>.
+						A request must be sent over an <a href="#endpoint">Endpoint</a> to its destination. By default, a request chooses the default endpoint defined in <code>EndpointManager</code>.
+						After that, the client can wait for such a response with a <strong>synchronous</strong> call, for instance:
+						</p>
+{% highlight csharp %}
+Request request = new Request(Method.GET);
+request.URI = new Uri("coap://example.com:5683/sensors/temperature");
+request.Send();
+Response response = request.WaitForResponse();
+{% endhighlight %}
+						<p>The client can also add a handler to the event <code>Request.Respond</code> to receive a response <strong>asynchronously</strong> when it arrives.</p>
+{% highlight csharp %}
+Request request = new Request(Method.GET);
+request.URI = new Uri("coap://example.com:5683/sensors/temperature");
+
+request.Respond += (Object sender, ResponseEventArgs e) =>
+{
+	Response response = e.Response;
+};
+
+request.Send();
+{% endhighlight %}
+						<h2 id="response" class="anchor">Response</h2>
+						<p>Response represents a CoAP response to a CoAP request. A response is either a piggy-backed response with type <code>ACK</code> or a separate response with type <code>CON</code> or <code>NON</code>. Each response has a <code>StatusCode</code>.</p>
+						<h2 id="empty" class="anchor">Empty Message</h2>
+						<p>EmptyMessage represents an empty CoAP message. An empty message has either the message Type <code>ACK</code> or <code>RST</code>.</p>
+					</section>
+					<section>
+						<h1 id="endpoint" class="anchor page-header">Endpoint</h1>
+						<p>
+						An Endpoint is bound to a particular IP address and port, multiplexing CoAP message exchanges between (potentially multiple) clients and servers.
+						Clients use an Endpoint to send requests to a server. Servers bind resources to one or more Endpoints in order for them to be requested over the network by clients.
+						</p>
+					</section>
+				</div>
+				<div class="span3" role="complementary">
+					<ul class="nav nav-list sidenav">
+						<li><a href="#download">Download</a></li>
+						<li><a href="#build">Build</a></li>
+						<li><a href="#examples">Examples</a></li>
+						<li><a href="#thanks">Thanks</a></li>
+					</ul>
+				</div>
+			</div>
+		</div>
