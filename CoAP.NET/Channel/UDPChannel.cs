@@ -100,7 +100,7 @@ namespace CoAP.Channel
 
             if (_localEP == null)
             {
-                _socket = NewUDPSocket(AddressFamily.InterNetworkV6, _receivePacketSize + 1); // +1 to check for > ReceivePacketSize
+                _socket = SetupUDPSocket(AddressFamily.InterNetworkV6, _receivePacketSize + 1); // +1 to check for > ReceivePacketSize
 
                 try
                 {
@@ -110,7 +110,7 @@ namespace CoAP.Channel
                 catch
                 {
                     // IPv4-mapped address seems not to be supported, set up a separated socket of IPv4.
-                    _socketBackup = NewUDPSocket(AddressFamily.InterNetwork, _receivePacketSize + 1);
+                    _socketBackup = SetupUDPSocket(AddressFamily.InterNetwork, _receivePacketSize + 1);
                 }
 
                 _socket.Socket.Bind(new IPEndPoint(IPAddress.IPv6Any, _port));
@@ -119,7 +119,7 @@ namespace CoAP.Channel
             }
             else
             {
-                _socket = NewUDPSocket(_localEP.AddressFamily, _receivePacketSize + 1);
+                _socket = SetupUDPSocket(_localEP.AddressFamily, _receivePacketSize + 1);
                 _socket.Socket.Bind(_localEP);
             }
 
@@ -259,6 +259,16 @@ namespace CoAP.Channel
         {
             // TODO may log exception?
             BeginSend();
+        }
+
+        private UDPSocket SetupUDPSocket(AddressFamily addressFamily, Int32 bufferSize)
+        {
+            UDPSocket socket = NewUDPSocket(addressFamily, bufferSize);
+
+            // do not throw SocketError.ConnectionReset by ignoring ICMP Port Unreachable
+            const Int32 SIO_UDP_CONNRESET = -1744830452;
+            socket.Socket.IOControl(SIO_UDP_CONNRESET, new Byte[] { 0 }, null);
+            return socket;
         }
 
         static Boolean IsIPv4MappedToIPv6(IPAddress address)
