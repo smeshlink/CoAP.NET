@@ -4,6 +4,6 @@ relative_permalinks: false
 pygments: true
 permalink: /:categories/:title/
 repository: https://github.com/smeshlink/CoAP.NET
-url: /CoAP.NET
+url: 
 
-version: 0.13.3
+version: 0.18

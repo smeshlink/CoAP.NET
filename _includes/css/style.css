@@ -145,6 +145,30 @@ body > .navbar .brand:hover {
 .sidenav {
 	margin-top: 60px;
 }
+.anchor {
+	padding-top: 40px;
+}
+
+.features {
+	color: #5A5A5A;
+	padding-top: 30px;
+	padding-bottom: 30px;
+}
+.features h2 {
+	font-size: 4em;
+	text-align: center;
+	margin-bottom: 30px;
+}
+
+hr.soften {
+	height: 1px;
+	margin: 70px 0;
+	background-image: -webkit-linear-gradient(left, rgba(0,0,0,0), rgba(0,0,0,.1), rgba(0,0,0,0));
+	background-image:    -moz-linear-gradient(left, rgba(0,0,0,0), rgba(0,0,0,.1), rgba(0,0,0,0));
+	background-image:     -ms-linear-gradient(left, rgba(0,0,0,0), rgba(0,0,0,.1), rgba(0,0,0,0));
+	background-image:      -o-linear-gradient(left, rgba(0,0,0,0), rgba(0,0,0,.1), rgba(0,0,0,0));
+	border: 0;
+}
 
 @media (max-width: 980px) {
 	body > .navbar-fixed-top .brand {
