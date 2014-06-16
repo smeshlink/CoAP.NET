@@ -21,7 +21,6 @@ namespace CoAP
     public class Response : Message
     {
         private readonly StatusCode _statusCode;
-        private Request _request;
         private Double _rtt;
         private Boolean _last = true;
 
@@ -41,15 +40,6 @@ namespace CoAP
         public StatusCode StatusCode
         {
             get { return _statusCode; }
-        }
-
-        /// <summary>
-        /// Gets or sets the request related to this response.
-        /// </summary>
-        public Request Request
-        {
-            get { return _request; }
-            set { _request = value; }
         }
 
         /// <summary>
