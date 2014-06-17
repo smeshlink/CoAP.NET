@@ -1,0 +1,2147 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>CoAP.NET</name>
+    </assembly>
+    <members>
+        <member name="T:CoAP.LinkAttribute">
+            <summary>
+            Class for linkformat attributes.
+            </summary>
+        </member>
+        <member name="M:CoAP.LinkAttribute.#ctor(System.String,System.Object)">
+            <summary>
+            Initializes an attribute.
+            </summary>
+        </member>
+        <member name="M:CoAP.LinkAttribute.Serialize(System.Text.StringBuilder)">
+            <summary>
+            Serializes this attribute into its string representation.
+            </summary>
+            <param name="builder"></param>
+        </member>
+        <member name="M:CoAP.LinkAttribute.ToString">
+            <summary>
+            
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="P:CoAP.LinkAttribute.Name">
+            <summary>
+            Gets the name of this attribute.
+            </summary>
+        </member>
+        <member name="P:CoAP.LinkAttribute.Value">
+            <summary>
+            Gets the value of this attribute.
+            </summary>
+        </member>
+        <member name="P:CoAP.LinkAttribute.IntValue">
+            <summary>
+            Gets the int value of this attribute.
+            </summary>
+        </member>
+        <member name="P:CoAP.LinkAttribute.StringValue">
+            <summary>
+            Gets the string value of this attribute.
+            </summary>
+        </member>
+        <member name="T:CoAP.IMessageHandler">
+            <summary>
+            Provides methods to handle messages.
+            </summary>
+        </member>
+        <member name="M:CoAP.IMessageHandler.HandleMessage(CoAP.Request)">
+            <summary>
+            Handles a request message.
+            </summary>
+            <param name="request">the request to handle</param>
+        </member>
+        <member name="M:CoAP.IMessageHandler.HandleMessage(CoAP.Response)">
+            <summary>
+            Handles a response message.
+            </summary>
+            <param name="response">the response to handle</param>
+        </member>
+        <member name="T:CoAP.Layers.UDPLayer">
+            <summary>
+            The class UDPLayer exchanges CoAP messages with remote endpoints using UDP
+            datagrams. It is an unreliable channel and thus datagrams may arrive out of
+            order, appear duplicated, or are lost without any notice, especially on lossy
+            physical layers.
+            </summary>
+        </member>
+        <member name="T:CoAP.Layers.AbstractLayer">
+            <summary>
+            Base class of all layers in CoAP communication
+            </summary>
+        </member>
+        <member name="T:CoAP.IMessageReceiver">
+            <summary>
+            Provides a method to receive messages.
+            </summary>
+        </member>
+        <member name="M:CoAP.IMessageReceiver.ReceiveMessage(CoAP.Message)">
+            <summary>
+            Receives a message.
+            </summary>
+            <param name="msg">the message to receive</param>
+        </member>
+        <member name="M:CoAP.Layers.AbstractLayer.ReceiveMessage(CoAP.Message)">
+            <summary>
+            Receives a message.
+            </summary>
+            <param name="msg"></param>
+        </member>
+        <member name="M:CoAP.Layers.AbstractLayer.SendMessage(CoAP.Message)">
+            <summary>
+            Sends a message.
+            </summary>
+            <param name="msg"></param>
+        </member>
+        <member name="M:CoAP.Layers.AbstractLayer.RegisterReceiver(CoAP.IMessageReceiver)">
+            <summary>
+            Adds a message receiver to this layer.
+            </summary>
+            <param name="receiver"></param>
+        </member>
+        <member name="M:CoAP.Layers.AbstractLayer.UnregisterReceiver(CoAP.IMessageReceiver)">
+            <summary>
+            Removes a message receiver from this layer.
+            </summary>
+            <param name="receiver"></param>
+        </member>
+        <member name="M:CoAP.Layers.AbstractLayer.DeliverMessage(CoAP.Message)">
+            <summary>
+            Delivers a message to registered receivers.
+            </summary>
+            <param name="msg">The message to be delivered</param>
+        </member>
+        <member name="M:CoAP.Layers.AbstractLayer.DoSendMessage(CoAP.Message)">
+            <summary>
+            Sending a message.
+            </summary>
+            <param name="msg">The message to be sent</param>
+        </member>
+        <member name="M:CoAP.Layers.AbstractLayer.DoReceiveMessage(CoAP.Message)">
+            <summary>
+            Receiving a message.
+            </summary>
+            <param name="msg">The message to be received</param>
+        </member>
+        <member name="P:CoAP.Layers.AbstractLayer.MessagesSentCount">
+            <summary>
+            Gets the total number of sent messages.
+            </summary>
+        </member>
+        <member name="P:CoAP.Layers.AbstractLayer.MessagesReceivedCount">
+            <summary>
+            Gets the total number of received messages.
+            </summary>
+        </member>
+        <member name="M:CoAP.Layers.UDPLayer.#ctor">
+            <summary>
+            Initializes a UDP layer.
+            </summary>
+        </member>
+        <member name="M:CoAP.Layers.UDPLayer.#ctor(System.Int32)">
+            <summary>
+            Initializes a UDP layer with a certain port.
+            </summary>
+            <param name="port">The port which this UDP layer will bind to</param>
+        </member>
+        <member name="M:CoAP.Layers.UDPLayer.DoSendMessage(CoAP.Message)">
+            <summary>
+            Sending a message.
+            </summary>
+            <param name="msg">The message to be sent</param>
+        </member>
+        <member name="M:CoAP.Layers.UDPLayer.DoReceiveMessage(CoAP.Message)">
+            <summary>
+            Receiving a message.
+            </summary>
+            <param name="msg">The message to be received</param>
+        </member>
+        <member name="T:CoAP.EndPoint.Resources.Resource">
+            <summary>
+            This class describes the functionality of a CoAP resource.
+            </summary>
+        </member>
+        <member name="M:CoAP.EndPoint.Resources.Resource.#ctor(System.String)">
+            <summary>
+            Initialize a resource.
+            </summary>
+            <param name="resourceIdentifier">The identifier of this resource</param>
+        </member>
+        <member name="M:CoAP.EndPoint.Resources.Resource.#ctor(System.String,System.Boolean)">
+            <summary>
+            Initialize a resource.
+            </summary>
+            <param name="resourceIdentifier">The identifier of this resource</param>
+            <param name="hidden">True if this resource is hidden</param>
+        </member>
+        <member name="M:CoAP.EndPoint.Resources.Resource.Remove">
+            <summary>
+            Removes this resource from its parent.
+            </summary>
+        </member>
+        <member name="M:CoAP.EndPoint.Resources.Resource.GetSubResources">
+            <summary>
+            Gets sub-resources of this resource.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:CoAP.EndPoint.Resources.Resource.AddSubResource(CoAP.EndPoint.Resources.Resource)">
+            <summary>
+            Adds a resource as a sub-resource of this resource.
+            </summary>
+            <param name="resource">The sub-resource to be added</param>
+        </member>
+        <member name="M:CoAP.EndPoint.Resources.Resource.RemoveSubResource(System.String)">
+            <summary>
+            Removes a sub-resource from this resource by its identifier.
+            </summary>
+            <param name="resourcePath">the path of the sub-resource to remove</param>
+        </member>
+        <member name="M:CoAP.EndPoint.Resources.Resource.RemoveSubResource(CoAP.EndPoint.Resources.Resource)">
+            <summary>
+            Removes a sub-resource from this resource.
+            </summary>
+            <param name="resource">the sub-resource to remove</param>
+        </member>
+        <member name="M:CoAP.EndPoint.Resources.Resource.CreateInstance(System.String)">
+            <summary>
+            Creates a resouce instance with proper subtype.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="P:CoAP.EndPoint.Resources.Resource.Path">
+            <summary>
+            Gets the URI of this resource.
+            </summary>
+        </member>
+        <member name="P:CoAP.EndPoint.Resources.Resource.ResourceType">
+            <summary>
+            Gets or sets the type attribute of this resource.
+            </summary>
+        </member>
+        <member name="P:CoAP.EndPoint.Resources.Resource.Title">
+            <summary>
+            Gets or sets the title attribute of this resource.
+            </summary>
+        </member>
+        <member name="P:CoAP.EndPoint.Resources.Resource.InterfaceDescription">
+            <summary>
+            Gets or sets the interface description attribute of this resource.
+            </summary>
+        </member>
+        <member name="P:CoAP.EndPoint.Resources.Resource.ContentTypeCode">
+            <summary>
+            Gets or sets the content type code attribute of this resource.
+            </summary>
+        </member>
+        <member name="P:CoAP.EndPoint.Resources.Resource.MaximumSizeEstimate">
+            <summary>
+            Gets or sets the maximum size estimate attribute of this resource.
+            </summary>
+        </member>
+        <member name="P:CoAP.EndPoint.Resources.Resource.Observable">
+            <summary>
+            Gets or sets the observable attribute of this resource.
+            </summary>
+        </member>
+        <member name="P:CoAP.EndPoint.Resources.Resource.TotalSubResourceCount">
+            <summary>
+            Gets the total count of sub-resources, including children and children's children...
+            </summary>
+        </member>
+        <member name="P:CoAP.EndPoint.Resources.Resource.SubResourceCount">
+            <summary>
+            Gets the count of sub-resources of this resource.
+            </summary>
+        </member>
+        <member name="T:CoAP.IRequestHandler">
+            <summary>
+            Provides methods to handle CoAP Requests.
+            </summary>
+        </member>
+        <member name="M:CoAP.IRequestHandler.DoGet(CoAP.Request)">
+            <summary>
+            Handles GET request.
+            </summary>
+            <param name="request"></param>
+        </member>
+        <member name="M:CoAP.IRequestHandler.DoPost(CoAP.Request)">
+            <summary>
+            Handles POST request.
+            </summary>
+            <param name="request"></param>
+        </member>
+        <member name="M:CoAP.IRequestHandler.DoPut(CoAP.Request)">
+            <summary>
+            Handles PUT request.
+            </summary>
+            <param name="request"></param>
+        </member>
+        <member name="M:CoAP.IRequestHandler.DoDelete(CoAP.Request)">
+            <summary>
+            Handles DELETE request.
+            </summary>
+            <param name="request"></param>
+        </member>
+        <member name="M:CoAP.EndPoint.Resources.LocalResource.CreateInstance(System.String)">
+            <summary>
+            Creates a resouce instance with proper subtype.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:CoAP.Code">
+            <summary>
+            This class describes the CoAP Code Registry as defined in 
+            draft-ietf-core-coap-08, section 11.1
+            </summary>
+        </member>
+        <member name="F:CoAP.Code.GET">
+            <summary>
+            The GET method
+            </summary>
+        </member>
+        <member name="F:CoAP.Code.POST">
+            <summary>
+            The POST method
+            </summary>
+        </member>
+        <member name="F:CoAP.Code.PUT">
+            <summary>
+            The PUT method
+            </summary>
+        </member>
+        <member name="F:CoAP.Code.DELETE">
+            <summary>
+            The DELETE method
+            </summary>
+        </member>
+        <member name="F:CoAP.Code.Created">
+            <summary>
+            2.01 Created
+            </summary>
+        </member>
+        <member name="F:CoAP.Code.Deleted">
+            <summary>
+            2.02 Deleted
+            </summary>
+        </member>
+        <member name="F:CoAP.Code.Valid">
+            <summary>
+            2.03 Valid 
+            </summary>
+        </member>
+        <member name="F:CoAP.Code.Changed">
+            <summary>
+            2.04 Changed
+            </summary>
+        </member>
+        <member name="F:CoAP.Code.Content">
+            <summary>
+            2.05 Content
+            </summary>
+        </member>
+        <member name="F:CoAP.Code.BadRequest">
+            <summary>
+            4.00 Bad Request
+            </summary>
+        </member>
+        <member name="F:CoAP.Code.Unauthorized">
+            <summary>
+            4.01 Unauthorized
+            </summary>
+        </member>
+        <member name="F:CoAP.Code.BadOption">
+            <summary>
+            4.02 Bad Option
+            </summary>
+        </member>
+        <member name="F:CoAP.Code.Forbidden">
+            <summary>
+            4.03 Forbidden
+            </summary>
+        </member>
+        <member name="F:CoAP.Code.NotFound">
+            <summary>
+            4.04 Not Found
+            </summary>
+        </member>
+        <member name="F:CoAP.Code.MethodNotAllowed">
+            <summary>
+            4.05 Method Not Allowed
+            </summary>
+        </member>
+        <member name="F:CoAP.Code.NotAcceptable">
+            <summary>
+            4.06 Not Acceptable
+            </summary>
+        </member>
+        <member name="F:CoAP.Code.RequestEntityIncomplete">
+            <summary>
+            4.08 Request Entity Incomplete (draft-ietf-core-block)
+            </summary>
+        </member>
+        <member name="F:CoAP.Code.PreconditionFailed">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="F:CoAP.Code.RequestEntityTooLarge">
+            <summary>
+            4.13 Request Entity Too Large
+            </summary>
+        </member>
+        <member name="F:CoAP.Code.UnsupportedMediaType">
+            <summary>
+            4.15 Unsupported Media Type
+            </summary>
+        </member>
+        <member name="F:CoAP.Code.InternalServerError">
+            <summary>
+            5.00 Internal Server Error
+            </summary>
+        </member>
+        <member name="F:CoAP.Code.NotImplemented">
+            <summary>
+            5.01 Not Implemented
+            </summary>
+        </member>
+        <member name="F:CoAP.Code.BadGateway">
+            <summary>
+            5.02 Bad Gateway
+            </summary>
+        </member>
+        <member name="F:CoAP.Code.ServiceUnavailable">
+            <summary>
+            5.03 Service Unavailable 
+            </summary>
+        </member>
+        <member name="F:CoAP.Code.GatewayTimeout">
+            <summary>
+            5.04 Gateway Timeout
+            </summary>
+        </member>
+        <member name="F:CoAP.Code.ProxyingNotSupported">
+            <summary>
+            5.05 Proxying Not Supported
+            </summary>
+        </member>
+        <member name="M:CoAP.Code.IsRequest(System.Int32)">
+            <summary>
+            Checks whether a code indicates a request
+            </summary>
+            <param name="code">The code to be checked</param>
+            <returns>True iff the code indicates a request</returns>
+        </member>
+        <member name="M:CoAP.Code.IsResponse(System.Int32)">
+            <summary>
+            Checks whether a code indicates a response
+            </summary>
+            <param name="code">The code to be checked</param>
+            <returns>True iff the code indicates a response</returns>
+        </member>
+        <member name="M:CoAP.Code.IsSuccess(System.Int32)">
+            <summary>
+            Checks whether a code represents a success code.
+            </summary>
+        </member>
+        <member name="M:CoAP.Code.IsValid(System.Int32)">
+            <summary>
+            Checks whether a code is valid
+            </summary>
+            <param name="code">The code to be checked</param>
+            <returns>True iff the code is valid</returns>
+        </member>
+        <member name="M:CoAP.Code.ToString(System.Int32)">
+            <summary>
+            Returns a string representation of the code
+            </summary>
+            <param name="code">The code to be described</param>
+            <returns>A string describing the code</returns>
+        </member>
+        <member name="T:CoAP.ObservingManager">
+            <summary>
+            Manages observationships.
+            </summary>
+        </member>
+        <member name="T:CoAP.EndPoint.ProxyEndpoint">
+            <summary>
+            Represent the container of the resources and the layers used by the proxy.
+            </summary>
+        </member>
+        <member name="T:CoAP.EndPoint.LocalEndPoint">
+            <summary>
+            Provides the functionality of a server endpoint.
+            A server implementation using CoAP.NET will override
+            this class to provide custom resources. Internally, the main purpose of this
+            class is to forward received requests to the corresponding resource specified
+            by the Uri-Path option.
+            </summary>
+        </member>
+        <member name="T:CoAP.EndPoint.EndPoint">
+            <summary>
+            Base class of CoAP endpoints.
+            </summary>
+        </member>
+        <member name="M:CoAP.EndPoint.LocalEndPoint.AddResource(CoAP.EndPoint.Resources.LocalResource)">
+            <summary>
+            Adds a resource to the root resource of the endpoint. If the resource
+            identifier is actually a path, it is split up into multiple resources.
+            </summary>
+            <param name="resource">the resource to add</param>
+        </member>
+        <member name="M:CoAP.EndPoint.LocalEndPoint.GetResource(System.String)">
+            <summary>
+            Gets a resource with the given path.
+            </summary>
+            <param name="path">the path of the resource</param>
+        </member>
+        <member name="M:CoAP.EndPoint.LocalEndPoint.RemoveResource(System.String)">
+            <summary>
+            Removes a resource with the given path.
+            </summary>
+            <param name="path">the path of the resource to remove</param>
+        </member>
+        <member name="T:CoAP.EndPoint.LocalEndPoint.IRequestDispatcher">
+            <summary>
+            Provides a method to dispatch requests.
+            </summary>
+        </member>
+        <member name="T:CoAP.Util.DatagramReader">
+            <summary>
+            This class describes the functionality to read raw network-ordered datagrams on bit-level.
+            </summary>
+        </member>
+        <member name="M:CoAP.Util.DatagramReader.#ctor(System.Byte[])">
+            <summary>
+            Initializes a new DatagramReader object
+            </summary>
+            <param name="buffer">The byte array to read from</param>
+        </member>
+        <member name="M:CoAP.Util.DatagramReader.Read(System.Int32)">
+            <summary>
+            Reads a sequence of bits from the stream
+            </summary>
+            <param name="numBits">The number of bits to read</param>
+            <returns>An integer containing the bits read</returns>
+        </member>
+        <member name="M:CoAP.Util.DatagramReader.ReadBytes(System.Int32)">
+            <summary>
+            Reads a sequence of bytes from the stream
+            </summary>
+            <param name="count">The number of bytes to read</param>
+            <returns>The sequence of bytes read from the stream</returns>
+        </member>
+        <member name="M:CoAP.Util.DatagramReader.ReadNextByte">
+            <summary>
+            Reads the next byte from the stream.
+            </summary>
+        </member>
+        <member name="M:CoAP.Util.DatagramReader.ReadBytesLeft">
+            <summary>
+            Reads the complete sequence of bytes left in the stream
+            </summary>
+            <returns>The sequence of bytes left in the stream</returns>
+        </member>
+        <member name="P:CoAP.Util.DatagramReader.BytesAvailable">
+            <summary>
+            Checks if there are remaining bytes to read.
+            </summary>
+        </member>
+        <member name="T:CoAP.OptionType">
+            <summary>
+            CoAP option types
+            </summary>
+        </member>
+        <member name="F:CoAP.OptionType.Reserved">
+            <summary>
+            <remarks>draft-ietf-core-coap</remarks>
+            </summary>
+        </member>
+        <member name="F:CoAP.OptionType.IfMatch">
+            <summary>
+            C, opaque, 0-8 B, -
+            <remarks>draft-ietf-core-coap-07</remarks>
+            </summary>
+        </member>
+        <member name="F:CoAP.OptionType.UriHost">
+            <summary>
+            C, String, 1-270 B, ""
+            <remarks>draft-ietf-core-coap</remarks>
+            </summary>
+        </member>
+        <member name="F:CoAP.OptionType.ETag">
+            <summary>
+            E, sequence of bytes, 1-4 B, -
+            <remarks>draft-ietf-core-coap</remarks>
+            </summary>
+        </member>
+        <member name="F:CoAP.OptionType.IfNoneMatch">
+            <summary>
+            <remarks>draft-ietf-core-coap-07</remarks>
+            </summary>
+        </member>
+        <member name="F:CoAP.OptionType.UriPort">
+            <summary>
+            C, uint, 0-2 B
+            <remarks>draft-ietf-core-coap</remarks>
+            </summary>
+        </member>
+        <member name="F:CoAP.OptionType.LocationPath">
+            <summary>
+            E, String, 1-270 B, -
+            <remarks>draft-ietf-core-coap</remarks>
+            </summary>
+        </member>
+        <member name="F:CoAP.OptionType.UriPath">
+            <summary>
+            C, String, 1-270 B, ""
+            <remarks>draft-ietf-core-coap</remarks>
+            </summary>
+        </member>
+        <member name="F:CoAP.OptionType.ContentType">
+            <summary>
+            C, 8-bit uint, 1 B, 0 (text/plain)
+            <remarks>draft-ietf-core-coap</remarks>
+            </summary>
+        </member>
+        <member name="F:CoAP.OptionType.MaxAge">
+            <summary>
+            E, variable length, 1--4 B, 60 Seconds
+            <remarks>draft-ietf-core-coap</remarks>
+            </summary>
+        </member>
+        <member name="F:CoAP.OptionType.UriQuery">
+            <summary>
+            C, String, 1-270 B, ""
+            <remarks>draft-ietf-core-coap</remarks>
+            </summary>
+        </member>
+        <member name="F:CoAP.OptionType.Accept">
+            <summary>
+            E  Sequence of Bytes, 1-n B, -
+            <remarks>draft-ietf-core-coap</remarks>
+            </summary>
+        </member>
+        <member name="F:CoAP.OptionType.Token">
+            <summary>
+            C, Sequence of Bytes, 1-2 B, -
+            <remarks>draft-ietf-core-coap-03, draft-ietf-core-coap-12</remarks>
+            </summary>
+        </member>
+        <member name="F:CoAP.OptionType.LocationQuery">
+            <summary>
+            E, String, 1-270 B, -
+            <remarks>draft-ietf-core-coap</remarks>
+            </summary>
+        </member>
+        <member name="F:CoAP.OptionType.ProxyUri">
+            <summary>
+            C, String, 1-270 B, "coap"
+            <remarks>draft-ietf-core-coap-04</remarks>
+            </summary>
+        </member>
+        <member name="F:CoAP.OptionType.ProxyScheme">
+            <summary>
+            <remarks>draft-ietf-core-coap-13</remarks>
+            </summary>
+        </member>
+        <member name="F:CoAP.OptionType.Observe">
+            <summary>
+            E, Duration, 1 B, 0
+            <remarks>draft-ietf-core-observe</remarks>
+            </summary>
+        </member>
+        <member name="F:CoAP.OptionType.Block2">
+            <summary>
+            <remarks>draft-ietf-core-block</remarks>
+            </summary>
+        </member>
+        <member name="F:CoAP.OptionType.Block1">
+            <summary>
+            <remarks>draft-ietf-core-block</remarks>
+            </summary>
+        </member>
+        <member name="F:CoAP.OptionType.Size">
+            <summary>
+            <remarks>draft-ietf-core-block-08</remarks>
+            </summary>
+        </member>
+        <member name="F:CoAP.OptionType.FencepostDivisor">
+            <summary>
+            no-op for fenceposting
+            <remarks>draft-bormann-coap-misc-04</remarks>
+            </summary>
+        </member>
+        <member name="T:CoAP.OptionFormat">
+            <summary>
+            CoAP option formats
+            </summary>
+        </member>
+        <member name="T:CoAP.ICommunicator">
+            <summary>
+            Provides methods for message communication.
+            </summary>
+        </member>
+        <member name="P:CoAP.ICommunicator.Port">
+            <summary>
+            Gets the port which this communicator is on.
+            </summary>
+        </member>
+        <member name="T:CoAP.CommunicatorFactory">
+            <summary>
+            Factory for creating Communicator objects.
+            </summary>
+        </member>
+        <member name="T:CoAP.Layers.UpperLayer">
+            <summary>
+            Base class of layers that have a lower layer
+            </summary>
+        </member>
+        <member name="M:CoAP.Layers.UpperLayer.DoReceiveMessage(CoAP.Message)">
+            <summary>
+            Receiving a message.
+            </summary>
+            <param name="msg">The message to be received</param>
+        </member>
+        <member name="M:CoAP.Layers.UpperLayer.DoSendMessage(CoAP.Message)">
+            <summary>
+            Sending a message.
+            </summary>
+            <param name="msg">The message to be sent</param>
+        </member>
+        <member name="M:CoAP.Layers.UpperLayer.SendMessageOverLowerLayer(CoAP.Message)">
+            <summary>
+            Sends a message by the lower layer.
+            </summary>
+            <param name="msg">The message to be sent</param>
+        </member>
+        <member name="P:CoAP.Layers.UpperLayer.LowerLayer">
+            <summary>
+            Gets or sets the lower layer of this layer.
+            </summary>
+        </member>
+        <member name="T:CoAP.Util.DatagramWriter">
+            <summary>
+            This class describes the functionality to write raw network-ordered datagrams on bit-level.
+            </summary>
+        </member>
+        <member name="M:CoAP.Util.DatagramWriter.#ctor">
+            <summary>
+            Initializes a new DatagramWriter object
+            </summary>
+        </member>
+        <member name="M:CoAP.Util.DatagramWriter.Write(System.Int32,System.Int32)">
+            <summary>
+            Writes a sequence of bits to the stream
+            </summary>
+            <param name="data">An integer containing the bits to write</param>
+            <param name="numBits">The number of bits to write</param>
+        </member>
+        <member name="M:CoAP.Util.DatagramWriter.WriteBytes(System.Byte[])">
+            <summary>
+            Writes a sequence of bytes to the stream
+            </summary>
+            <param name="bytes">The sequence of bytes to write</param>
+        </member>
+        <member name="M:CoAP.Util.DatagramWriter.WriteByte(System.Byte)">
+            <summary>
+            Writes one byte to the stream.
+            </summary>
+        </member>
+        <member name="M:CoAP.Util.DatagramWriter.ToByteArray">
+            <summary>
+            Returns a byte array containing the sequence of bits written
+            </summary>
+            <returns>The byte array containing the written bits</returns>
+        </member>
+        <member name="T:CoAP.Message">
+            <summary>
+            This class describes the functionality of a CoAP message.
+            </summary>
+        </member>
+        <member name="F:CoAP.Message.InvalidID">
+            <summary>
+            Invalid message ID.
+            </summary>
+        </member>
+        <member name="M:CoAP.Message.#ctor">
+            <summary>
+            Initializes a message.
+            </summary>
+        </member>
+        <member name="M:CoAP.Message.#ctor(CoAP.MessageType,System.Int32)">
+            <summary>
+            Initializes a message.
+            </summary>
+            <param name="type">The message type</param>
+            <param name="code">The message code</param>
+        </member>
+        <member name="M:CoAP.Message.#ctor(System.Uri,CoAP.MessageType,System.Int32,System.Int32,System.Byte[])">
+            <summary>
+            Initializes a message.
+            </summary>
+        </member>
+        <member name="M:CoAP.Message.NewReply(System.Boolean)">
+            <summary>
+            Creates a reply message to this message, which addressed to the
+            peer and has the same message ID and token.
+            </summary>
+            <param name="ack">Acknowledgement or not</param>
+            <returns></returns>
+        </member>
+        <member name="M:CoAP.Message.NewAccept">
+            <summary>
+            Creates a new ACK message with peer address and MID matching to this message.
+            </summary>
+        </member>
+        <member name="M:CoAP.Message.NewReject">
+            <summary>
+            Creates a new RST message with peer address and MID matching to this message.
+            </summary>
+        </member>
+        <member name="M:CoAP.Message.Accept">
+            <summary>
+            Accepts this message with an empty ACK. Use this method only at
+            application level, as the ACK will be sent through the whole stack.
+            Within the stack use NewAccept() and send it through the corresponding lower layer.
+            </summary>
+        </member>
+        <member name="M:CoAP.Message.Reject">
+            <summary>
+            Rejects this message with an empty RST. Use this method only at
+            application level, as the RST will be sent through the whole stack.
+            Within the stack use NewReject() and send it through the corresponding lower layer.
+            </summary>
+        </member>
+        <member name="M:CoAP.Message.Send">
+            <summary>
+            Sends this message.
+            </summary>
+        </member>
+        <member name="M:CoAP.Message.HandleBy(CoAP.IMessageHandler)">
+            <summary>
+            
+            </summary>
+            <param name="handler"></param>
+        </member>
+        <member name="M:CoAP.Message.HandleTimeout">
+            <summary>
+            Notification method that is called when the transmission of this
+            message was canceled due to timeout.
+            </summary>
+        </member>
+        <member name="M:CoAP.Message.AppendPayload(System.Byte[])">
+            <summary>
+            Appends data to this message's payload.
+            </summary>
+            <param name="block">The byte array to be appended</param>
+        </member>
+        <member name="M:CoAP.Message.SetPayload(System.String)">
+            <summary>
+            Sets the payload of this CoAP message.
+            </summary>
+            <param name="payload">The string representation of the payload</param>
+        </member>
+        <member name="M:CoAP.Message.SetPayload(System.String,System.Int32)">
+            <summary>
+            Sets the payload of this CoAP message.
+            </summary>
+            <param name="payload">The string representation of the payload</param>
+            <param name="mediaType">The content-type of the payload</param>
+        </member>
+        <member name="M:CoAP.Message.ToString">
+            <summary>
+            To string.
+            </summary>
+        </member>
+        <member name="M:CoAP.Message.Equals(System.Object)">
+            <summary>
+            Equals.
+            </summary>
+        </member>
+        <member name="M:CoAP.Message.GetHashCode">
+            <summary>
+            Get hash code.
+            </summary>
+        </member>
+        <member name="M:CoAP.Message.AddOption(CoAP.Option)">
+            <summary>
+            Adds an option to the list of options of this CoAP message.
+            </summary>
+            <param name="option">the option to add</param>
+        </member>
+        <member name="M:CoAP.Message.AddOptions(System.Collections.Generic.IEnumerable{CoAP.Option})">
+            <summary>
+            Adds all option to the list of options of this CoAP message.
+            </summary>
+            <param name="options">the options to add</param>
+        </member>
+        <member name="M:CoAP.Message.RemoveOptions(CoAP.OptionType)">
+            <summary>
+            Removes all options of the given type from this CoAP message.
+            </summary>
+            <param name="optionType">the type of option to remove</param>
+        </member>
+        <member name="M:CoAP.Message.GetOptions(CoAP.OptionType)">
+            <summary>
+            Gets all options of the given type.
+            </summary>
+            <param name="optionType">the option type</param>
+            <returns></returns>
+        </member>
+        <member name="M:CoAP.Message.SetOption(CoAP.Option)">
+            <summary>
+            Sets an option.
+            </summary>
+            <param name="opt">the option to set</param>
+        </member>
+        <member name="M:CoAP.Message.SetOptions(System.Collections.Generic.IEnumerable{CoAP.Option})">
+            <summary>
+            Sets all options with the specified option type.
+            </summary>
+            <param name="options">the options to set</param>
+        </member>
+        <member name="M:CoAP.Message.HasOption(CoAP.OptionType)">
+            <summary>
+            Checks if this CoAP message has options of the specified option type.
+            </summary>
+            <param name="type">the option type</param>
+            <returns>rrue if options of the specified type exist</returns>
+        </member>
+        <member name="M:CoAP.Message.GetFirstOption(CoAP.OptionType)">
+            <summary>
+            Gets the first option of the specified option type.
+            </summary>
+            <param name="optionType">the option type</param>
+            <returns>the first option of the specified type, or null</returns>
+        </member>
+        <member name="M:CoAP.Message.GetOptions">
+            <summary>
+            Gets a sorted list of all options.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:CoAP.Message.GetOptionCount">
+            <summary>
+            Gets the number of all options of this CoAP message.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:CoAP.Message.DoHandleTimeout">
+            <summary>
+            Notification method that is called when the transmission of this
+            message was canceled due to timeout.
+            <remarks>Subclasses may override this method to add custom handling code.</remarks>
+            </summary>
+        </member>
+        <member name="M:CoAP.Message.DoHandleBy(CoAP.IMessageHandler)">
+            <summary>
+            
+            </summary>
+            <param name="handler"></param>
+        </member>
+        <member name="M:CoAP.Message.Create(System.Int32)">
+            <summary>
+            Creates a message with subtype according to code number
+            </summary>
+            <param name="code"></param>
+            <returns></returns>
+        </member>
+        <member name="P:CoAP.Message.PayloadSize">
+            <summary>
+            Gets the size of the payload of this CoAP message.
+            </summary>
+        </member>
+        <member name="P:CoAP.Message.Payload">
+            <summary>
+            Gets or sets the payload of this CoAP message.
+            </summary>
+        </member>
+        <member name="P:CoAP.Message.PayloadString">
+            <summary>
+            Gets or sets the payload of this CoAP message in string representation.
+            </summary>
+        </member>
+        <member name="P:CoAP.Message.RequiresToken">
+            <summary>
+            Gets or sets a value that indicates whether a generated token is needed.
+            </summary>
+        </member>
+        <member name="P:CoAP.Message.Timestamp">
+            <summary>
+            Gets or sets the timestamp related to this CoAP message.
+            </summary>
+        </member>
+        <member name="P:CoAP.Message.Retransmissioned">
+            <summary>
+            Gets or sets how many times this message has been retransmissioned.
+            </summary>
+        </member>
+        <member name="P:CoAP.Message.MaxRetransmit">
+            <summary>
+            Gets or sets the max times this message should be retransmissioned.
+            By default the value is equal to <code>CoapConstants.MaxRetransmit</code>.
+            A value of 0 indicates that this message will not be retransmissioned when timeout.
+            </summary>
+        </member>
+        <member name="P:CoAP.Message.ResponseTimeout">
+            <summary>
+            Gets or sets the amount of time in milliseconds after which this message will time out.
+            The default value is <code>CoapConstants.ResponseTimeout</code>.
+            A value less or equal than 0 indicates an infinite time-out period.
+            </summary>
+        </member>
+        <member name="P:CoAP.Message.URI">
+            <summary>
+            Gets or sets the URI of this CoAP message.
+            </summary>
+        </member>
+        <member name="P:CoAP.Message.ContentType">
+            <summary>
+            Gets or sets the content-type of this CoAP message.
+            </summary>
+        </member>
+        <member name="P:CoAP.Message.LocationPath">
+            <summary>
+            Gets or set the location-path of this CoAP message.
+            </summary>
+        </member>
+        <member name="P:CoAP.Message.MaxAge">
+            <summary>
+            Gets or sets the max-age of this CoAP message.
+            </summary>
+        </member>
+        <member name="P:CoAP.Message.Code">
+            <summary>
+            Gets or sets the code of this CoAP message.
+            </summary>
+        </member>
+        <member name="P:CoAP.Message.CodeString">
+            <summary>
+            Gets the code's string representation of this CoAP message.
+            </summary>
+        </member>
+        <member name="P:CoAP.Message.Version">
+            <summary>
+            Gets the version of this CoAP message.
+            </summary>
+        </member>
+        <member name="P:CoAP.Message.ID">
+            <summary>
+            Gets or sets the ID of this CoAP message.
+            </summary>
+        </member>
+        <member name="P:CoAP.Message.Canceled">
+            <summary>
+            Gets or sets a value that indicates whether this CoAP message is canceled.
+            </summary>
+        </member>
+        <member name="P:CoAP.Message.Type">
+            <summary>
+            Gets or sets the type of this CoAP message.
+            </summary>
+        </member>
+        <member name="P:CoAP.Message.IsRequest">
+            <summary>
+            Gets a value that indicates whether this CoAP message is a request message.
+            </summary>
+        </member>
+        <member name="P:CoAP.Message.IsResponse">
+            <summary>
+            Gets a value that indicates whether this CoAP message is a response message.
+            </summary>
+        </member>
+        <member name="P:CoAP.Message.IsConfirmable">
+            <summary>
+            Gets a value that indicates whether this CoAP message is confirmable.
+            </summary>
+        </member>
+        <member name="P:CoAP.Message.IsNonConfirmable">
+            <summary>
+            Gets a value that indicates whether this CoAP message is non-confirmable.
+            </summary>
+        </member>
+        <member name="P:CoAP.Message.IsAcknowledgement">
+            <summary>
+            Gets a value that indicates whether this CoAP message is an acknowledgement.
+            </summary>
+        </member>
+        <member name="P:CoAP.Message.IsReset">
+            <summary>
+            Gets a value that indicates whether this CoAP message is a reset.
+            </summary>
+        </member>
+        <member name="P:CoAP.Message.IsReply">
+            <summary>
+            Gets a value that indicates whether this CoAP message is an reply message.
+            </summary>
+        </member>
+        <member name="P:CoAP.Message.IsEmptyACK">
+            <summary>
+            Gets a value that indicates whether this response is a separate one.
+            </summary>
+        </member>
+        <member name="P:CoAP.Message.Key">
+            <summary>
+            Gets a string that is assumed to uniquely identify a message,
+            since messages from different remote endpoints might have a same message ID.
+            </summary>
+        </member>
+        <member name="P:CoAP.Message.Address">
+            <summary>
+            Gets the IP address of the URI of this CoAP message.
+            </summary>
+        </member>
+        <member name="P:CoAP.Message.EndPointID">
+            <summary>
+            Gets the endpoint ID of this CoAP message, including ip address and port.
+            </summary>
+        </member>
+        <member name="T:CoAP.Layers.MatchingLayer">
+            <summary>
+            This class matches the request/response pairs using the token option. It must
+            be below the <see cref="T:CoAP.Layers.TransferLayer"/>, which requires set buddies
+            for each message (<see cref="P:CoAP.Response.Request"/>) and (<see cref="P:CoAP.Request.Response"/>).
+            </summary>
+        </member>
+        <member name="T:CoAP.CoapConfig">
+            <summary>
+            Default implementation of <see cref="T:CoAP.ICoapConfig"/>.
+            </summary>
+        </member>
+        <member name="T:CoAP.ICoapConfig">
+            <summary>
+            Provides configuration for <see cref="T:CoAP.ICommunicator"/>.
+            </summary>
+        </member>
+        <member name="P:CoAP.ICoapConfig.Port">
+            <summary>
+            Gets the port which CoAP endpoint is on.
+            </summary>
+        </member>
+        <member name="P:CoAP.ICoapConfig.HttpPort">
+            <summary>
+            Gets the port which HTTP proxy is on.
+            </summary>
+        </member>
+        <member name="P:CoAP.ICoapConfig.TransferBlockSize">
+            <summary>
+            Gets the preferred size of block in blockwise transfer.
+            </summary>
+        </member>
+        <member name="P:CoAP.ICoapConfig.SequenceTimeout">
+            <summary>
+            Gets the overall timeout for CoAP request/response(s).
+            </summary>
+        </member>
+        <member name="T:CoAP.Layers.TransferLayer">
+            <summary>
+            The class TransferLayer provides support for blockwise transfers.
+            </summary>
+        </member>
+        <member name="M:CoAP.Layers.TransferLayer.#ctor(System.Int32)">
+            <summary>
+            Initializes a transfer layer.
+            </summary>
+            <param name="defaultBlockSize">The default block size used for block-wise transfers or -1 to disable outgoing block-wise transfers</param>
+        </member>
+        <member name="M:CoAP.Layers.TransferLayer.#ctor">
+            <summary>
+            Initializes a transfer layer.
+            </summary>
+        </member>
+        <member name="M:CoAP.Layers.TransferLayer.DoSendMessage(CoAP.Message)">
+            <summary>
+            Sending a message.
+            </summary>
+            <param name="msg">The message to be sent</param>
+        </member>
+        <member name="M:CoAP.Layers.TransferLayer.DoReceiveMessage(CoAP.Message)">
+            <summary>
+            Receiving a message.
+            </summary>
+            <param name="msg">The message to be received</param>
+        </member>
+        <member name="T:CoAP.TokenManager">
+            <summary>
+            Stores all tokens currently used in transfers. New transfers
+            can acquire unique tokens from the manager.
+            </summary>
+        </member>
+        <member name="F:CoAP.TokenManager.EmptyToken">
+            <summary>
+            The empty token, used as default value
+            </summary>
+        </member>
+        <member name="M:CoAP.TokenManager.AcquireToken(System.Boolean)">
+            <summary>
+            Returns an unique token.
+            </summary>
+            <param name="preferEmptyToken">If set to true, the caller will receive the empty token if it is available. This is useful for reducing datagram sizes in transactions that are expected to complete in short time. On the other hand, empty tokens are not preferred in block-wise transfers, as the empty token is then not available for concurrent transactions.</param>
+            <returns></returns>
+        </member>
+        <member name="M:CoAP.TokenManager.AcquireToken">
+            <summary>
+            Returns an unique token.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:CoAP.TokenManager.IsAcquired(System.Byte[])">
+            <summary>
+            Checks if a token is acquired by this manager.
+            </summary>
+            <param name="token">The token to check</param>
+            <returns>True iff the token is currently in use</returns>
+        </member>
+        <member name="M:CoAP.TokenManager.ReleaseToken(System.Byte[])">
+            <summary>
+            Releases an acquired token and makes it available for reuse.
+            </summary>
+            <param name="token">The token to release</param>
+        </member>
+        <member name="T:CoAP.Response">
+            <summary>
+            This class describes the functionality of a CoAP Response as
+            a subclass of a CoAP Message.
+            </summary>
+        </member>
+        <member name="M:CoAP.Response.#ctor">
+            <summary>
+            Initializes a response message with default code.
+            </summary>
+        </member>
+        <member name="M:CoAP.Response.#ctor(System.Int32)">
+            <summary>
+            Initializes a response message.
+            </summary>
+            <param name="code">The code of this response</param>
+        </member>
+        <member name="P:CoAP.Response.Request">
+            <summary>
+            Gets or sets the request related to this response.
+            </summary>
+        </member>
+        <member name="P:CoAP.Response.RTT">
+            <summary>
+            Gets the Round-Trip Time of this response.
+            </summary>
+        </member>
+        <member name="P:CoAP.Response.IsPiggyBacked">
+            <summary>
+            Gets a value that indicates whether this response is a "Piggy-backed" response,
+            which is carried directly in the acknowledgement message.
+            </summary>
+        </member>
+        <member name="T:CoAP.Layers.MessageLayer">
+            <summary>
+            This class describes the functionality of a CoAP messaging layer. It provides:
+            1. Reliable transport of confirmable messages over underlying layers by making use of retransmissions and exponential backoff;
+            2. Matching of confirmables to their corresponding ACK/RST;
+            3. Detection and cancellation of duplicate messages;
+            4. Retransmission of ACK/RST messages upon receiving duplicate confirmable messages.
+            </summary>
+        </member>
+        <member name="M:CoAP.Layers.MessageLayer.DoSendMessage(CoAP.Message)">
+            <summary>
+            Sending a message.
+            </summary>
+            <param name="msg">The message to be sent</param>
+        </member>
+        <member name="M:CoAP.Layers.MessageLayer.DoReceiveMessage(CoAP.Message)">
+            <summary>
+            Receiving a message.
+            </summary>
+            <param name="msg">The message to be received</param>
+        </member>
+        <member name="T:CoAP.EndpointAddress">
+            <summary>
+            Stores IP address and port.
+            </summary>
+        </member>
+        <member name="M:CoAP.EndpointAddress.#ctor(System.Net.IPAddress)">
+            <summary>
+            Instantiates an endpoint address using an IP address and the default port.
+            </summary>
+        </member>
+        <member name="M:CoAP.EndpointAddress.#ctor(System.Net.IPAddress,System.Int32)">
+            <summary>
+            Instantiates an endpoint address with both IP and port.
+            </summary>
+        </member>
+        <member name="M:CoAP.EndpointAddress.#ctor(System.Uri)">
+            <summary>
+            Instantiates an endpoint address with a Uri object.
+            </summary>
+            <param name="uri"></param>
+        </member>
+        <member name="M:CoAP.EndpointAddress.ToString">
+            <summary>
+            To string.
+            </summary>
+        </member>
+        <member name="M:CoAP.EndpointAddress.Equals(System.Object)">
+            <summary>
+            Equals.
+            </summary>
+        </member>
+        <member name="M:CoAP.EndpointAddress.GetHashCode">
+            <summary>
+            Gets hash code.
+            </summary>
+        </member>
+        <member name="P:CoAP.EndpointAddress.Address">
+            <summary>
+            Gets the IP address.
+            </summary>
+        </member>
+        <member name="P:CoAP.EndpointAddress.Port">
+            <summary>
+            Gets the port.
+            </summary>
+        </member>
+        <member name="T:CoAP.MessageType">
+            <summary>
+            Types of CoAP messages.
+            </summary>
+        </member>
+        <member name="F:CoAP.MessageType.CON">
+            <summary>
+            Confirmable messages require an acknowledgement.
+            </summary>
+        </member>
+        <member name="F:CoAP.MessageType.NON">
+            <summary>
+            Non-Confirmable messages do not require an acknowledgement.
+            </summary>
+        </member>
+        <member name="F:CoAP.MessageType.ACK">
+            <summary>
+            Acknowledgement messages acknowledge a specific confirmable message.
+            </summary>
+        </member>
+        <member name="F:CoAP.MessageType.RST">
+            <summary>
+            Reset messages indicate that a specific confirmable message was received, but some context is missing to properly process it.
+            </summary>
+        </member>
+        <member name="T:CoAP.Layers.AdverseLayer">
+            <summary>
+            This class describes the functionality of a layer that drops messages
+            with a given probability in order to test retransmissions between
+            MessageLayer and UDPLayer etc.
+            </summary>
+        </member>
+        <member name="T:CoAP.ResponseEventArgs">
+            <summary>
+            Represents an event when a response arrives for a request.
+            </summary>
+        </member>
+        <member name="M:CoAP.ResponseEventArgs.#ctor(CoAP.Response)">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="P:CoAP.ResponseEventArgs.Response">
+            <summary>
+            Gets the incoming response.
+            </summary>
+        </member>
+        <member name="T:CoAP.Layers.CoapStack">
+            <summary>
+            The CoapStack encapsulates the layers needed to communicate to CoAP nodes.
+            </summary>
+        </member>
+        <member name="M:CoAP.Util.HttpTranslator.GetCoapResponse(System.Net.HttpWebResponse,CoAP.Request)">
+            <summary>
+            Gets the CoAP response from an incoming HTTP response. No null value is
+            returned. The response is created from a predefined mapping of the HTTP
+            response codes. If the code is 204, which has
+            multiple meaning, the mapping is handled looking on the request method
+            that has originated the response. The options are set thorugh the HTTP
+            headers and the option max-age, if not indicated, is set to the default
+            value (60 seconds). if the response has an enclosing entity, it is mapped
+            to a CoAP payload and the content-type of the CoAP message is set
+            properly.
+            </summary>
+            <param name="httpResponse">the http response</param>
+            <param name="coapRequest">the coap response</param>
+            <returns></returns>
+            <exception cref="T:System.ArgumentNullException"></exception>
+            <exception cref="T:CoAP.Util.TranslationException"></exception>
+        </member>
+        <member name="M:CoAP.Util.HttpTranslator.GetCoapRequest(CoAP.Http.IHttpRequest,System.String,System.Boolean)">
+            <summary>
+            Gets the coap request. Creates the CoAP request from the HTTP method and
+            mapping it through the properties file. The uri is translated using
+            regular expressions, the uri format expected is either the embedded
+            mapping (http://proxyname.domain:80/proxy/coapserver:5683/resource
+            converted in coap://coapserver:5683/resource) or the standard uri to
+            indicate a local request not to be forwarded. The method uses a decoder
+            to translate the application/x-www-form-urlencoded format of the uri. The
+            CoAP options are set translating the headers. If the HTTP message has an
+            enclosing entity, it is converted to create the payload of the CoAP
+            message; finally the content-type is set accordingly to the header and to
+            the entity type.
+            </summary>
+            <param name="httpRequest">the http request</param>
+            <param name="proxyResource"></param>
+            <param name="proxyingEnabled"></param>
+            <returns></returns>
+        </member>
+        <member name="M:CoAP.Util.HttpTranslator.GetCoapMediaType(System.String)">
+            <summary>
+            Gets the coap media type associated to the http content type. Firstly, it looks
+            for a predefined mapping. If this step fails, then it
+            tries to explicitly map/parse the declared mime/type by the http content type.
+            If even this step fails, it sets application/octet-stream as
+            content-type.
+            </summary>
+            <param name="httpContentTypeString"></param>
+            <returns></returns>
+        </member>
+        <member name="M:CoAP.Util.HttpTranslator.GetCoapOptions(System.Collections.Specialized.NameValueCollection)">
+            <summary>
+            Gets the coap options starting from an array of http headers. The
+            content-type is not handled by this method. The method iterates over an
+            array of headers and for each of them tries to find a predefined mapping
+            if the mapping does not exists it skips the header
+            ignoring it. The method handles separately certain headers which are
+            translated to options (such as accept or cache-control) whose content
+            should be semantically checked or requires ad-hoc translation. Otherwise,
+            the headers content is translated with the appropriate format required by
+            the mapped option.
+            </summary>
+            <param name="headers"></param>
+            <returns></returns>
+            <exception cref="T:System.ArgumentNullException"></exception>
+        </member>
+        <member name="M:CoAP.Util.HttpTranslator.GetHttpRequest(CoAP.Request)">
+            <summary>
+            Gets the http request starting from a CoAP request. The method creates
+            the HTTP request through its request line. The request line is built with
+            the uri coming from the string representing the CoAP method and the uri
+            obtained from the proxy-uri option. If a payload is provided, the HTTP
+            request encloses an HTTP entity and consequently the content-type is set.
+            Finally, the CoAP options are mapped to the HTTP headers.
+            </summary>
+            <param name="coapRequest">the coap request</param>
+            <returns>the http request</returns>
+            <exception cref="T:System.ArgumentNullException"></exception>
+            <exception cref="T:CoAP.Util.TranslationException"></exception> 
+        </member>
+        <member name="M:CoAP.Util.HttpTranslator.GetHttpHeaders(System.Collections.Generic.IList{CoAP.Option})">
+            <summary>
+            Gets the http headers from a list of CoAP options. The method iterates
+            over the list looking for a translation of each option in the predefined
+            mapping. This process ignores the proxy-uri and the content-type because
+            they are managed differently. If a mapping is present, the content of the
+            option is mapped to a string accordingly to its original format and set
+            as the content of the header.
+            </summary>
+            <param name="optionList"></param>
+            <returns></returns>
+            <exception cref="T:System.ArgumentNullException"></exception>
+        </member>
+        <member name="T:CoAP.Layers.TokenLayer">
+            <summary>
+            This class takes care of unique tokens for each sequence of request/response exchanges.
+            Additionally, the TokenLayer takes care of an overall timeout for each request/response exchange.
+            </summary>
+        </member>
+        <member name="M:CoAP.EndPoint.Resources.RemoteResource.CreateInstance(System.String)">
+            <summary>
+            Creates a resouce instance with proper subtype.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:CoAP.EndPoint.Resources.DiscoveryResource">
+            <summary>
+            Represents the CoAP .well-known/core resource.
+            </summary>
+        </member>
+        <member name="T:CoAP.Request">
+            <summary>
+            This class describes the functionality of a CoAP Request as
+            a subclass of a CoAP Message. It provides:
+            1. operations to answer a request by a response using respond()
+            2. different ways to handle incoming responses: receiveResponse() or Responsed event
+            </summary>
+        </member>
+        <member name="M:CoAP.Request.#ctor(System.Int32)">
+            <summary>
+            Initializes a request message.
+            </summary>
+        </member>
+        <member name="M:CoAP.Request.#ctor(System.Int32,System.Boolean)">
+            <summary>
+            Initializes a request message.
+            </summary>
+            <param name="method">The method code of the message</param>
+            <param name="confirmable">True if the request is Confirmable</param>
+        </member>
+        <member name="M:CoAP.Request.GetParameter(System.String)">
+            <summary>
+            Gets the value of a query parameter as a <code>String</code>,
+            or <code>null</code> if the parameter does not exist.
+            </summary>
+            <param name="name">a <code>String</code> specifying the name of the parameter</param>
+            <returns>a <code>String</code> representing the single value of the parameter</returns>
+        </member>
+        <member name="M:CoAP.Request.Accept">
+            <summary>
+            Accepts this message and keeps track of the response count, which
+            is required to manage MIDs for exchanges over multiple transactions.
+            </summary>
+        </member>
+        <member name="M:CoAP.Request.Execute">
+            <summary>
+            Executes the request on the endpoint specified by the URI.
+            </summary>
+        </member>
+        <member name="M:CoAP.Request.Cancel">
+            <summary>
+            Cancels the request.
+            </summary>
+        </member>
+        <member name="M:CoAP.Request.ReceiveResponse">
+            <summary>
+            Receives a response and blocks until a response is available.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:CoAP.Request.ReceiveResponse(System.Boolean)">
+            <summary>
+            Receives a response.
+            </summary>
+            <param name="waiting">Blocking or not</param>
+            <returns></returns>
+            <exception cref="T:System.Threading.ThreadInterruptedException"></exception>
+        </member>
+        <member name="M:CoAP.Request.Respond(CoAP.Response)">
+            <summary>
+            Places a new response to this request, e.g. to answer it
+            </summary>
+            <param name="response"></param>
+        </member>
+        <member name="M:CoAP.Request.HandleResponse(CoAP.Response)">
+            <summary>
+            Places a response to this request.
+            </summary>
+            <param name="response"></param>
+        </member>
+        <member name="M:CoAP.Request.SendResponse">
+            <summary>
+            Sends the current response.
+            </summary>
+        </member>
+        <member name="M:CoAP.Request.Dispatch(CoAP.IRequestHandler)">
+            <summary>
+            Dispatches this request to the handler.
+            </summary>
+            <param name="handler"></param>
+        </member>
+        <member name="M:CoAP.Request.DoDispatch(CoAP.IRequestHandler)">
+            <summary>
+            Dispatches this request to the handler.
+            </summary>
+        </member>
+        <member name="M:CoAP.Request.Create(CoAP.Request.Method)">
+            <summary>
+            Creates a request object according to the specified method.
+            </summary>
+            <param name="method"></param>
+            <returns></returns>
+        </member>
+        <member name="E:CoAP.Request.Responded">
+            <summary>
+            Fired when a response arrives.
+            </summary>
+        </member>
+        <member name="P:CoAP.Request.SequenceTimeout">
+            <summary>
+            Gets or sets the amount of time in milliseconds after which this request will time out.
+            If not set, the timeout in <see cref="T:CoAP.Layers.TokenLayer"/> will be used.
+            A value less than 0 indicates an infinite time-out period.
+            </summary>
+        </member>
+        <member name="P:CoAP.Request.ResponseQueueEnabled">
+            <summary>
+            Gets or sets a value that indicates whether the response queue is enabled or disabled.
+            </summary>
+        </member>
+        <member name="P:CoAP.Request.IsObserving">
+            <summary>
+            Gets or sets if this request is an observing request.
+            </summary>
+        </member>
+        <member name="P:CoAP.Request.Resource">
+            <summary>
+            Gets or sets the local resource associated with this request.
+            </summary>
+        </member>
+        <member name="P:CoAP.Request.Response">
+            <summary>
+            Gets or sets the response to this request.
+            </summary>
+        </member>
+        <member name="P:CoAP.Request.StartTime">
+            <summary>
+            Gets the time when a request was issued to calculate Observe counter.
+            </summary>
+        </member>
+        <member name="T:CoAP.Request.Method">
+            <summary>
+            Methods of request
+            </summary>
+        </member>
+        <member name="F:CoAP.Request.Method.GET">
+            <summary>
+            GET method
+            </summary>
+        </member>
+        <member name="F:CoAP.Request.Method.POST">
+            <summary>
+            POST method
+            </summary>
+        </member>
+        <member name="F:CoAP.Request.Method.PUT">
+            <summary>
+            PUT method
+            </summary>
+        </member>
+        <member name="F:CoAP.Request.Method.DELETE">
+            <summary>
+            DELETE method
+            </summary>
+        </member>
+        <member name="T:CoAP.GETRequest">
+            <summary>
+            Class for GET request.
+            </summary>
+        </member>
+        <member name="T:CoAP.POSTRequest">
+            <summary>
+            Class for POST request.
+            </summary>
+        </member>
+        <member name="T:CoAP.PUTRequest">
+            <summary>
+            Class for PUT request.
+            </summary>
+        </member>
+        <member name="T:CoAP.DELETERequest">
+            <summary>
+            Class for DELETE request.
+            </summary>
+        </member>
+        <member name="T:CoAP.CoapConstants">
+            <summary>
+            Constants defined for CoAP protocol
+            </summary>
+        </member>
+        <member name="F:CoAP.CoapConstants.UriSchemeName">
+            <summary>
+            The URI scheme for identifying CoAP resources
+            </summary>
+        </member>
+        <member name="F:CoAP.CoapConstants.DefaultPort">
+            <summary>
+            The default port for CoAP server
+            </summary>
+        </member>
+        <member name="F:CoAP.CoapConstants.ResponseTimeout">
+            <summary>
+            The initial time (ms) for a CoAP message
+            </summary>
+        </member>
+        <member name="F:CoAP.CoapConstants.ResponseRandomFactor">
+            <summary>
+            The initial timeout is set
+            to a random number between RESPONSE_TIMEOUT and (RESPONSE_TIMEOUT *
+            RESPONSE_RANDOM_FACTOR)
+            </summary>
+        </member>
+        <member name="F:CoAP.CoapConstants.MaxRetransmit">
+            <summary>
+            The max time that a message would be retransmitted
+            </summary>
+        </member>
+        <member name="F:CoAP.CoapConstants.DefaultBlockSize">
+            <summary>
+            Default block size used for block-wise transfers
+            </summary>
+        </member>
+        <member name="F:CoAP.CoapConstants.DefaultWellKnownURI">
+            <summary>
+            Default URI for wellknown resource
+            </summary>
+        </member>
+        <member name="F:CoAP.CoapConstants.ObservingRefreshInterval">
+            <summary>
+            The number of notifications until a CON notification will be used.
+            </summary>
+        </member>
+        <member name="T:CoAP.Util.CoapTranslator">
+            <summary>
+            Provides the translations between the messages from the internal CoAP nodes and external ones.
+            </summary>
+        </member>
+        <member name="M:CoAP.Util.CoapTranslator.GetRequest(CoAP.Request)">
+            <summary>
+            Starting from an external CoAP request, the method fills a new request
+            for the internal CoAP nodes. Translates the proxy-uri option in the uri
+            of the new request and simply copies the options and the payload from the
+            original request to the new one.
+            </summary>
+            <param name="incomingRequest">the original request</param>
+            <returns></returns>
+            <exception cref="T:System.ArgumentNullException">the <paramref name="incomingRequest"/> is null</exception>
+            <exception cref="T:CoAP.Util.TranslationException"></exception>
+        </member>
+        <member name="M:CoAP.Util.CoapTranslator.GetResponse(CoAP.Response)">
+            <summary>
+            Fills the new response with the response received from the internal CoAP
+            node. Simply copies the options and the payload from the forwarded
+            response to the new one.
+            </summary>
+            <param name="incomingResponse">the forwarded request</param>
+            <exception cref="T:System.ArgumentNullException">the <paramref name="incomingResponse"/> is null</exception>
+            <returns></returns>
+        </member>
+        <member name="M:CoAP.Util.ByteArrayUtils.ToHexString(System.Byte[])">
+            <summary>
+            Returns a hex string representation of the given bytes array.
+            </summary>
+        </member>
+        <member name="T:CoAP.MediaType">
+            <summary>
+            This class describes the CoAP Media Type Registry as defined in
+            draft-ietf-core-coap (07), section 11.3.
+            </summary>
+        </member>
+        <member name="F:CoAP.MediaType.Undefined">
+            <summary>
+            undefined
+            </summary>
+        </member>
+        <member name="F:CoAP.MediaType.TextPlain">
+            <summary>
+            text/plain; charset=utf-8
+            </summary>
+        </member>
+        <member name="F:CoAP.MediaType.TextXml">
+            <summary>
+            text/xml
+            </summary>
+        </member>
+        <member name="F:CoAP.MediaType.TextCsv">
+            <summary>
+            text/csv
+            </summary>
+        </member>
+        <member name="F:CoAP.MediaType.TextHtml">
+            <summary>
+            text/html
+            </summary>
+        </member>
+        <member name="F:CoAP.MediaType.ImageGif">
+            <summary>
+            image/gif
+            </summary>
+        </member>
+        <member name="F:CoAP.MediaType.ImageJpeg">
+            <summary>
+            image/jpeg
+            </summary>
+        </member>
+        <member name="F:CoAP.MediaType.ImagePng">
+            <summary>
+            image/png
+            </summary>
+        </member>
+        <member name="F:CoAP.MediaType.ImageTiff">
+            <summary>
+            image/tiff
+            </summary>
+        </member>
+        <member name="F:CoAP.MediaType.AudioRaw">
+            <summary>
+            audio/raw
+            </summary>
+        </member>
+        <member name="F:CoAP.MediaType.VideoRaw">
+            <summary>
+            video/raw
+            </summary>
+        </member>
+        <member name="F:CoAP.MediaType.ApplicationLinkFormat">
+            <summary>
+            application/link-format
+            </summary>
+        </member>
+        <member name="F:CoAP.MediaType.ApplicationXml">
+            <summary>
+            application/xml
+            </summary>
+        </member>
+        <member name="F:CoAP.MediaType.ApplicationOctetStream">
+            <summary>
+            application/octet-stream
+            </summary>
+        </member>
+        <member name="F:CoAP.MediaType.ApplicationRdfXml">
+            <summary>
+            application/rdf+xml
+            </summary>
+        </member>
+        <member name="F:CoAP.MediaType.ApplicationSoapXml">
+            <summary>
+            application/soap+xml
+            </summary>
+        </member>
+        <member name="F:CoAP.MediaType.ApplicationAtomXml">
+            <summary>
+            application/atom+xml
+            </summary>
+        </member>
+        <member name="F:CoAP.MediaType.ApplicationXmppXml">
+            <summary>
+            application/xmpp+xml
+            </summary>
+        </member>
+        <member name="F:CoAP.MediaType.ApplicationExi">
+            <summary>
+            application/exi
+            </summary>
+        </member>
+        <member name="F:CoAP.MediaType.ApplicationFastinfoset">
+            <summary>
+            application/fastinfoset
+            </summary>
+        </member>
+        <member name="F:CoAP.MediaType.ApplicationSoapFastinfoset">
+            <summary>
+            application/soap+fastinfoset
+            </summary>
+        </member>
+        <member name="F:CoAP.MediaType.ApplicationJson">
+            <summary>
+            application/json
+            </summary>
+        </member>
+        <member name="F:CoAP.MediaType.ApplicationXObixBinary">
+            <summary>
+            application/x-obix-binary
+            </summary>
+        </member>
+        <member name="F:CoAP.MediaType.Any">
+            <summary>
+            any
+            </summary>
+        </member>
+        <member name="M:CoAP.MediaType.IsImage(System.Int32)">
+            <summary>
+            Checks whether the given media type is a type of image.
+            </summary>
+            <param name="mediaType">The media type to be checked</param>
+            <returns>True iff the media type is a type of image</returns>
+        </member>
+        <member name="M:CoAP.MediaType.ToString(System.Int32)">
+            <summary>
+            Returns a string representation of the media type.
+            </summary>
+            <param name="mediaType">The media type to be described</param>
+            <returns>A string describing the media type</returns>
+        </member>
+        <member name="M:CoAP.MediaType.ToFileExtension(System.Int32)">
+            <summary>
+            Gets the file extension of the given media type.
+            </summary>
+        </member>
+        <member name="T:CoAP.LinkFormat">
+            <summary>
+            This class provides link format definitions as specified in
+            draft-ietf-core-link-format-06
+            </summary>
+        </member>
+        <member name="F:CoAP.LinkFormat.ResourceType">
+            <summary>
+            Name of the attribute Resource Type
+            </summary>
+        </member>
+        <member name="F:CoAP.LinkFormat.InterfaceDescription">
+            <summary>
+            Name of the attribute Interface Description
+            </summary>
+        </member>
+        <member name="F:CoAP.LinkFormat.ContentType">
+            <summary>
+            Name of the attribute Content Type
+            </summary>
+        </member>
+        <member name="F:CoAP.LinkFormat.MaxSizeEstimate">
+            <summary>
+            Name of the attribute Max Size Estimate
+            </summary>
+        </member>
+        <member name="F:CoAP.LinkFormat.Title">
+            <summary>
+            Name of the attribute Title
+            </summary>
+        </member>
+        <member name="F:CoAP.LinkFormat.Observable">
+            <summary>
+            Name of the attribute Observable
+            </summary>
+        </member>
+        <member name="F:CoAP.LinkFormat.Link">
+            <summary>
+            Name of the attribute link
+            </summary>
+        </member>
+        <member name="F:CoAP.LinkFormat.Delimiter">
+            <summary>
+            The string as the delimiter between resources
+            </summary>
+        </member>
+        <member name="F:CoAP.LinkFormat.Separator">
+            <summary>
+            The string to separate attributes
+            </summary>
+        </member>
+        <member name="M:CoAP.Spec.IsFencepost(CoAP.OptionType)">
+            <summary>
+            Checks whether an option is a fencepost option.
+            </summary>
+            <param name="type">The option type to check</param>
+            <returns>True iff the option is a fencepost option</returns>
+        </member>
+        <member name="M:CoAP.Spec.NextFencepost(System.Int32)">
+            <summary>
+            Returns the next fencepost option number following a given option number.
+            </summary>
+            <param name="optionNumber">The option number</param>
+            <returns>The smallest fencepost option number larger than the given option</returns>
+        </member>
+        <member name="T:CoAP.Option">
+            <summary>
+            This class describes the options of the CoAP messages.
+            </summary>
+        </member>
+        <member name="F:CoAP.Option._valueBytes">
+            <summary>
+            NOTE: value bytes in network byte order (big-endian)
+            </summary>
+        </member>
+        <member name="M:CoAP.Option.#ctor(CoAP.OptionType)">
+            <summary>
+            Initializes an option.
+            </summary>
+            <param name="type">The type of the option</param>
+        </member>
+        <member name="M:CoAP.Option.ToString">
+            <summary>
+            Returns a human-readable string representation of the option's value.
+            </summary>
+        </member>
+        <member name="M:CoAP.Option.GetHashCode">
+            <summary>
+            Gets the hash code of this object
+            </summary>
+            <returns>The hash code</returns>
+        </member>
+        <member name="M:CoAP.Option.Create(CoAP.OptionType)">
+            <summary>
+            Creates an option.
+            </summary>
+            <param name="type">The type of the option</param>
+            <returns>The new option</returns>
+        </member>
+        <member name="M:CoAP.Option.Create(CoAP.OptionType,System.Byte[])">
+            <summary>
+            Creates an option.
+            </summary>
+            <param name="type">The type of the option</param>
+            <param name="raw">The raw bytes value of the option</param>
+            <returns>The new option</returns>
+        </member>
+        <member name="M:CoAP.Option.Create(CoAP.OptionType,System.String)">
+            <summary>
+            Creates an option.
+            </summary>
+            <param name="type">The type of the option</param>
+            <param name="str">The string value of the option</param>
+            <returns>The new option</returns>
+        </member>
+        <member name="M:CoAP.Option.Create(CoAP.OptionType,System.Int32)">
+            <summary>
+            Creates an option.
+            </summary>
+            <param name="type">The type of the option</param>
+            <param name="val">The int value of the option</param>
+            <returns>The new option</returns>
+        </member>
+        <member name="M:CoAP.Option.Split(CoAP.OptionType,System.String,System.String)">
+            <summary>
+            Splits a string into a set of options, e.g. a uri path.
+            </summary>
+            <param name="type">The type of options</param>
+            <param name="s">The string to be splited</param>
+            <param name="delimiter">The seperator string</param>
+            <returns><see cref="T:System.Collections.Generic.IEnumerable`1"/> of options</returns>
+        </member>
+        <member name="M:CoAP.Option.Join(System.Collections.Generic.IEnumerable{CoAP.Option},System.String)">
+            <summary>
+            Joins the string values of a set of options.
+            </summary>
+            <param name="options">The list of options to be joined</param>
+            <param name="delimiter">The seperator string</param>
+            <returns>The joined string</returns>
+        </member>
+        <member name="M:CoAP.Option.ToString(CoAP.OptionType)">
+            <summary>
+            Returns a string representation of the option type.
+            </summary>
+            <param name="type">The option type to describe</param>
+            <returns>A string describing the option type</returns>
+        </member>
+        <member name="P:CoAP.Option.Type">
+            <summary>
+            Gets the type of the option.
+            </summary>
+        </member>
+        <member name="P:CoAP.Option.Name">
+            <summary>
+            Gets the name of the option that corresponds to its type.
+            </summary>
+        </member>
+        <member name="P:CoAP.Option.Length">
+            <summary>
+            Gets the value's length in bytes of the option.
+            </summary>
+        </member>
+        <member name="P:CoAP.Option.RawValue">
+            <summary>
+            Gets or sets raw bytes value of the option in network byte order (big-endian).
+            </summary>
+        </member>
+        <member name="P:CoAP.Option.StringValue">
+            <summary>
+            Gets or sets string value of the option.
+            </summary>
+        </member>
+        <member name="P:CoAP.Option.IntValue">
+            <summary>
+            Gets or sets int value of the option.
+            </summary>
+        </member>
+        <member name="P:CoAP.Option.Value">
+            <summary>
+            Gets the value of the option according to its type.
+            </summary>
+        </member>
+        <member name="P:CoAP.Option.IsDefault">
+            <summary>
+            Gets a value indicating whether the option has a default value according to the draft.
+            </summary>
+        </member>
+        <member name="T:CoAP.Layers.HttpStack">
+            <summary>
+            Class encapsulating the logic of a http server.
+            TODO to be done
+            </summary>
+        </member>
+        <member name="F:CoAP.Layers.HttpStack.ProxyResourceName">
+            <summary>
+            Resource associated with the proxying behavior.
+            If a client requests resource indicated by
+            http://proxy-address/ProxyResourceName/coap-server, the proxying
+            handler will forward the request desired coap server.
+            </summary>
+        </member>
+        <member name="F:CoAP.Layers.HttpStack.LocalResourceName">
+            <summary>
+            The resource associated with the local resources behavior.
+            If a client requests resource indicated by
+            http://proxy-address/LocalResourceName/coap-resource, the proxying
+            handler will forward the request to the local resource requested.
+            </summary>
+        </member>
+        <member name="T:CoAP.BlockOption">
+            <summary>
+            This class describes the block options of the CoAP messages
+            </summary>
+        </member>
+        <member name="M:CoAP.BlockOption.#ctor(CoAP.OptionType)">
+            <summary>
+            Initializes a block option.
+            </summary>
+            <param name="type">The type of the option</param>
+        </member>
+        <member name="M:CoAP.BlockOption.#ctor(CoAP.OptionType,System.Int32,System.Int32,System.Boolean)">
+            <summary>
+            Initializes a block option.
+            </summary>
+            <param name="type">The type of the option</param>
+            <param name="num">Block number</param>
+            <param name="szx">Block size</param>
+            <param name="m">More flag</param>
+        </member>
+        <member name="M:CoAP.BlockOption.SetValue(System.Int32,System.Int32,System.Boolean)">
+            <summary>
+            Sets block params.
+            </summary>
+            <param name="num">Block number</param>
+            <param name="szx">Block size</param>
+            <param name="m">More flag</param>
+        </member>
+        <member name="M:CoAP.BlockOption.ToString">
+            <summary>
+            
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:CoAP.BlockOption.DecodeSZX(System.Int32)">
+            <summary>
+            Gets the real block size which is 2 ^ (SZX + 4).
+            </summary>
+            <param name="szx"></param>
+            <returns></returns>
+        </member>
+        <member name="M:CoAP.BlockOption.EncodeSZX(System.Int32)">
+            <summary>
+            Converts a block size into the corresponding SZX.
+            </summary>
+            <param name="blockSize"></param>
+            <returns></returns>
+        </member>
+        <member name="M:CoAP.BlockOption.ValidSZX(System.Int32)">
+            <summary>
+            Checks whether the given SZX is valid or not.
+            </summary>
+            <param name="szx"></param>
+            <returns></returns>
+        </member>
+        <member name="P:CoAP.BlockOption.NUM">
+            <summary>
+            Gets or sets the block number.
+            </summary>
+        </member>
+        <member name="P:CoAP.BlockOption.SZX">
+            <summary>
+            Gets or sets the block size.
+            </summary>
+        </member>
+        <member name="P:CoAP.BlockOption.M">
+            <summary>
+            Gets or sets the more flag.
+            </summary>
+        </member>
+    </members>
+</doc>

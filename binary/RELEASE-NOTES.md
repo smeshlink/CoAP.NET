@@ -1,6 +1,25 @@
 CoAP.NET Release Notes
 ======================
 
+changes in 0.18
+---------------
+
+* [added] support for CoAP-18
+* [added] new layers and stack structure
+* [added] new server and client APIs
+* [added] datagram channels for data transmission
+* [added] full configuration
+* [improved] UDP transmission with SocketAsyncEventArgs for .NET 4+
+* [improved] threading with TPL for .NET 4+
+* [improved] logging with Common.Logging
+* [fixed] lots of bugs
+
+changes in 0.13.4
+-----------------
+
+* [fixed] potential breaks in UDP transmission
+* [improved] diff assembly title with draft version
+
 changes in 0.13.3
 -----------------
 
