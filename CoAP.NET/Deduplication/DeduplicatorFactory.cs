@@ -24,11 +24,14 @@ namespace CoAP.Deduplication
         public static IDeduplicator CreateDeduplicator(ICoapConfig config)
         {
             String type = config.Deduplicator;
-            if (String.Equals(MarkAndSweepDeduplicator, type, StringComparison.OrdinalIgnoreCase))
+            if (String.Equals(MarkAndSweepDeduplicator, type, StringComparison.OrdinalIgnoreCase)
+                || String.Equals("DEDUPLICATOR_MARK_AND_SWEEP", type, StringComparison.OrdinalIgnoreCase))
                 return new SweepDeduplicator(config);
-            else if (String.Equals(CropRotationDeduplicator, type, StringComparison.OrdinalIgnoreCase))
+            else if (String.Equals(CropRotationDeduplicator, type, StringComparison.OrdinalIgnoreCase)
+                || String.Equals("DEDUPLICATOR_CROP_ROTATIO", type, StringComparison.OrdinalIgnoreCase))
                 return new CropRotation(config);
-            else if (!String.Equals(NoopDeduplicator, type, StringComparison.OrdinalIgnoreCase))
+            else if (!String.Equals(NoopDeduplicator, type, StringComparison.OrdinalIgnoreCase)
+                && !String.Equals("NO_DEDUPLICATOR", type, StringComparison.OrdinalIgnoreCase))
             {
                 if (log.IsWarnEnabled)
                     log.Warn("Unknown deduplicator type: " + type);
