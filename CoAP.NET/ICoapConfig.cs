@@ -63,5 +63,15 @@ namespace CoAP
         /// </summary>
         ISpec Spec { get; }
 #endif
+
+        /// <summary>
+        /// Loads configuration from a config properties file.
+        /// </summary>
+        void Load(String configFile);
+
+        /// <summary>
+        /// Stores the configuration in a config properties file.
+        /// </summary>
+        void Store(String configFile);
     }
 }

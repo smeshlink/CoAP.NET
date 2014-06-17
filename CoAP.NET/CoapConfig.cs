@@ -10,7 +10,9 @@
  */
 
 using System;
+using System.Collections.Specialized;
 using System.ComponentModel;
+using System.IO;
 
 namespace CoAP
 {
@@ -380,6 +382,105 @@ namespace CoAP
                     NotifyPropertyChanged("ChannelReceivePacketSize");
                 }
             }
+        }
+
+        /// <inheritdoc/>
+        public void Load(String configFile)
+        {
+            String[] lines = File.ReadAllLines(configFile);
+            NameValueCollection nvc = new NameValueCollection(lines.Length, StringComparer.OrdinalIgnoreCase);
+            foreach (String line in lines)
+            {
+                String[] tmp = line.Split(new Char[] { '=' }, 2);
+                if (tmp.Length == 2)
+                    nvc[tmp[0]] = tmp[1];
+            }
+
+            DefaultPort = GetInt32(nvc, "DefaultPort", "DEFAULT_COAP_PORT", DefaultPort);
+            DefaultSecurePort = GetInt32(nvc, "DefaultSecurePort", "DEFAULT_COAPS_PORT", DefaultSecurePort);
+            HttpPort = GetInt32(nvc, "HttpPort", "HTTP_PORT", HttpPort);
+            AckTimeout = GetInt32(nvc, "AckTimeout", "ACK_TIMEOUT", AckTimeout);
+            AckRandomFactor = GetDouble(nvc, "AckRandomFactor", "ACK_RANDOM_FACTOR", AckRandomFactor);
+            AckTimeoutScale = GetInt32(nvc, "AckTimeoutScale", "ACK_TIMEOUT_SCALE", AckTimeoutScale);
+            MaxRetransmit = GetInt32(nvc, "MaxRetransmit", "MAX_RETRANSMIT", MaxRetransmit);
+            MaxMessageSize = GetInt32(nvc, "MaxMessageSize", "MAX_MESSAGE_SIZE", MaxMessageSize);
+            DefaultBlockSize = GetInt32(nvc, "DefaultBlockSize", "DEFAULT_BLOCK_SIZE", DefaultBlockSize);
+            UseRandomIDStart = GetBoolean(nvc, "UseRandomIDStart", "USE_RANDOM_MID_START", UseRandomIDStart);
+            UseRandomTokenStart = GetBoolean(nvc, "UseRandomTokenStart", "USE_RANDOM_TOKEN_START", UseRandomTokenStart);
+            Deduplicator = GetString(nvc, "Deduplicator", "DEDUPLICATOR", Deduplicator);
+            CropRotationPeriod = GetInt32(nvc, "CropRotationPeriod", "CROP_ROTATION_PERIOD", CropRotationPeriod);
+            ExchangeLifecycle = GetInt32(nvc, "ExchangeLifecycle", "EXCHANGE_LIFECYCLE", ExchangeLifecycle);
+            MarkAndSweepInterval = GetInt64(nvc, "MarkAndSweepInterval", "MARK_AND_SWEEP_INTERVAL", MarkAndSweepInterval);
+            NotificationMaxAge = GetInt64(nvc, "NotificationMaxAge", "NOTIFICATION_MAX_AGE", NotificationMaxAge);
+            NotificationCheckIntervalTime = GetInt64(nvc, "NotificationCheckIntervalTime", "NOTIFICATION_CHECK_INTERVAL", NotificationCheckIntervalTime);
+            NotificationCheckIntervalCount = GetInt32(nvc, "NotificationCheckIntervalCount", "NOTIFICATION_CHECK_INTERVAL_COUNT", NotificationCheckIntervalCount);
+            NotificationReregistrationBackoff = GetInt32(nvc, "NotificationReregistrationBackoff", "NOTIFICATION_REREGISTRATION_BACKOFF", NotificationReregistrationBackoff);
+            ChannelReceiveBufferSize = GetInt32(nvc, "ChannelReceiveBufferSize", "UDP_CONNECTOR_RECEIVE_BUFFER", ChannelReceiveBufferSize);
+            ChannelSendBufferSize = GetInt32(nvc, "ChannelSendBufferSize", "UDP_CONNECTOR_SEND_BUFFER", ChannelSendBufferSize);
+            ChannelReceivePacketSize = GetInt32(nvc, "ChannelReceivePacketSize", "UDP_CONNECTOR_DATAGRAM_SIZE", ChannelReceivePacketSize);
+        }
+
+        /// <inheritdoc/>
+        public void Store(String configFile)
+        {
+            using (StreamWriter w = new StreamWriter(configFile))
+            {
+                w.Write("DefaultPort="); w.WriteLine(DefaultPort);
+                w.Write("DefaultSecurePort="); w.WriteLine(DefaultSecurePort);
+                w.Write("HttpPort="); w.WriteLine(HttpPort);
+                w.Write("AckTimeout="); w.WriteLine(AckTimeout);
+                w.Write("AckRandomFactor="); w.WriteLine(AckRandomFactor);
+                w.Write("AckTimeoutScale="); w.WriteLine(AckTimeoutScale);
+                w.Write("MaxRetransmit="); w.WriteLine(MaxRetransmit);
+                w.Write("MaxMessageSize="); w.WriteLine(MaxMessageSize);
+                w.Write("DefaultBlockSize="); w.WriteLine(DefaultBlockSize);
+                w.Write("UseRandomIDStart="); w.WriteLine(UseRandomIDStart);
+                w.Write("UseRandomTokenStart="); w.WriteLine(UseRandomTokenStart);
+                w.Write("Deduplicator="); w.WriteLine(Deduplicator);
+                w.Write("CropRotationPeriod="); w.WriteLine(CropRotationPeriod);
+                w.Write("ExchangeLifecycle="); w.WriteLine(ExchangeLifecycle);
+                w.Write("MarkAndSweepInterval="); w.WriteLine(MarkAndSweepInterval);
+                w.Write("NotificationMaxAge="); w.WriteLine(NotificationMaxAge);
+                w.Write("NotificationCheckIntervalTime="); w.WriteLine(NotificationCheckIntervalTime);
+                w.Write("NotificationCheckIntervalCount="); w.WriteLine(NotificationCheckIntervalCount);
+                w.Write("NotificationReregistrationBackoff="); w.WriteLine(NotificationReregistrationBackoff);
+                w.Write("ChannelReceiveBufferSize="); w.WriteLine(ChannelReceiveBufferSize);
+                w.Write("ChannelSendBufferSize="); w.WriteLine(ChannelSendBufferSize);
+                w.Write("ChannelReceivePacketSize="); w.WriteLine(ChannelReceivePacketSize);
+            }
+        }
+
+        private static String GetString(NameValueCollection nvc, String key1, String key2, String defaultValue)
+        {
+            return nvc[key1] ?? nvc[key2] ?? defaultValue;
+        }
+
+        private static Int32 GetInt32(NameValueCollection nvc, String key1, String key2, Int32 defaultValue)
+        {
+            String value = GetString(nvc, key1, key2, null);
+            Int32 result;
+            return !String.IsNullOrEmpty(value) && Int32.TryParse(value, out result) ? result : defaultValue;
+        }
+
+        private static Int64 GetInt64(NameValueCollection nvc, String key1, String key2, Int64 defaultValue)
+        {
+            String value = GetString(nvc, key1, key2, null);
+            Int64 result;
+            return !String.IsNullOrEmpty(value) && Int64.TryParse(value, out result) ? result : defaultValue;
+        }
+
+        private static Double GetDouble(NameValueCollection nvc, String key1, String key2, Double defaultValue)
+        {
+            String value = GetString(nvc, key1, key2, null);
+            Double result;
+            return !String.IsNullOrEmpty(value) && Double.TryParse(value, out result) ? result : defaultValue;
+        }
+
+        private static Boolean GetBoolean(NameValueCollection nvc, String key1, String key2, Boolean defaultValue)
+        {
+            String value = GetString(nvc, key1, key2, null);
+            Boolean result;
+            return !String.IsNullOrEmpty(value) && Boolean.TryParse(value, out result) ? result : defaultValue;
         }
 
         private static ICoapConfig LoadConfig()
