@@ -145,14 +145,31 @@ namespace CoAP.Layers
 
         private void BeginReceive()
         {
-            System.Net.EndPoint remoteV6 = new IPEndPoint(IPAddress.IPv6Any, 0);
-            _socketV6.Socket.BeginReceiveFrom(_socketV6.Buffer, 0, _socketV6.Buffer.Length, SocketFlags.None,
-                ref remoteV6, _receiveCallback, _socketV6);
+            BeginReceive(_socketV6);
             if (_socketV4 != null)
+                BeginReceive(_socketV6);
+        }
+
+        private void BeginReceive(UDPSocket socket)
+        {
+            System.Net.EndPoint remoteEP = new IPEndPoint(
+                    socket.Socket.AddressFamily == AddressFamily.InterNetwork ?
+                    IPAddress.Any : IPAddress.IPv6Any, 0);
+
+            try
             {
-                System.Net.EndPoint remoteV4 = new IPEndPoint(IPAddress.Any, 0);
-                _socketV4.Socket.BeginReceiveFrom(_socketV4.Buffer, 0, _socketV4.Buffer.Length, SocketFlags.None,
-                    ref remoteV4, _receiveCallback, _socketV4);
+                socket.Socket.BeginReceiveFrom(socket.Buffer, 0, socket.Buffer.Length,
+                    SocketFlags.None, ref remoteEP, _receiveCallback, socket);
+            }
+            catch (ObjectDisposedException)
+            {
+                // do nothing
+            }
+            catch (Exception ex)
+            {
+                if (log.IsErrorEnabled)
+                    log.Error("UDPLayer - Error on receiving: " + ex.Message);
+                BeginReceive(socket);
             }
         }
 
@@ -166,6 +183,11 @@ namespace CoAP.Layers
             {
                 count = socket.Socket.EndReceiveFrom(ar, ref remoteEP);
             }
+            catch (ObjectDisposedException)
+            {
+                // do nothing
+                return;
+            }
             catch (SocketException)
             {
                 // ignore it
@@ -178,7 +200,7 @@ namespace CoAP.Layers
                 Buffer.BlockCopy(socket.Buffer, 0, bytes, 0, count);
                 Handle(bytes, remoteEP);
             }
-            BeginReceive();
+            BeginReceive(socket);
         }
 
         private void Handle(Byte[] data, System.Net.EndPoint remoteEP)
