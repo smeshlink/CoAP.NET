@@ -1,6 +1,12 @@
 CoAP.NET Release Notes
 ======================
 
+changes in 0.13.4
+-----------------
+
+* [fixed] potential breaks in UDP transmission
+* [improved] diff assembly title with draft version
+
 changes in 0.13.3
 -----------------
 
