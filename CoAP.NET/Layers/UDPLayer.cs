@@ -60,6 +60,7 @@ namespace CoAP.Layers
             _socketV6 = new UDPSocket();
             _socketV6.Socket = new Socket(AddressFamily.InterNetworkV6, SocketType.Dgram, ProtocolType.Udp);
             _socketV6.Buffer = new Byte[ReceiveBufferSize + 1];  // +1 to check for > ReceiveBufferSize
+            SetupUDPSocket(_socketV6.Socket);
 
             try
             {
@@ -72,6 +73,7 @@ namespace CoAP.Layers
                 _socketV4 = new UDPSocket();
                 _socketV4.Socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
                 _socketV4.Buffer = new Byte[ReceiveBufferSize + 1];
+                SetupUDPSocket(_socketV4.Socket);
             }
 
             _socketV6.Socket.Bind(new IPEndPoint(IPAddress.IPv6Any, port));
@@ -259,6 +261,13 @@ namespace CoAP.Layers
                 if (log.IsDebugEnabled)
                     log.Debug(String.Format("UDPLayer - Dropped empty datagram from: {0}", remoteEP));
             }
+        }
+
+        private void SetupUDPSocket(Socket socket)
+        {
+            // do not throw SocketError.ConnectionReset by ignoring ICMP Port Unreachable
+            const Int32 SIO_UDP_CONNRESET = -1744830452;
+            socket.IOControl(SIO_UDP_CONNRESET, new Byte[] { 0 }, null);
         }
 
         class UDPSocket
