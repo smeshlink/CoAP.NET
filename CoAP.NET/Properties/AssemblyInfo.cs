@@ -5,7 +5,17 @@ using System.Runtime.InteropServices;
 // 有关程序集的常规信息通过以下
 // 特性集控制。更改这些特性值可修改
 // 与程序集关联的信息。
+#if COAPALL
 [assembly: AssemblyTitle("CoAP.NET")]
+#elif COAP03
+[assembly: AssemblyTitle("CoAP.NET Draft 03")]
+#elif COAP08
+[assembly: AssemblyTitle("CoAP.NET Draft 08")]
+#elif COAP12
+[assembly: AssemblyTitle("CoAP.NET Draft 12")]
+#elif COAP13
+[assembly: AssemblyTitle("CoAP.NET Draft 13")]
+#endif
 [assembly: AssemblyDescription("A CoAP framework in C#")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("SmeshLink Technology")]
@@ -32,5 +42,5 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“内部版本号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("0.13.3.*")]
-[assembly: AssemblyFileVersion("0.13.3")]
+[assembly: AssemblyVersion("0.13.4.*")]
+[assembly: AssemblyFileVersion("0.13.4")]
