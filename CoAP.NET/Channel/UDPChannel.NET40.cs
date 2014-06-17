@@ -24,6 +24,9 @@ namespace CoAP.Channel
 
         private void BeginReceive(UDPSocket socket)
         {
+            if (_running == 0)
+                return;
+
             if (socket.ReadBuffer.RemoteEndPoint == null)
             {
                 socket.ReadBuffer.RemoteEndPoint = socket.Socket.Connected ?

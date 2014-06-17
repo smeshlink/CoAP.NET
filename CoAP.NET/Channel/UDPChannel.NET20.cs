@@ -24,6 +24,9 @@ namespace CoAP.Channel
 
         private void BeginReceive(UDPSocket socket)
         {
+            if (_running == 0)
+                return;
+
             System.Net.EndPoint remoteEP = new IPEndPoint(
                     socket.Socket.AddressFamily == AddressFamily.InterNetwork ?
                     IPAddress.Any : IPAddress.IPv6Any, 0);

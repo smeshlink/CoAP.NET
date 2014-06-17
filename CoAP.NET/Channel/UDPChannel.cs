@@ -209,7 +209,7 @@ namespace CoAP.Channel
         private void EndReceive(UDPSocket socket, Exception ex)
         {
             // TODO may log exception?
-            BeginReceive();
+            BeginReceive(socket);
         }
 
         private void FireDataReceived(Byte[] data, System.Net.EndPoint ep)
