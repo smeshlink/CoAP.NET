@@ -80,8 +80,11 @@ namespace CoAP
             get { return _port; }
             set
             {
-                _port = value;
-                NotifyPropertyChanged("DefaultPort");
+                if (_port != value)
+                {
+                    _port = value;
+                    NotifyPropertyChanged("DefaultPort");
+                }
             }
         }
 
@@ -91,8 +94,11 @@ namespace CoAP
             get { return _securePort; }
             set
             {
-                _securePort = value;
-                NotifyPropertyChanged("DefaultSecurePort");
+                if (_securePort != value)
+                {
+                    _securePort = value;
+                    NotifyPropertyChanged("DefaultSecurePort");
+                }
             }
         }
 
@@ -102,8 +108,11 @@ namespace CoAP
             get { return _httpPort; }
             set
             {
-                _httpPort = value;
-                NotifyPropertyChanged("HttpPort");
+                if (_httpPort != value)
+                {
+                    _httpPort = value;
+                    NotifyPropertyChanged("HttpPort");
+                }
             }
         }
 
@@ -113,8 +122,11 @@ namespace CoAP
             get { return _ackTimeout; }
             set
             {
-                _ackTimeout = value;
-                NotifyPropertyChanged("AckTimeout");
+                if (_ackTimeout != value)
+                {
+                    _ackTimeout = value;
+                    NotifyPropertyChanged("AckTimeout");
+                }
             }
         }
 
@@ -124,8 +136,11 @@ namespace CoAP
             get { return _ackRandomFactor; }
             set
             {
-                _ackRandomFactor = value;
-                NotifyPropertyChanged("AckRandomFactor");
+                if (_ackRandomFactor != value)
+                {
+                    _ackRandomFactor = value;
+                    NotifyPropertyChanged("AckRandomFactor");
+                }
             }
         }
 
@@ -135,8 +150,11 @@ namespace CoAP
             get { return _ackTimeoutScale; }
             set
             {
-                _ackTimeoutScale = value;
-                NotifyPropertyChanged("AckTimeoutScale");
+                if (_ackTimeoutScale != value)
+                {
+                    _ackTimeoutScale = value;
+                    NotifyPropertyChanged("AckTimeoutScale");
+                }
             }
         }
 
@@ -146,8 +164,11 @@ namespace CoAP
             get { return _maxRetransmit; }
             set
             {
-                _maxRetransmit = value;
-                NotifyPropertyChanged("MaxRetransmit");
+                if (_maxRetransmit != value)
+                {
+                    _maxRetransmit = value;
+                    NotifyPropertyChanged("MaxRetransmit");
+                }
             }
         }
 
@@ -157,8 +178,11 @@ namespace CoAP
             get { return _maxMessageSize; }
             set
             {
-                _maxMessageSize = value;
-                NotifyPropertyChanged("MaxMessageSize");
+                if (_maxMessageSize != value)
+                {
+                    _maxMessageSize = value;
+                    NotifyPropertyChanged("MaxMessageSize");
+                }
             }
         }
 
@@ -168,8 +192,11 @@ namespace CoAP
             get { return _defaultBlockSize; }
             set
             {
-                _defaultBlockSize = value;
-                NotifyPropertyChanged("DefaultBlockSize");
+                if (_defaultBlockSize != value)
+                {
+                    _defaultBlockSize = value;
+                    NotifyPropertyChanged("DefaultBlockSize");
+                }
             }
         }
 
@@ -179,8 +206,11 @@ namespace CoAP
             get { return _useRandomIDStart; }
             set
             {
-                _useRandomIDStart = value;
-                NotifyPropertyChanged("UseRandomIDStart");
+                if (_useRandomIDStart != value)
+                {
+                    _useRandomIDStart = value;
+                    NotifyPropertyChanged("UseRandomIDStart");
+                }
             }
         }
 
@@ -190,8 +220,11 @@ namespace CoAP
             get { return _useRandomTokenStart; }
             set
             {
-                _useRandomTokenStart = value;
-                NotifyPropertyChanged("UseRandomTokenStart");
+                if (_useRandomTokenStart != value)
+                {
+                    _useRandomTokenStart = value;
+                    NotifyPropertyChanged("UseRandomTokenStart");
+                }
             }
         }
 
@@ -201,8 +234,11 @@ namespace CoAP
             get { return _deduplicator; }
             set
             {
-                _deduplicator = value;
-                NotifyPropertyChanged("Deduplicator");
+                if (_deduplicator != value)
+                {
+                    _deduplicator = value;
+                    NotifyPropertyChanged("Deduplicator");
+                }
             }
         }
 
@@ -212,8 +248,11 @@ namespace CoAP
             get { return _cropRotationPeriod; }
             set
             {
-                _cropRotationPeriod = value;
-                NotifyPropertyChanged("CropRotationPeriod");
+                if (_cropRotationPeriod != value)
+                {
+                    _cropRotationPeriod = value;
+                    NotifyPropertyChanged("CropRotationPeriod");
+                }
             }
         }
 
@@ -223,8 +262,11 @@ namespace CoAP
             get { return _exchangeLifecycle; }
             set
             {
-                _exchangeLifecycle = value;
-                NotifyPropertyChanged("ExchangeLifecycle");
+                if (_exchangeLifecycle != value)
+                {
+                    _exchangeLifecycle = value;
+                    NotifyPropertyChanged("ExchangeLifecycle");
+                }
             }
         }
 
@@ -234,8 +276,11 @@ namespace CoAP
             get { return _markAndSweepInterval; }
             set
             {
-                _markAndSweepInterval = value;
-                NotifyPropertyChanged("MarkAndSweepInterval");
+                if (_markAndSweepInterval != value)
+                {
+                    _markAndSweepInterval = value;
+                    NotifyPropertyChanged("MarkAndSweepInterval");
+                }
             }
         }
 
@@ -245,8 +290,11 @@ namespace CoAP
             get { return _notificationMaxAge; }
             set
             {
-                _notificationMaxAge = value;
-                NotifyPropertyChanged("NotificationMaxAge");
+                if (_notificationMaxAge != value)
+                {
+                    _notificationMaxAge = value;
+                    NotifyPropertyChanged("NotificationMaxAge");
+                }
             }
         }
 
@@ -256,8 +304,11 @@ namespace CoAP
             get { return _notificationCheckIntervalTime; }
             set
             {
-                _notificationCheckIntervalTime = value;
-                NotifyPropertyChanged("NotificationCheckIntervalTime");
+                if (_notificationCheckIntervalTime != value)
+                {
+                    _notificationCheckIntervalTime = value;
+                    NotifyPropertyChanged("NotificationCheckIntervalTime");
+                }
             }
         }
 
@@ -267,8 +318,11 @@ namespace CoAP
             get { return _notificationCheckIntervalCount; }
             set
             {
-                _notificationCheckIntervalCount = value;
-                NotifyPropertyChanged("NotificationCheckIntervalCount");
+                if (_notificationCheckIntervalCount != value)
+                {
+                    _notificationCheckIntervalCount = value;
+                    NotifyPropertyChanged("NotificationCheckIntervalCount");
+                }
             }
         }
 
@@ -278,8 +332,11 @@ namespace CoAP
             get { return _notificationReregistrationBackoff; }
             set
             {
-                _notificationReregistrationBackoff = value;
-                NotifyPropertyChanged("NotificationReregistrationBackoff");
+                if (_notificationReregistrationBackoff != value)
+                {
+                    _notificationReregistrationBackoff = value;
+                    NotifyPropertyChanged("NotificationReregistrationBackoff");
+                }
             }
         }
 
@@ -289,8 +346,11 @@ namespace CoAP
             get { return _channelReceiveBufferSize; }
             set
             {
-                _channelReceiveBufferSize = value;
-                NotifyPropertyChanged("ChannelReceiveBufferSize");
+                if (_channelReceiveBufferSize != value)
+                {
+                    _channelReceiveBufferSize = value;
+                    NotifyPropertyChanged("ChannelReceiveBufferSize");
+                }
             }
         }
 
@@ -300,8 +360,11 @@ namespace CoAP
             get { return _channelSendBufferSize; }
             set
             {
-                _channelSendBufferSize = value;
-                NotifyPropertyChanged("ChannelSendBufferSize");
+                if (_channelSendBufferSize != value)
+                {
+                    _channelSendBufferSize = value;
+                    NotifyPropertyChanged("ChannelSendBufferSize");
+                }
             }
         }
 
@@ -311,8 +374,11 @@ namespace CoAP
             get { return _channelReceivePacketSize; }
             set
             {
-                _channelReceivePacketSize = value;
-                NotifyPropertyChanged("ChannelReceivePacketSize");
+                if (_channelReceivePacketSize != value)
+                {
+                    _channelReceivePacketSize = value;
+                    NotifyPropertyChanged("ChannelReceivePacketSize");
+                }
             }
         }
 
