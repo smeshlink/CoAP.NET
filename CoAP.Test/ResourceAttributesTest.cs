@@ -47,29 +47,36 @@ namespace CoAP
         [TestMethod]
         public void TestDiscovery()
         {
+            String[] expected = new String[] {
+                "</sensors>;title=\"Sensor Index\"," +
+                    "</sensors/temp>;bar=\"one two\";rt=\"temperature-c\";foo;if=\"sensor\"," +
+                    "</sensors/light>;rt=\"light-lux\";if=\"sensor\"",
+                "</sensors>;title=\"Sensor Index\"," +
+                    "</sensors/temp>;if=\"sensor\";bar=\"one two\";foo;rt=\"temperature-c\"," +
+                    "</sensors/light>;if=\"sensor\";rt=\"light-lux\""
+            };
             DiscoveryResource discovery = new DiscoveryResource(_root);
             String serialized = LinkFormat.Serialize(_root, null);
-            Assert.AreEqual("</sensors>;title=\"Sensor Index\"," +
-                    "</sensors/temp>;bar=\"one two\";rt=\"temperature-c\";foo;if=\"sensor\"," +
-                    "</sensors/light>;rt=\"light-lux\";if=\"sensor\"",
-                    serialized);
+            CollectionAssert.Contains(expected, serialized);
 
             serialized = LinkFormat.Serialize(_root, new List<String>());
-            Assert.AreEqual("</sensors>;title=\"Sensor Index\"," +
-                    "</sensors/temp>;bar=\"one two\";rt=\"temperature-c\";foo;if=\"sensor\"," +
-                    "</sensors/light>;rt=\"light-lux\";if=\"sensor\"",
-                    serialized);
+            CollectionAssert.Contains(expected, serialized);
         }
 
         [TestMethod]
         public void TestDiscoveryFiltering()
         {
+            String[] expected = new String[] {
+                "</sensors/light>;rt=\"light-lux\";if=\"sensor\"",
+                "</sensors/light>;if=\"sensor\";rt=\"light-lux\""
+            };
+
             Request request = Request.NewGet();
             request.SetUri("/.well-known/core?rt=light-lux");
 
             DiscoveryResource discovery = new DiscoveryResource(_root);
             String serialized = LinkFormat.Serialize(_root, request.UriQueries);
-            Assert.AreEqual("</sensors/light>;rt=\"light-lux\";if=\"sensor\"", serialized);
+            CollectionAssert.Contains(expected, serialized);
         }
     }
 }
