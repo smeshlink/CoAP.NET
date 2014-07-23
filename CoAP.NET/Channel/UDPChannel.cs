@@ -100,22 +100,41 @@ namespace CoAP.Channel
 
             if (_localEP == null)
             {
-                _socket = SetupUDPSocket(AddressFamily.InterNetworkV6, _receivePacketSize + 1); // +1 to check for > ReceivePacketSize
-
                 try
                 {
-                    // Enable IPv4-mapped IPv6 addresses to accept both IPv6 and IPv4 connections in a same socket.
-                    _socket.Socket.SetSocketOption(SocketOptionLevel.IPv6, (SocketOptionName)27, 0);
+                    _socket = SetupUDPSocket(AddressFamily.InterNetworkV6, _receivePacketSize + 1); // +1 to check for > ReceivePacketSize
                 }
-                catch
+                catch (SocketException e)
                 {
-                    // IPv4-mapped address seems not to be supported, set up a separated socket of IPv4.
-                    _socketBackup = SetupUDPSocket(AddressFamily.InterNetwork, _receivePacketSize + 1);
+                    if (e.SocketErrorCode == SocketError.AddressFamilyNotSupported)
+                        _socket = null;
+                    else
+                        throw e;
                 }
 
-                _socket.Socket.Bind(new IPEndPoint(IPAddress.IPv6Any, _port));
-                if (_socketBackup != null)
-                    _socketBackup.Socket.Bind(new IPEndPoint(IPAddress.Any, _port));
+                if (_socket == null)
+                {
+                    // IPv6 is not supported, use IPv4 instead
+                    _socket = SetupUDPSocket(AddressFamily.InterNetwork, _receivePacketSize + 1);
+                    _socket.Socket.Bind(new IPEndPoint(IPAddress.Any, _port));
+                }
+                else
+                {
+                    try
+                    {
+                        // Enable IPv4-mapped IPv6 addresses to accept both IPv6 and IPv4 connections in a same socket.
+                        _socket.Socket.SetSocketOption(SocketOptionLevel.IPv6, (SocketOptionName)27, 0);
+                    }
+                    catch
+                    {
+                        // IPv4-mapped address seems not to be supported, set up a separated socket of IPv4.
+                        _socketBackup = SetupUDPSocket(AddressFamily.InterNetwork, _receivePacketSize + 1);
+                    }
+
+                    _socket.Socket.Bind(new IPEndPoint(IPAddress.IPv6Any, _port));
+                    if (_socketBackup != null)
+                        _socketBackup.Socket.Bind(new IPEndPoint(IPAddress.Any, _port));
+                }
             }
             else
             {
