@@ -20,9 +20,9 @@ using CoAP.Util;
 namespace CoAP.Proxy
 {
     /// <summary>
-    /// <summary> Class encapsulating the logic of a http server. The class create a receiver
-    /// <summary> thread that it is always blocked on the listen primitive. For each connection
-    /// <summary> this thread creates a new thread that handles the client/server dialog.
+    /// Class encapsulating the logic of a http server. The class create a receiver
+    /// thread that it is always blocked on the listen primitive. For each connection
+    /// this thread creates a new thread that handles the client/server dialog.
     /// </summary>
     public class HttpStack
     {
