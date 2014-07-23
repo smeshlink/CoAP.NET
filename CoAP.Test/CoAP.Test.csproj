@@ -48,6 +48,7 @@
   <ItemGroup>
     <Compile Include="BlockOptionTest.cs" />
     <Compile Include="BlockwiseTransferTest.cs" />
+    <Compile Include="Channel\IPAddressTest.cs" />
     <Compile Include="CoapClientTest.cs" />
     <Compile Include="Codec\DatagramReadWriteTest.cs" />
     <Compile Include="Codec\MessageTest.cs" />

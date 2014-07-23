@@ -49,6 +49,7 @@
     <Compile Include="BlockOption.cs" />
     <Compile Include="Channel\DataReceivedEventArgs.cs" />
     <Compile Include="Channel\IChannel.cs" />
+    <Compile Include="Channel\IPAddressExtensions.cs" />
     <Compile Include="Channel\UDPChannel.cs" />
     <Compile Include="Channel\UDPChannel.NET40.cs" />
     <Compile Include="CoapClient.cs" />
