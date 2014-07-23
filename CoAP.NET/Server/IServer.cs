@@ -11,6 +11,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Net;
 using CoAP.Net;
 using CoAP.Server.Resources;
 
@@ -30,6 +31,14 @@ namespace CoAP.Server
         /// Adds an endpoint for receive and sending CoAP messages on.
         /// </summary>
         void AddEndPoint(IEndPoint endpoint);
+        /// <summary>
+        /// Adds an <see cref="IPEndPoint"/> for receive and sending CoAP messages on.
+        /// </summary>
+        void AddEndPoint(IPEndPoint ep);
+        /// <summary>
+        /// Adds an <see cref="IPAddress"/> and a port for receive and sending CoAP messages on.
+        /// </summary>
+        void AddEndPoint(IPAddress address, Int32 port);
         /// <summary>
         /// Finds the endpoint bound to a particular <see cref="System.Net.EndPoint"/>.
         /// </summary>

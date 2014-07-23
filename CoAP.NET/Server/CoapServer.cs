@@ -11,6 +11,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Net;
 using CoAP.Log;
 using CoAP.Net;
 using CoAP.Server.Resources;
@@ -99,6 +100,18 @@ namespace CoAP.Server
         {
             endpoint.MessageDeliverer = _deliverer;
             _endpoints.Add(endpoint);
+        }
+
+        /// <inheritdoc/>
+        public void AddEndPoint(IPEndPoint ep)
+        {
+            AddEndPoint(new CoAPEndPoint(ep, _config));
+        }
+
+        /// <inheritdoc/>
+        public void AddEndPoint(IPAddress address, Int32 port)
+        {
+            AddEndPoint(new CoAPEndPoint(new IPEndPoint(address, port), _config));
         }
 
         /// <inheritdoc/>
