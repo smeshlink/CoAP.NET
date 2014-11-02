@@ -1,0 +1,88 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+    <metadata>
+        <id>CoAP</id>
+        <version>0.18</version>
+        <title>CoAP.NET</title>
+        <authors>Longshine</authors>
+        <owners>Longshine</owners>
+        <licenseUrl>https://github.com/smeshlink/CoAP.NET/blob/master/LICENSE</licenseUrl>
+        <projectUrl>https://github.com/smeshlink/CoAP.NET</projectUrl>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <description>CoAP.NET is an implementation in C# providing CoAP-based services to .NET applications.</description>
+        <summary>.NET implementation of the Constrained Application Protocol (CoAP)</summary>
+        <releaseNotes>* 0.18
+  - Add support for CoAP-18
+  - Add new layers and stack structure
+  - Add new server and client APIs
+  - Add datagram channels for data transmission
+  - Add full configuration
+  - Improve UDP transmission with SocketAsyncEventArgs for .NET 4+
+  - Improve threading with TPL for .NET 4+
+  - Improve logging with Common.Logging
+  - Fix lots of bugs
+* 0.13.4
+  - Fix potential breaks in UDP transmission
+  - Diff assembly title with draft version
+* 0.13.3
+  - Add request.SequenceTimeout to override overall timeout in
+  TokenLayer
+  - Fix incorrect match of tokens in TokenManager
+* 0.13.2
+  - Add ICommunicator to represent communicators
+  - Add ICoapConfig to pass initial variables (refs #8)
+  - Add HTTP/CoAP proxy (experimental)
+  - Add build for .NET 4.0
+  - Dispatch requests with thread pool in LocalEndPoint
+  - Only timeout requests if SequenceTimeout is greater than 0 in TokenLayer
+  - Move resources to separate namespace Resources, and add a TimerResource for timed observable resources.
+* 0.13.1
+  - Add timeout and max retransimit to each message
+  - Enable log levels
+  - Fix null reference to next block in TransferLayer
+* 0.13
+  - Update to CoAP-13
+  - Support drafts switching
+* 0.08
+  - Update to CoAP-08
+  - Support both IPv6/IPv4</releaseNotes>
+        <tags>6LoWPAN blockwise CoAP observe</tags>
+        <frameworkAssemblies>
+            <frameworkAssembly assemblyName="System" targetFramework="" />
+            <frameworkAssembly assemblyName="System.Runtime.Remoting" targetFramework="" />
+        </frameworkAssemblies>
+    </metadata>
+    <files>
+        <file src="binary\0.18\NET20\CoAP.NET-03.dll" target="lib\net20\CoAP.NET-03.dll" />
+        <file src="binary\0.18\NET20\CoAP.NET-03.pdb" target="lib\net20\CoAP.NET-03.pdb" />
+        <file src="binary\0.18\NET20\CoAP.NET-03.XML" target="lib\net20\CoAP.NET-03.XML" />
+        <file src="binary\0.18\NET20\CoAP.NET-08.dll" target="lib\net20\CoAP.NET-08.dll" />
+        <file src="binary\0.18\NET20\CoAP.NET-08.pdb" target="lib\net20\CoAP.NET-08.pdb" />
+        <file src="binary\0.18\NET20\CoAP.NET-08.XML" target="lib\net20\CoAP.NET-08.XML" />
+        <file src="binary\0.18\NET20\CoAP.NET-13.dll" target="lib\net20\CoAP.NET-13.dll" />
+        <file src="binary\0.18\NET20\CoAP.NET-13.pdb" target="lib\net20\CoAP.NET-13.pdb" />
+        <file src="binary\0.18\NET20\CoAP.NET-13.XML" target="lib\net20\CoAP.NET-13.XML" />
+        <file src="binary\0.18\NET20\CoAP.NET-18.dll" target="lib\net20\CoAP.NET-18.dll" />
+        <file src="binary\0.18\NET20\CoAP.NET-18.pdb" target="lib\net20\CoAP.NET-18.pdb" />
+        <file src="binary\0.18\NET20\CoAP.NET-18.XML" target="lib\net20\CoAP.NET-18.XML" />
+        <file src="binary\0.18\NET20\CoAP.NET.dll" target="lib\net20\CoAP.NET.dll" />
+        <file src="binary\0.18\NET20\CoAP.NET.pdb" target="lib\net20\CoAP.NET.pdb" />
+        <file src="binary\0.18\NET20\CoAP.NET.XML" target="lib\net20\CoAP.NET.XML" />
+        <file src="binary\0.18\NET40\CoAP.NET-03.dll" target="lib\net40\CoAP.NET-03.dll" />
+        <file src="binary\0.18\NET40\CoAP.NET-03.pdb" target="lib\net40\CoAP.NET-03.pdb" />
+        <file src="binary\0.18\NET40\CoAP.NET-03.XML" target="lib\net40\CoAP.NET-03.XML" />
+        <file src="binary\0.18\NET40\CoAP.NET-08.dll" target="lib\net40\CoAP.NET-08.dll" />
+        <file src="binary\0.18\NET40\CoAP.NET-08.pdb" target="lib\net40\CoAP.NET-08.pdb" />
+        <file src="binary\0.18\NET40\CoAP.NET-08.XML" target="lib\net40\CoAP.NET-08.XML" />
+        <file src="binary\0.18\NET40\CoAP.NET-13.dll" target="lib\net40\CoAP.NET-13.dll" />
+        <file src="binary\0.18\NET40\CoAP.NET-13.pdb" target="lib\net40\CoAP.NET-13.pdb" />
+        <file src="binary\0.18\NET40\CoAP.NET-13.XML" target="lib\net40\CoAP.NET-13.XML" />
+        <file src="binary\0.18\NET40\CoAP.NET-18.dll" target="lib\net40\CoAP.NET-18.dll" />
+        <file src="binary\0.18\NET40\CoAP.NET-18.pdb" target="lib\net40\CoAP.NET-18.pdb" />
+        <file src="binary\0.18\NET40\CoAP.NET-18.XML" target="lib\net40\CoAP.NET-18.XML" />
+        <file src="binary\0.18\NET40\CoAP.NET.dll" target="lib\net40\CoAP.NET.dll" />
+        <file src="binary\0.18\NET40\CoAP.NET.pdb" target="lib\net40\CoAP.NET.pdb" />
+        <file src="binary\0.18\NET40\CoAP.NET.XML" target="lib\net40\CoAP.NET.XML" />
+        <file src="LICENSE" target="LICENSE" />
+    </files>
+</package>
