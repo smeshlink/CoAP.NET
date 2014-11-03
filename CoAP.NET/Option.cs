@@ -152,40 +152,27 @@ namespace CoAP
             }
         }
 
+        public String ToValueString()
+        {
+            switch (GetFormatByType(_type))
+            {
+                case OptionFormat.Integer:
+                    return (_type == OptionType.Accept || _type == OptionType.ContentFormat) ?
+                        ("\"" + MediaType.ToString(IntValue) + "\"") :
+                        IntValue.ToString();
+                case OptionFormat.String:
+                    return "\"" + StringValue + "\"";
+                default:
+                    return ByteArrayUtils.ToHexString(RawValue);
+            }
+        }
+
         /// <summary>
         /// Returns a human-readable string representation of the option's value.
         /// </summary>
         public override String ToString()
         {
-            switch (this._type)
-            {
-                case OptionType.ContentType:
-                    return MediaType.ToString(IntValue);
-                case OptionType.MaxAge:
-                    return String.Format("{0} s", IntValue);
-                case OptionType.UriPort:
-                case OptionType.Observe:
-                case OptionType.Block2:
-                case OptionType.Block1:
-                case OptionType.Size:
-                    return IntValue.ToString();
-                case OptionType.ProxyUri:
-                case OptionType.UriHost:
-                case OptionType.LocationPath:
-                case OptionType.LocationQuery:
-                case OptionType.UriPath:
-                case OptionType.UriQuery:
-                    return StringValue;
-                case OptionType.IfNoneMatch:
-                    return "set";
-                case OptionType.Accept:
-                    return MediaType.ToString(IntValue);
-                case OptionType.ETag:
-                case OptionType.Token:
-                case OptionType.IfMatch:
-                default:
-                    return ByteArrayUtils.ToHexString(RawValue);
-            }
+            return ToString(_type) + ": " + ToValueString();
         }
 
         /// <summary>
@@ -353,9 +340,9 @@ namespace CoAP
             switch (type)
             {
                 case OptionType.Reserved:
-                    return "Reserved (0)";
-                case OptionType.ContentType:
-                    return "Content-Type";
+                    return "Reserved";
+                case OptionType.ContentFormat:
+                    return "Content-Format";
                 case OptionType.MaxAge:
                     return "Max-Age";
                 case OptionType.ProxyUri:
@@ -388,38 +375,48 @@ namespace CoAP
                     return "Block2";
                 case OptionType.Block1:
                     return "Block1";
-                case OptionType.Size:
-                    return "Size";
+                case OptionType.Size2:
+                    return "Size2";
+                case OptionType.Size1:
+                    return "Size1";
                 case OptionType.IfNoneMatch:
                     return "If-None-Match";
                 case OptionType.ProxyScheme:
                     return "Proxy-Scheme";
                 default:
-                    return String.Format("Unknown option [{0}]", type);
+                    return String.Format("Unknown ({0})", type);
             }
         }
 
+        /// <summary>
+        /// Returns the option format based on the option type.
+        /// </summary>
+        /// <param name="type">the option type</param>
+        /// <returns>the option format corresponding to the option type</returns>
         public static OptionFormat GetFormatByType(OptionType type)
         {
             switch (type)
             {
-                case OptionType.ContentType:
+                case OptionType.ContentFormat:
                 case OptionType.MaxAge:
                 case OptionType.UriPort:
                 case OptionType.Observe:
                 case OptionType.Block2:
                 case OptionType.Block1:
+                case OptionType.Size2:
+                case OptionType.Size1:
+                case OptionType.IfNoneMatch:
                 case OptionType.Accept:
                 case OptionType.FencepostDivisor:
-                case OptionType.IfNoneMatch:
                     return OptionFormat.Integer;
-                case OptionType.ProxyUri:
                 case OptionType.UriHost:
+                case OptionType.UriPath:
+                case OptionType.UriQuery:
                 case OptionType.LocationPath:
                 case OptionType.LocationQuery:
-                case OptionType.UriPath:
+                case OptionType.ProxyUri:
+                case OptionType.ProxyScheme:
                 case OptionType.Token:
-                case OptionType.UriQuery:
                     return OptionFormat.String;
                 case OptionType.ETag:
                 case OptionType.IfMatch:
@@ -427,6 +424,46 @@ namespace CoAP
                 default:
                     return OptionFormat.Unknown;
             }
+        }
+
+        /// <summary>
+        /// Checks whether an option is critical.
+        /// </summary>
+        /// <param name="type">the option type to check</param>
+        /// <returns><code>true</code> if the option is critical</returns>
+        public static Boolean IsCritical(OptionType type)
+        {
+            return ((Int32)type & 1) > 1;
+        }
+
+        /// <summary>
+        /// Checks whether an option is elective.
+        /// </summary>
+        /// <param name="type">the option type to check</param>
+        /// <returns><code>true</code> if the option is elective</returns>
+        public static Boolean IsElective(OptionType type)
+        {
+            return ((Int32)type & 1) == 0;
+        }
+
+        /// <summary>
+        /// Checks whether an option is unsafe.
+        /// </summary>
+        /// <param name="type">the option type to check</param>
+        /// <returns><code>true</code> if the option is unsafe</returns>
+        public static Boolean IsUnsafe(OptionType type)
+        {
+            return ((Int32)type & 2) > 0;
+        }
+
+        /// <summary>
+        /// Checks whether an option is safe.
+        /// </summary>
+        /// <param name="type">the option type to check</param>
+        /// <returns><code>true</code> if the option is safe</returns>
+        public static Boolean IsSafe(OptionType type)
+        {
+            return !IsUnsafe(type);
         }
 
         private static IConvertor GetConvertor(OptionType type)

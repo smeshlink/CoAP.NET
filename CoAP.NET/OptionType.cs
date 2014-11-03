@@ -19,82 +19,109 @@ namespace CoAP
         Unknown = -1,
 
         /// <summary>
-        /// <remarks>draft-ietf-core-coap</remarks>
+        /// <remarks>RFC 7252</remarks>
         /// </summary>
         Reserved = 0,
         /// <summary>
         /// C, opaque, 0-8 B, -
-        /// <remarks>draft-ietf-core-coap-07</remarks>
+        /// <remarks>RFC 7252</remarks>
         /// </summary>
         IfMatch = 1,
         /// <summary>
         /// C, String, 1-270 B, ""
-        /// <remarks>draft-ietf-core-coap</remarks>
+        /// <remarks>RFC 7252</remarks>
         /// </summary>
         UriHost = 3,
         /// <summary>
         /// E, sequence of bytes, 1-4 B, -
-        /// <remarks>draft-ietf-core-coap</remarks>
+        /// <remarks>RFC 7252</remarks>
         /// </summary>
         ETag = 4,
         /// <summary>
-        /// <remarks>draft-ietf-core-coap-07</remarks>
+        /// <remarks>RFC 7252</remarks>
         /// </summary>
         IfNoneMatch = 5,
         /// <summary>
         /// C, uint, 0-2 B
-        /// <remarks>draft-ietf-core-coap</remarks>
+        /// <remarks>RFC 7252</remarks>
         /// </summary>
         UriPort = 7,
         /// <summary>
         /// E, String, 1-270 B, -
-        /// <remarks>draft-ietf-core-coap</remarks>
+        /// <remarks>RFC 7252</remarks>
         /// </summary>
         LocationPath = 8,
         /// <summary>
         /// C, String, 1-270 B, ""
-        /// <remarks>draft-ietf-core-coap</remarks>
+        /// <remarks>RFC 7252</remarks>
         /// </summary>
         UriPath = 11,
         /// <summary>
         /// C, 8-bit uint, 1 B, 0 (text/plain)
-        /// <remarks>draft-ietf-core-coap</remarks>
+        /// <seealso cref="ContentFormat"/>
+        /// <remarks>RFC 7252</remarks>
         /// </summary>
         ContentType = 12,
         /// <summary>
+        /// C, 8-bit uint, 1 B, 0 (text/plain)
+        /// <remarks>RFC 7252</remarks>
+        /// </summary>
+        ContentFormat = 12,
+        /// <summary>
         /// E, variable length, 1--4 B, 60 Seconds
-        /// <remarks>draft-ietf-core-coap</remarks>
+        /// <remarks>RFC 7252</remarks>
         /// </summary>
         MaxAge = 14,
         /// <summary>
         /// C, String, 1-270 B, ""
-        /// <remarks>draft-ietf-core-coap</remarks>
+        /// <remarks>RFC 7252</remarks>
         /// </summary>
         UriQuery = 15,
         /// <summary>
-        /// E  Sequence of Bytes, 1-n B, -
-        /// <remarks>draft-ietf-core-coap</remarks>
+        /// C, Sequence of Bytes, 1-n B, -
+        /// <remarks>RFC 7252</remarks>
         /// </summary>
-        Accept = 16,
+        Accept = 17,
         /// <summary>
-        /// C, Sequence of Bytes, 1-2 B, -
+        /// C, Sequence of Bytes, 1-2 B, -. NOTE: this option has been replaced with <see cref="Message.Token"/> since draft 13.
         /// <remarks>draft-ietf-core-coap-03, draft-ietf-core-coap-12</remarks>
         /// </summary>
         Token = 19,
         /// <summary>
         /// E, String, 1-270 B, -
-        /// <remarks>draft-ietf-core-coap</remarks>
+        /// <remarks>RFC 7252</remarks>
         /// </summary>
         LocationQuery = 20,
         /// <summary>
         /// C, String, 1-270 B, "coap"
-        /// <remarks>draft-ietf-core-coap-04</remarks>
+        /// <remarks>RFC 7252</remarks>
         /// </summary>
         ProxyUri = 35,
         /// <summary>
-        /// <remarks>draft-ietf-core-coap-13</remarks>
+        /// <remarks>RFC 7252</remarks>
         /// </summary>
         ProxyScheme = 39,
+
+        /// <summary>
+        /// <remarks>RFC 7252</remarks>
+        /// </summary>
+        Size1 = 60,
+        /// <summary>
+        /// <remarks>RFC 7252</remarks>
+        /// </summary>
+        Reserved1 = 128,
+        /// <summary>
+        /// <remarks>RFC 7252</remarks>
+        /// </summary>
+        Reserved2 = 132,
+        /// <summary>
+        /// <remarks>RFC 7252</remarks>
+        /// </summary>
+        Reserved3 = 136,
+        /// <summary>
+        /// <remarks>RFC 7252</remarks>
+        /// </summary>
+        Reserved4 = 140,
 
         /// <summary>
         /// E, Duration, 1 B, 0
@@ -111,9 +138,9 @@ namespace CoAP
         /// </summary>
         Block1 = 27,
         /// <summary>
-        /// <remarks>draft-ietf-core-block-08</remarks>
+        /// <remarks>draft-ietf-core-block</remarks>
         /// </summary>
-        Size = 28,
+        Size2 = 28,
 
         /// <summary>
         /// no-op for fenceposting

@@ -851,12 +851,18 @@ namespace CoAP
 
         private static Int32 GetOptionNumber(OptionType optionType)
         {
-            return (Int32)optionType;
+            if (optionType == OptionType.Accept)
+                return 16;
+            else
+                return (Int32)optionType;
         }
 
         private static OptionType GetOptionType(Int32 optionNumber)
         {
-            return (OptionType)optionNumber;
+            if (optionNumber == 16)
+                return OptionType.Accept;
+            else
+                return (OptionType)optionNumber;
         }
 
         class MessageEncoder12 : MessageEncoder
@@ -1215,6 +1221,22 @@ namespace CoAP
             }
         }
 
+        private static Int32 GetOptionNumber(OptionType optionType)
+        {
+            if (optionType == OptionType.Accept)
+                return 16;
+            else
+                return (Int32)optionType;
+        }
+
+        private static OptionType GetOptionType(Int32 optionNumber)
+        {
+            if (optionNumber == 16)
+                return OptionType.Accept;
+            else
+                return (OptionType)optionNumber;
+        }
+
         class MessageEncoder13 : MessageEncoder
         {
             protected override void Serialize(DatagramWriter writer, Message msg, Int32 code)
@@ -1240,7 +1262,7 @@ namespace CoAP
                         continue;
 
                     // write 4-bit option delta
-                    Int32 optNum = (Int32)opt.Type;
+                    Int32 optNum = GetOptionNumber(opt.Type);
                     Int32 optionDelta = optNum - lastOptionNumber;
                     Int32 optionDeltaNibble = GetOptionNibble(optionDelta);
                     writer.Write(optionDeltaNibble, OptionDeltaBits);
@@ -1344,7 +1366,7 @@ namespace CoAP
                         Int32 optionLength = GetValueFromOptionNibble(optionLengthNibble, _reader);
 
                         // read option
-                        OptionType currentOptionType = (OptionType)currentOption;
+                        OptionType currentOptionType = GetOptionType(currentOption);
                         Option opt = Option.Create(currentOptionType);
                         opt.RawValue = _reader.ReadBytes(optionLength);
 
