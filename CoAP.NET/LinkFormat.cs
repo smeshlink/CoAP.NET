@@ -81,13 +81,13 @@ namespace CoAP
         {
             StringBuilder linkFormat = new StringBuilder();
 
-            Boolean append = false;
             foreach (IResource child in root.Children)
             {
-                if (append)
-                    linkFormat.Append(Delimiter);
-                append = SerializeTree(child, queries, linkFormat);
+                SerializeTree(child, queries, linkFormat);
             }
+
+            if (linkFormat.Length > 1)
+                linkFormat.Remove(linkFormat.Length - 1, 1);
 
             return linkFormat.ToString();
         }
@@ -143,24 +143,18 @@ namespace CoAP
             yield break;
         }
 
-        private static Boolean SerializeTree(IResource resource, IEnumerable<String> queries, StringBuilder sb)
+        private static void SerializeTree(IResource resource, IEnumerable<String> queries, StringBuilder sb)
         {
-            Boolean append = false;
-
             if (resource.Visible && Matches(resource, queries))
             {
                 SerializeResource(resource, sb);
-                append = true;
+                sb.Append(",");
             }
 
             foreach (IResource child in resource.Children)
             {
-                if (append)
-                    sb.Append(Delimiter);
-                append = SerializeTree(child, queries, sb);
+                SerializeTree(child, queries, sb);
             }
-
-            return append;
         }
 
         private static void SerializeResource(IResource resource, StringBuilder sb)
