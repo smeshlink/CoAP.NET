@@ -948,6 +948,44 @@ namespace CoAP
             }
         }
 
+        /// <summary>
+        /// Gets or sets the Size1 option. Be <code>null</code> if not set.
+        /// </summary>
+        public Int32? Size1
+        {
+            get
+            {
+                Option opt = GetFirstOption(OptionType.Size1);
+                return opt == null ? default(Int32?) : opt.IntValue;
+            }
+            set
+            {
+                if (value.HasValue)
+                    SetOption(Option.Create(OptionType.Size1, value.Value));
+                else
+                    RemoveOptions(OptionType.Size1);
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the Size2 option. Be <code>null</code> if not set.
+        /// </summary>
+        public Int32? Size2
+        {
+            get
+            {
+                Option opt = GetFirstOption(OptionType.Size2);
+                return opt == null ? default(Int32?) : opt.IntValue;
+            }
+            set
+            {
+                if (value.HasValue)
+                    SetOption(Option.Create(OptionType.Size2, value.Value));
+                else
+                    RemoveOptions(OptionType.Size2);
+            }
+        }
+
         public BlockOption Block1
         {
             get { return GetFirstOption(OptionType.Block1) as BlockOption; }
