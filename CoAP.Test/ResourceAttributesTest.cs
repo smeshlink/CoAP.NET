@@ -47,36 +47,28 @@ namespace CoAP
         [TestMethod]
         public void TestDiscovery()
         {
-            String[] expected = new String[] {
-                "</sensors>;title=\"Sensor Index\"," +
-                    "</sensors/temp>;bar=\"one two\";rt=\"temperature-c\";foo;if=\"sensor\"," +
-                    "</sensors/light>;rt=\"light-lux\";if=\"sensor\"",
-                "</sensors>;title=\"Sensor Index\"," +
-                    "</sensors/temp>;if=\"sensor\";bar=\"one two\";foo;rt=\"temperature-c\"," +
-                    "</sensors/light>;if=\"sensor\";rt=\"light-lux\""
-            };
+            String expected = "</sensors>;title=\"Sensor Index\"," +
+                    "</sensors/light>;if=\"sensor\";rt=\"light-lux\"," +
+                    "</sensors/temp>;bar=\"one two\";foo;if=\"sensor\";rt=\"temperature-c\"";
             DiscoveryResource discovery = new DiscoveryResource(_root);
-            String serialized = LinkFormat.Serialize(_root, null);
-            CollectionAssert.Contains(expected, serialized);
+            String serialized = LinkFormat.Serialize(_root);
+            Assert.AreEqual(expected, serialized);
 
             serialized = LinkFormat.Serialize(_root, new List<String>());
-            CollectionAssert.Contains(expected, serialized);
+            Assert.AreEqual(expected, serialized);
         }
 
         [TestMethod]
         public void TestDiscoveryFiltering()
         {
-            String[] expected = new String[] {
-                "</sensors/light>;rt=\"light-lux\";if=\"sensor\"",
-                "</sensors/light>;if=\"sensor\";rt=\"light-lux\""
-            };
+            String expected = "</sensors/light>;if=\"sensor\";rt=\"light-lux\"";
 
             Request request = Request.NewGet();
             request.SetUri("/.well-known/core?rt=light-lux");
 
             DiscoveryResource discovery = new DiscoveryResource(_root);
             String serialized = LinkFormat.Serialize(_root, request.UriQueries);
-            CollectionAssert.Contains(expected, serialized);
+            Assert.AreEqual(expected, serialized);
         }
     }
 }

@@ -77,6 +77,11 @@ namespace CoAP
 
         private static ILogger log = LogManager.GetLogger(typeof(LinkFormat));
 
+        public static String Serialize(IResource root)
+        {
+            return Serialize(root, null);
+        }
+
         public static String Serialize(IResource root, IEnumerable<String> queries)
         {
             StringBuilder linkFormat = new StringBuilder();
@@ -151,7 +156,11 @@ namespace CoAP
                 sb.Append(",");
             }
 
-            foreach (IResource child in resource.Children)
+            // sort by resource name
+            List<IResource> childrens = new List<IResource>(resource.Children);
+            childrens.Sort(delegate(IResource r1, IResource r2) { return String.Compare(r1.Name, r2.Name); });
+
+            foreach (IResource child in childrens)
             {
                 SerializeTree(child, queries, sb);
             }
@@ -168,7 +177,9 @@ namespace CoAP
 
         private static void SerializeAttributes(ResourceAttributes attributes, StringBuilder sb)
         {
-            foreach (String name in attributes.Keys)
+            List<String> keys = new List<String>(attributes.Keys);
+            keys.Sort();
+            foreach (String name in keys)
             {
                 List<String> values = new List<String>(attributes.GetValues(name));
                 if (values.Count == 0)
