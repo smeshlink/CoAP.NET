@@ -178,7 +178,7 @@ namespace CoAP.Net
         public void SendReject()
         {
             System.Diagnostics.Debug.Assert(_origin == Origin.Remote);
-            _request.Rejected = true;
+            _request.IsRejected = true;
             EmptyMessage rst = EmptyMessage.NewRST(_request);
             _endpoint.SendEmptyMessage(this, rst);
         }
@@ -191,9 +191,9 @@ namespace CoAP.Net
         public void SendAccept()
         {
             System.Diagnostics.Debug.Assert(_origin == Origin.Remote);
-            if (_request.Type == MessageType.CON && !_request.Acknowledged)
+            if (_request.Type == MessageType.CON && !_request.IsAcknowledged)
             {
-                _request.Acknowledged = true;
+                _request.IsAcknowledged = true;
                 EmptyMessage ack = EmptyMessage.NewACK(_request);
                 _endpoint.SendEmptyMessage(this, ack);
             }

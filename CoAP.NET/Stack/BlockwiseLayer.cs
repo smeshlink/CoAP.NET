@@ -96,7 +96,7 @@ namespace CoAP.Stack
                         Response error = Response.CreatePiggybackedResponse(request, StatusCode.RequestEntityIncomplete);
                         error.AddOption(new BlockOption(OptionType.Block1, block1.NUM, block1.SZX, block1.M));
                         error.SetPayload("Changed Content-Format");
-                        request.Acknowledged = true;
+                        request.IsAcknowledged = true;
                         exchange.CurrentResponse = error;
                         base.SendResponse(nextLayer, exchange, error);
                         return;
@@ -113,7 +113,7 @@ namespace CoAP.Stack
                             Response piggybacked = Response.CreatePiggybackedResponse(request, StatusCode.Continue);
                             piggybacked.AddOption(new BlockOption(OptionType.Block1, block1.NUM, block1.SZX, true));
                             piggybacked.Last = false;
-                            request.Acknowledged = true;
+                            request.IsAcknowledged = true;
                             exchange.CurrentResponse = piggybacked;
                             base.SendResponse(nextLayer, exchange, piggybacked);
                         }
@@ -146,7 +146,7 @@ namespace CoAP.Stack
                     Response error = Response.CreatePiggybackedResponse(request, StatusCode.RequestEntityIncomplete);
                     error.AddOption(new BlockOption(OptionType.Block1, block1.NUM, block1.SZX, block1.M));
                     error.SetPayload("Wrong block number");
-                    request.Acknowledged = true;
+                    request.IsAcknowledged = true;
                     exchange.CurrentResponse = error;
                     base.SendResponse(nextLayer, exchange, error);
                 }
@@ -367,7 +367,7 @@ namespace CoAP.Stack
                         EmptyMessage rst = EmptyMessage.NewRST(response);
                         base.SendEmptyMessage(nextLayer, exchange, rst);
                     }
-                    exchange.Request.Canceled = true;
+                    exchange.Request.IsCanceled = true;
                 }
             }
         }
@@ -457,7 +457,7 @@ namespace CoAP.Stack
             block.Destination = response.Destination;
             block.Token = response.Token;
             block.SetOptions(response.GetOptions());
-            block.Timeout += (o, e) => response.TimedOut = true;
+            block.Timeout += (o, e) => response.IsTimedOut = true;
 
             if (response.PayloadSize > 0)
             {

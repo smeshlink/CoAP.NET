@@ -198,7 +198,17 @@ namespace CoAP
         /// <summary>
         /// Gets or sets a value indicating whether this message has been acknowledged.
         /// </summary>
+        [Obsolete("Will be name for related event in the future. Please use IsAcknowledged instead.")]
         public Boolean Acknowledged
+        {
+            get { return IsAcknowledged; }
+            set { IsAcknowledged = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether this message has been acknowledged.
+        /// </summary>
+        public Boolean IsAcknowledged
         {
             get { return _acknowledged; }
             set
@@ -212,7 +222,17 @@ namespace CoAP
         /// <summary>
         /// Gets or sets a value indicating whether this message has been rejected.
         /// </summary>
+        [Obsolete("Will be name for related event in the future. Please use IsRejected instead.")]
         public Boolean Rejected
+        {
+            get { return IsRejected; }
+            set { IsRejected = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether this message has been rejected.
+        /// </summary>
+        public Boolean IsRejected
         {
             get { return _rejected; }
             set
@@ -227,7 +247,18 @@ namespace CoAP
         /// Gets or sets a value that indicates whether this CoAP message has timed out.
         /// Confirmable messages in particular might timeout.
         /// </summary>
+        [Obsolete("Will be name for related event in the future. Please use IsTimedOut instead.")]
         public Boolean TimedOut
+        {
+            get { return IsTimedOut; }
+            set { IsTimedOut = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets a value that indicates whether this CoAP message has timed out.
+        /// Confirmable messages in particular might timeout.
+        /// </summary>
+        public Boolean IsTimedOut
         {
             get { return _timedOut; }
             set
@@ -241,7 +272,17 @@ namespace CoAP
         /// <summary>
         /// Gets or sets a value that indicates whether this CoAP message is canceled.
         /// </summary>
+        [Obsolete("Will be name for related event in the future. Please use IsCanceled instead.")]
         public Boolean Canceled
+        {
+            get { return IsCanceled; }
+            set { IsCanceled = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets a value that indicates whether this CoAP message is canceled.
+        /// </summary>
+        public Boolean IsCanceled
         {
             get { return _cancelled; }
             set

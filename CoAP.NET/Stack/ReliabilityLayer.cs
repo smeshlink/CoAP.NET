@@ -67,14 +67,14 @@ namespace CoAP.Stack
                 MessageType reqType = exchange.CurrentRequest.Type;
                 if (reqType == MessageType.CON)
                 {
-                    if (exchange.CurrentRequest.Acknowledged)
+                    if (exchange.CurrentRequest.IsAcknowledged)
                     {
                         // send separate response
                         response.Type = MessageType.CON;
                     }
                     else
                     {
-                        exchange.CurrentRequest.Acknowledged = true;
+                        exchange.CurrentRequest.IsAcknowledged = true;
                         // send piggy-backed response
                         response.Type = MessageType.ACK;
                         response.ID = exchange.CurrentRequest.ID;
@@ -123,14 +123,14 @@ namespace CoAP.Stack
                 }
                 else if (exchange.CurrentRequest != null)
                 {
-                    if (exchange.CurrentRequest.Acknowledged)
+                    if (exchange.CurrentRequest.IsAcknowledged)
                     {
                         if (log.IsDebugEnabled)
                             log.Debug("The duplicate request was acknowledged but no response computed yet. Retransmit ACK.");
                         EmptyMessage ack = EmptyMessage.NewACK(request);
                         SendEmptyMessage(nextLayer, exchange, ack);
                     }
-                    else if (exchange.CurrentRequest.Rejected)
+                    else if (exchange.CurrentRequest.IsRejected)
                     {
                         if (log.IsDebugEnabled)
                             log.Debug("The duplicate request was rejected. Reject again.");
@@ -169,11 +169,11 @@ namespace CoAP.Stack
             TransmissionContext ctx = (TransmissionContext)exchange.Remove(TransmissionContextKey);
             if (ctx != null)
             {
-                exchange.CurrentRequest.Acknowledged = true;
+                exchange.CurrentRequest.IsAcknowledged = true;
                 ctx.Cancel();
             }
 
-            if (response.Type == MessageType.CON && !exchange.Request.Canceled)
+            if (response.Type == MessageType.CON && !exchange.Request.IsCanceled)
             {
                 if (log.IsDebugEnabled)
                     log.Debug("Response is confirmable, send ACK.");
@@ -202,15 +202,15 @@ namespace CoAP.Stack
             {
                 case MessageType.ACK:
                     if (exchange.Origin == Origin.Local)
-                        exchange.CurrentRequest.Acknowledged = true;
+                        exchange.CurrentRequest.IsAcknowledged = true;
                     else
-                        exchange.CurrentResponse.Acknowledged = true;
+                        exchange.CurrentResponse.IsAcknowledged = true;
                     break;
                 case MessageType.RST:
                     if (exchange.Origin == Origin.Local)
-                        exchange.CurrentRequest.Rejected = true;
+                        exchange.CurrentRequest.IsRejected = true;
                     else
-                        exchange.CurrentResponse.Rejected = true;
+                        exchange.CurrentResponse.IsRejected = true;
                     break;
                 default:
                     if (log.IsWarnEnabled)
@@ -324,19 +324,19 @@ namespace CoAP.Stack
 			     */
                 Int32 failedCount = ++_failedTransmissionCount;
 
-                if (_message.Acknowledged)
+                if (_message.IsAcknowledged)
                 {
                     if (log.IsDebugEnabled)
                         log.Debug("Timeout: message already acknowledged, cancel retransmission of " + _message);
                     return;
                 }
-                else if (_message.Rejected)
+                else if (_message.IsRejected)
                 {
                     if (log.IsDebugEnabled)
                         log.Debug("Timeout: message already rejected, cancel retransmission of " + _message);
                     return;
                 }
-                else if (_message.Canceled)
+                else if (_message.IsCanceled)
                 {
                     if (log.IsDebugEnabled)
                         log.Debug("Timeout: canceled (ID=" + _message.ID + "), do not retransmit");
@@ -350,7 +350,7 @@ namespace CoAP.Stack
                     _message.FireRetransmitting();
 
                     // message might have canceled
-                    if (!_message.Canceled)
+                    if (!_message.IsCanceled)
                         _retransmit(this);
                 }
                 else
@@ -358,7 +358,7 @@ namespace CoAP.Stack
                     if (log.IsDebugEnabled)
                         log.Debug("Timeout: retransmission limit reached, exchange failed, message: " + _message);
                     _exchange.TimedOut = true;
-                    _message.TimedOut = true;
+                    _message.IsTimedOut = true;
                     _exchange.Remove(TransmissionContextKey);
                     Cancel();
                 }

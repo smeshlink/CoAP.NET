@@ -251,7 +251,7 @@ namespace CoAP
             lock (_sync)
             {
                 if (_currentResponse == null &&
-                    !Canceled && !TimedOut && !Rejected)
+                    !IsCanceled && !IsTimedOut && !IsRejected)
                 {
                     System.Threading.Monitor.Wait(_sync, millisecondsTimeout);
                 }

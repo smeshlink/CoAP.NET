@@ -363,7 +363,7 @@ namespace CoAP.Net
         {
             _matcher.SendRequest(exchange, request);
 
-            if (!request.Canceled)
+            if (!request.IsCanceled)
                 _channel.Send(Serialize(request), request.Destination);
         }
 
@@ -371,7 +371,7 @@ namespace CoAP.Net
         {
             _matcher.SendResponse(exchange, response);
 
-            if (!response.Canceled)
+            if (!response.IsCanceled)
                 _channel.Send(Serialize(response), response.Destination);
         }
 
@@ -379,7 +379,7 @@ namespace CoAP.Net
         {
             _matcher.SendEmptyMessage(exchange, message);
 
-            if (!message.Canceled)
+            if (!message.IsCanceled)
                 _channel.Send(Serialize(message), message.Destination);
         }
     }

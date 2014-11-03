@@ -46,7 +46,7 @@ namespace CoAP
 
         public void ReactiveCancel()
         {
-            _request.Canceled = true;
+            _request.IsCanceled = true;
             _canceled = true;
         }
 
@@ -68,7 +68,7 @@ namespace CoAP
             cancel.EndPoint = _request.EndPoint;
             cancel.Send();
             // cancel old ongoing request
-            _request.Canceled = true;
+            _request.IsCanceled = true;
             _canceled = true;
         }
 

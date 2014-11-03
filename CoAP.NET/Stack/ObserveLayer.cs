@@ -41,7 +41,7 @@ namespace CoAP.Stack
             ObserveRelation relation = exchange.Relation;
             if (relation != null && relation.Established)
             {
-                if (exchange.Request.Acknowledged || exchange.Request.Type == MessageType.NON)
+                if (exchange.Request.IsAcknowledged || exchange.Request.Type == MessageType.NON)
                 {
                     // Transmit errors as CON
                     if (!Code.IsSuccess(response.Code))
@@ -114,7 +114,7 @@ namespace CoAP.Stack
         {
             if (response.HasOption(OptionType.Observe))
             {
-                if (exchange.Request.Canceled)
+                if (exchange.Request.IsCanceled)
                 {
                     // The request was canceled and we no longer want notifications
                     if (log.IsDebugEnabled)
@@ -155,8 +155,8 @@ namespace CoAP.Stack
         private static Boolean IsInTransit(Response response)
         {
             MessageType type = response.Type;
-            Boolean acked = response.Acknowledged;
-            Boolean timeout = response.TimedOut;
+            Boolean acked = response.IsAcknowledged;
+            Boolean timeout = response.IsTimedOut;
             Boolean result = type == MessageType.CON && !acked && !timeout;
             return result;
         }
@@ -192,7 +192,7 @@ namespace CoAP.Stack
                             log.Debug("The notification has timed out and there is a younger notification. Send the younger one");
                         relation.NextControlNotification = null;
                         // Send the next notification
-                        response.Canceled = true;
+                        response.IsCanceled = true;
                         MessageType nt = next.Type;
                         if (nt != MessageType.CON)
                         {
@@ -270,7 +270,7 @@ namespace CoAP.Stack
             void timer_Elapsed(Object sender, ElapsedEventArgs e)
             {
                 Request request = _exchange.Request;
-                if (!request.Canceled)
+                if (!request.IsCanceled)
                 {
                     Request refresh = Request.NewGet();
                     refresh.SetOptions(request.GetOptions());
