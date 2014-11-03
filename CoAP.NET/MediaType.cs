@@ -193,7 +193,7 @@ namespace CoAP
             }
             else
             {
-                return "Unknown media type: " + mediaType;
+                return "unknown/" + mediaType;
             }
         }
 
@@ -208,7 +208,7 @@ namespace CoAP
             }
             else
             {
-                return "unknown";
+                return "unknown_" + mediaType;
             }
         }
 
