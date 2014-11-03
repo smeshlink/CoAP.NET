@@ -159,8 +159,13 @@ namespace CoAP
             if (!String.IsNullOrEmpty(query))
                 discover.UriQuery = query;
             Response links = discover.Send().WaitForResponse(_timeout);
-            return links.ContentType == MediaType.ApplicationLinkFormat ? 
-                LinkFormat.Parse(links.PayloadString) : EmptyLinks;
+            if (links == null)
+                // if no response, return null (e.g., timeout)
+                return null;
+            else if (links.ContentFormat != MediaType.ApplicationLinkFormat)
+                return EmptyLinks;
+            else
+                return LinkFormat.Parse(links.PayloadString);
         }
 
         /// <summary>
