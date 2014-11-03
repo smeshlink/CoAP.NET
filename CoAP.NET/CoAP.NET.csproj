@@ -55,6 +55,7 @@
     <Compile Include="CoapClient.cs" />
     <Compile Include="CoapConfig.cs" />
     <Compile Include="CoapConstants.cs" />
+    <Compile Include="CoapObserveRelation.cs" />
     <Compile Include="Code.cs" />
     <Compile Include="Codec\DatagramReader.cs" />
     <Compile Include="Codec\DatagramWriter.cs" />
