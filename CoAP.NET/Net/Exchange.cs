@@ -49,7 +49,7 @@ namespace CoAP.Net
         public Exchange(Request request, Origin origin)
         {
             _origin = origin;
-            _request = request;
+            _currentRequest = request;
             _timestamp = DateTime.Now;
         }
 

@@ -64,10 +64,8 @@ namespace CoAP.Stack
                     exchange = new Exchange(request, Origin.Local);
                     exchange.EndPoint = request.EndPoint;
                 }
-                else
-                {
-                    exchange.Request = request;
-                }
+                
+                exchange.Request = request;
                 base.SendRequest(nextLayer, exchange, request);
             }
 

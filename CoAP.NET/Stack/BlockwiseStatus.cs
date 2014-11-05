@@ -23,6 +23,7 @@ namespace CoAP.Stack
 
         private Int32 _currentNUM;
         private Int32 _currentSZX;
+        private Boolean _randomAccess;
         private readonly Int32 _contentFormat;
         private Boolean _complete;
         private Int32 _observe = NoObserve;
@@ -62,6 +63,15 @@ namespace CoAP.Stack
         {
             get { return _currentSZX; }
             set { _currentSZX = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets if this status is for random access.
+        /// </summary>
+        public Boolean IsRandomAccess
+        {
+            get { return _randomAccess; }
+            set { _randomAccess = value; }
         }
 
         /// <summary>
@@ -115,8 +125,8 @@ namespace CoAP.Stack
         /// <inheritdoc/>
         public override String ToString()
         {
-            return String.Format("[CurrentNum={0}, CurrentSzx={1}, Complete={2}]",
-                _currentNUM, _currentSZX, _complete);
+            return String.Format("[CurrentNum={0}, CurrentSzx={1}, Complete={2}, RandomAccess={3}]",
+                _currentNUM, _currentSZX, _complete, _randomAccess);
         }
     }
 }

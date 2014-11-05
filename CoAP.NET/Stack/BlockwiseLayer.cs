@@ -30,7 +30,7 @@ namespace CoAP.Stack
             _maxMessageSize = config.MaxMessageSize;
             _defaultBlockSize = config.DefaultBlockSize;
             if (log.IsDebugEnabled)
-                log.Debug("Blockwise14 layer uses MaxMessageSize: " + _maxMessageSize + " and DefaultBlockSize:" + _defaultBlockSize);
+                log.Debug("BlockwiseLayer uses MaxMessageSize: " + _maxMessageSize + " and DefaultBlockSize:" + _defaultBlockSize);
 
             config.PropertyChanged += ConfigChanged;
         }
@@ -47,7 +47,24 @@ namespace CoAP.Stack
         /// <inheritdoc/>
         public override void SendRequest(INextLayer nextLayer, Exchange exchange, Request request)
         {
-            if (RequiresBlockwise(request))
+            if (request.HasOption(OptionType.Block2) && request.Block2.NUM > 0)
+            {
+                // This is the case if the user has explicitly added a block option
+                // for random access.
+                // Note: We do not regard it as random access when the block num is
+                // 0. This is because the user might just want to do early block
+                // size negotiation but actually wants to receive all blocks.
+                if (log.IsDebugEnabled)
+                    log.Debug("Request carries explicit defined block2 option: create random access blockwise status");
+                BlockwiseStatus status = new BlockwiseStatus(request.ContentFormat);
+                BlockOption block2 = request.Block2;
+                status.CurrentSZX = block2.SZX;
+                status.CurrentNUM = block2.NUM;
+                status.IsRandomAccess = true;
+                exchange.ResponseBlockStatus = status;
+                base.SendRequest(nextLayer, exchange, request);
+            }
+            else if (RequiresBlockwise(request))
             {
                 // This must be a large POST or PUT request
                 if (log.IsDebugEnabled)
@@ -299,7 +316,13 @@ namespace CoAP.Stack
                     // notify blocking progress
                     exchange.Request.FireResponding(response);
 
-                    if (block2.M)
+                    if (status.IsRandomAccess)
+                    {
+                        // The client has requested this specifc block and we deliver it
+                        exchange.Response = response;
+                        base.ReceiveResponse(nextLayer, exchange, response);
+                    }
+                    else if (block2.M)
                     {
                         if (log.IsDebugEnabled)
                             log.Debug("Request the next response block");
@@ -459,10 +482,11 @@ namespace CoAP.Stack
             block.SetOptions(response.GetOptions());
             block.Timeout += (o, e) => response.IsTimedOut = true;
 
-            if (response.PayloadSize > 0)
+            Int32 payloadSize = response.PayloadSize;
+            Int32 currentSize = 1 << (4 + szx);
+            Int32 from = num * currentSize;
+            if (payloadSize > 0 && payloadSize > from)
             {
-                Int32 currentSize = 1 << (4 + szx);
-                Int32 from = num * currentSize;
                 Int32 to = Math.Min((num + 1) * currentSize, response.PayloadSize);
                 Int32 length = to - from;
                 Byte[] blockPayload = new Byte[length];
@@ -477,7 +501,7 @@ namespace CoAP.Stack
             }
             else
             {
-                block.AddOption(new BlockOption(OptionType.Block2, 0, szx, false));
+                block.AddOption(new BlockOption(OptionType.Block2, num, szx, false));
                 block.Last = true;
                 status.Complete = true;
             }
