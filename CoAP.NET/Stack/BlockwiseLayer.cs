@@ -334,6 +334,7 @@ namespace CoAP.Stack
                         Int32 szx = block2.SZX;
                         Boolean m = false;
                         Request block = new Request(request.Method);
+                        block.Token = response.Token;
                         block.SetOptions(request.GetOptions());
                         block.Destination = request.Destination;
 
