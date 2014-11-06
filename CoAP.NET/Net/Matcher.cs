@@ -71,9 +71,9 @@ namespace CoAP.Net
                 request.ID = System.Threading.Interlocked.Increment(ref _currentID) % (1 << 16);
 
             /*
-             * The request is a CON or NCON and must be prepared for these responses
-             * - CON  => ACK/RST/ACK+response/CON+response/NCON+response
-             * - NCON => RST/CON+response/NCON+response
+             * The request is a CON or NON and must be prepared for these responses
+             * - CON  => ACK/RST/ACK+response/CON+response/NON+response
+             * - NON => RST/CON+response/NON+response
              * If this request goes lost, we do not get anything back.
              */
 
@@ -98,11 +98,11 @@ namespace CoAP.Net
             /*
              * The response is a CON or NON or ACK and must be prepared for these
              * - CON  => ACK/RST // we only care to stop retransmission
-             * - NCON => RST // we don't care
+             * - NON => RST // we don't care
              * - ACK  => nothing!
              * If this response goes lost, we must be prepared to get the same 
-             * CON/NCON request with same MID again. We then find the corresponding
-             * exchange and the retransmissionlayer resends this response.
+             * CON/NON request with same MID again. We then find the corresponding
+             * exchange and the ReliabilityLayer resends this response.
              */
 
             if (response.Destination == null)
@@ -252,7 +252,7 @@ namespace CoAP.Net
         {
             /*
 		     * This response could be
-		     * - The first CON/NCON/ACK+response => deliver
+		     * - The first CON/NON/ACK+response => deliver
 		     * - Retransmitted CON (because client got no ACK)
 		     * 		=> resend ACK
 		     */
@@ -298,11 +298,12 @@ namespace CoAP.Net
                 // There is no exchange with the given token.
                 if (response.Type != MessageType.ACK)
                 {
-                    if (log.IsInfoEnabled)
-                        log.Info("Response with unknown Token " + keyToken + ": Rejecting " + response);
-                    // This is a totally unexpected response.
-                    EmptyMessage rst = EmptyMessage.NewRST(response);
-                    SendEmptyMessage(exchange, rst);
+                    Exchange prev = _deduplicator.Find(keyId);
+                    if (prev != null)
+                    {
+                        response.Duplicate = true;
+                        return prev;
+                    }
                 }
                 // ignore response
                 return null;
