@@ -109,8 +109,12 @@ namespace CoAP.Net
                 throw new InvalidOperationException("Response has no destination set");
 
             // Insert CON and NON to match ACKs and RSTs to the exchange
-            Exchange.KeyID keyID = new Exchange.KeyID(response.ID, response.Destination);
-            _exchangesByID[keyID] = exchange;
+            // Do not insert ACKs and RSTs.
+            if (response.Type == MessageType.CON || response.Type == MessageType.NON)
+            {
+                Exchange.KeyID keyID = new Exchange.KeyID(response.ID, response.Destination);
+                _exchangesByID[keyID] = exchange;
+            }
 
             if (response.HasOption(OptionType.Block2))
             {
