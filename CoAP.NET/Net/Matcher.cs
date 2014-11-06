@@ -14,6 +14,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using CoAP.Deduplication;
 using CoAP.Log;
+using CoAP.Observe;
 
 namespace CoAP.Net
 {
@@ -108,12 +109,14 @@ namespace CoAP.Net
             if (response.Destination == null)
                 throw new InvalidOperationException("Response has no destination set");
 
-            // Insert CON and NON to match ACKs and RSTs to the exchange
-            // Do not insert ACKs and RSTs.
-            if (response.Type == MessageType.CON || response.Type == MessageType.NON)
+            // If this is a CON notification we now can forget all previous NON notifications
+            if (response.Type == MessageType.CON || response.Type == MessageType.ACK)
             {
-                Exchange.KeyID keyID = new Exchange.KeyID(response.ID, response.Destination);
-                _exchangesByID[keyID] = exchange;
+                ObserveRelation relation = exchange.Relation;
+                if (relation != null)
+                {
+                    RemoveNotificatoinsOf(relation);
+                }
             }
 
             if (response.HasOption(OptionType.Block2))
@@ -133,6 +136,14 @@ namespace CoAP.Net
                         log.Debug("Ongoing Block2 completed, cleaning up " + keyUri + "\nOngoing " + request + "\nOngoing " + response);
                     _ongoingExchanges.Remove(keyUri);
                 }
+            }
+
+            // Insert CON and NON to match ACKs and RSTs to the exchange
+            // Do not insert ACKs and RSTs.
+            if (response.Type == MessageType.CON || response.Type == MessageType.NON)
+            {
+                Exchange.KeyID keyID = new Exchange.KeyID(response.ID, response.Destination);
+                _exchangesByID[keyID] = exchange;
             }
 
             if (response.Type == MessageType.ACK || response.Type == MessageType.NON)
@@ -343,6 +354,18 @@ namespace CoAP.Net
                 d.Dispose();
         }
 
+        private void RemoveNotificatoinsOf(ObserveRelation relation)
+        {
+            if (log.IsDebugEnabled)
+                log.Debug("Remove all remaining NON-notifications of observe relation");
+
+            foreach (Response previous in relation.ClearNotifications())
+            {
+                Exchange.KeyID keyId = new Exchange.KeyID(previous.ID, previous.Destination);
+                _exchangesByID.Remove(keyId);
+            }
+        }
+
         private void OnExchangeCompleted(Object sender, EventArgs e)
         {
             Exchange exchange = (Exchange)sender;
@@ -390,6 +413,13 @@ namespace CoAP.Net
                     //if (log.IsDebugEnabled)
                     //    log.Debug("++++++++++++++++++Remote ongoing completed, cleaning up " + midKey);
                     _exchangesByID.Remove(midKey);
+                }
+
+                // Remove all remaining NON-notifications if this exchange is an observe relation
+                ObserveRelation relation = exchange.Relation;
+                if (relation != null)
+                {
+                    RemoveNotificatoinsOf(relation);
                 }
             }
         }

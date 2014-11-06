@@ -60,10 +60,12 @@ namespace CoAP.Stack
                                 log.Debug("The observe relation requires the notification to be sent as CON");
                             response.Type = MessageType.CON;
                         }
-                        else if (response.Type == MessageType.Unknown)
+                        else
                         {
                             // By default use NON, but do not override resource decision
-                            response.Type = MessageType.NON;
+                            if (response.Type == MessageType.Unknown)
+                                response.Type = MessageType.NON;
+                            relation.AddNotification(response);
                         }
                     }
                 }
@@ -147,6 +149,7 @@ namespace CoAP.Stack
                 if (relation != null)
                 {
                     relation.Cancel();
+                    exchange.Complete = true;
                 } // else there was no observe relation ship and this layer ignores the rst
             }
             base.ReceiveEmptyMessage(nextLayer, exchange, message);

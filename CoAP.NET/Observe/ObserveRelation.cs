@@ -14,6 +14,8 @@ using CoAP.Log;
 using CoAP.Net;
 using CoAP.Server.Resources;
 using CoAP.Util;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 
 namespace CoAP.Observe
 {
@@ -33,6 +35,12 @@ namespace CoAP.Observe
         private Boolean _established;
         private DateTime _interestCheckTime = DateTime.Now;
         private Int32 _interestCheckCounter = 1;
+
+        // The matcher must find the NON-notifications (MIDs) to remove from its hashmaps
+        /// <summary>
+        /// The notifications that have been sent.
+        /// </summary>
+        private ConcurrentQueue<Response> _notifications = new ConcurrentQueue<Response>();
 
         /// <summary>
         /// Constructs a new observe relation.
@@ -144,6 +152,20 @@ namespace CoAP.Observe
                 _interestCheckCounter = 0;
             }
             return check;
+        }
+
+        public void AddNotification(Response notification)
+        {
+            _notifications.Enqueue(notification);
+        }
+
+        public IEnumerable<Response> ClearNotifications()
+        {
+            Response resp;
+            while (_notifications.TryDequeue(out resp))
+            {
+                yield return resp;
+            }
         }
     }
 }
