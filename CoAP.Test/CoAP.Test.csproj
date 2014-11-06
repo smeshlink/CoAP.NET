@@ -52,6 +52,7 @@
     <Compile Include="CoapClientTest.cs" />
     <Compile Include="Codec\DatagramReadWriteTest.cs" />
     <Compile Include="Codec\MessageTest.cs" />
+    <Compile Include="MemoryLeakingMapTest.cs" />
     <Compile Include="MessageTypeTest.cs" />
     <Compile Include="OptionTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
