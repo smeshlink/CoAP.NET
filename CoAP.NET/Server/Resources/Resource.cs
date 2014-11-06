@@ -326,6 +326,9 @@ namespace CoAP.Server.Resources
 
         /// <summary>
         /// Handles the GET request in the given CoAPExchange.
+        /// By default it responds with a 4.05 (Method Not Allowed).
+        /// Override this method to respond differently.
+        /// Possible response codes for GET requests are 2.05 (Content) and 2.03 (Valid).
         /// </summary>
         protected virtual void DoGet(CoapExchange exchange)
         {
@@ -334,6 +337,9 @@ namespace CoAP.Server.Resources
 
         /// <summary>
         /// Handles the POST request in the given CoAPExchange.
+        /// By default it responds with a 4.05 (Method Not Allowed).
+        /// Override this method to respond differently.
+        /// Possible response codes for POST requests are 2.01 (Created), 2.04 (Changed), and 2.02 (Deleted).
         /// </summary>
         protected virtual void DoPost(CoapExchange exchange)
         {
@@ -342,6 +348,9 @@ namespace CoAP.Server.Resources
 
         /// <summary>
         /// Handles the PUT request in the given CoAPExchange.
+        /// By default it responds with a 4.05 (Method Not Allowed).
+        /// Override this method to respond differently.
+        /// Possible response codes for PUT requests are 2.01 (Created) and 2.04 (Changed).
         /// </summary>
         protected virtual void DoPut(CoapExchange exchange)
         {
@@ -350,6 +359,9 @@ namespace CoAP.Server.Resources
 
         /// <summary>
         /// Handles the DELETE request in the given CoAPExchange.
+        /// By default it responds with a 4.05 (Method Not Allowed).
+        /// Override this method to respond differently.
+        /// The response code to a DELETE request should be a 2.02 (Deleted).
         /// </summary>
         protected virtual void DoDelete(CoapExchange exchange)
         {
