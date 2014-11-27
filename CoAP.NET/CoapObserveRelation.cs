@@ -10,6 +10,7 @@
  */
 
 using System;
+using CoAP.Net;
 
 namespace CoAP
 {
@@ -21,15 +22,22 @@ namespace CoAP
     public class CoapObserveRelation
     {
         readonly Request _request;
+        readonly IEndPoint _endpoint;
         private Boolean _canceled;
         private Response _current;
         private EventHandler<ResponseEventArgs> _onResponse;
         private EventHandler _onReject;
         private EventHandler _onTimeout;
 
-        internal CoapObserveRelation(Request request)
+        internal CoapObserveRelation(Request request, IEndPoint endpoint)
         {
             _request = request;
+            _endpoint = endpoint;
+        }
+
+        public Request Request
+        {
+            get { return _request; }
         }
 
         public Response Current
@@ -66,7 +74,7 @@ namespace CoAP
             cancel.Timeout += _onTimeout;
 
             cancel.EndPoint = _request.EndPoint;
-            cancel.Send();
+            cancel.Send(_endpoint);
             // cancel old ongoing request
             _request.IsCanceled = true;
             _canceled = true;

@@ -367,22 +367,51 @@ namespace CoAP
 
         protected Request Prepare(Request request)
         {
+            return Prepare(request, GetEffectiveEndpoint(request));
+        }
+
+        protected Request Prepare(Request request, IEndPoint endpoint)
+        {
             request.Type = _type;
             request.URI = _uri;
             
             if (_blockwise != 0)
                 request.SetBlock2(BlockOption.EncodeSZX(_blockwise), false, 0);
 
-            if (_endpoint != null)
-                request.EndPoint = _endpoint;
+            if (endpoint != null)
+                request.EndPoint = endpoint;
 
             return request;
         }
 
+        /// <summary>
+        /// Gets the effective endpoint that the specified request
+        /// is supposed to be sent over.
+        /// </summary>
+        protected IEndPoint GetEffectiveEndpoint(Request request)
+        {
+            if (_endpoint != null)
+                return _endpoint;
+            else
+                return EndPointManager.Default;
+            // TODO secure coap
+        }
+
         private CoapObserveRelation Observe(Request request, Action<Response> notify, Action<FailReason> error)
         {
+            CoapObserveRelation relation = ObserveAsync(request, notify, error);
+            Response response = relation.Request.WaitForResponse(_timeout);
+            if (response == null || !response.HasOption(OptionType.Observe))
+                relation.Canceled = true;
+            relation.Current = response;
+            return relation;
+        }
+
+        private CoapObserveRelation ObserveAsync(Request request, Action<Response> notify, Action<FailReason> error)
+        {
+            IEndPoint endpoint = GetEffectiveEndpoint(request);
             ObserveNotificationOrderer orderer = new ObserveNotificationOrderer(_config);
-            CoapObserveRelation relation = new CoapObserveRelation(request);
+            CoapObserveRelation relation = new CoapObserveRelation(request, endpoint);
 
             EventHandler<ResponseEventArgs> onResponse = (o, e) =>
             {
@@ -414,51 +443,8 @@ namespace CoAP
             request.Timeout += onTimeout;
 
             relation.SetHandlers(onResponse, onReject, onTimeout);
-            
-            Response response = Send(request);
-            if (response == null || !response.HasOption(OptionType.Observe))
-                relation.Canceled = true;
-            relation.Current = response;
-            return relation;
-        }
 
-        private CoapObserveRelation ObserveAsync(Request request, Action<Response> notify, Action<FailReason> error)
-        {
-            ObserveNotificationOrderer orderer = new ObserveNotificationOrderer(_config);
-            CoapObserveRelation relation = new CoapObserveRelation(request);
-
-            EventHandler<ResponseEventArgs> onResponse = (o, e) =>
-            {
-                Response resp = e.Response;
-                lock (orderer)
-                {
-                    if (orderer.IsNew(resp))
-                    {
-                        relation.Current = resp;
-                        notify(resp);
-                    }
-                    else
-                    {
-                        if (log.IsDebugEnabled)
-                            log.Debug("Dropping old notification: " + resp);
-                    }
-                }
-            };
-            Action<FailReason> fail = r =>
-            {
-                relation.Canceled = true;
-                error(r);
-            };
-            EventHandler onReject = (o, e) => fail(FailReason.Rejected);
-            EventHandler onTimeout = (o, e) => fail(FailReason.TimedOut);
-
-            request.Respond += onResponse;
-            request.Reject += onReject;
-            request.Timeout += onTimeout;
-
-            relation.SetHandlers(onResponse, onReject, onTimeout);
-
-            Prepare(request).Send();
+            Prepare(request, endpoint).Send();
             return relation;
         }
 
