@@ -120,6 +120,7 @@ namespace CoAP.Observe
             _established = false;
             _resource.RemoveObserveRelation(this);
             _endpoint.RemoveObserveRelation(this);
+            _exchange.Complete = true;
         }
 
         /// <summary>

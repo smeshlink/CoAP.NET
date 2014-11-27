@@ -178,6 +178,7 @@ namespace CoAP
                 if (notificationCounter == HOW_MANY_NOTIFICATION_WE_WAIT_FOR)
                 {
                     Console.WriteLine("Client forgets observe relation to " + uri);
+                    SpinWait.SpinUntil(() => relation != null);
                     relation.ProactiveCancel();
                 }
                 else if (notificationCounter == HOW_MANY_NOTIFICATION_WE_WAIT_FOR + 1)
@@ -187,7 +188,7 @@ namespace CoAP
             }, reason => Assert.Fail(reason.ToString()));
 
             // Wait until we have received all the notifications and canceled the relation
-            Thread.Sleep(HOW_MANY_NOTIFICATION_WE_WAIT_FOR * OBS_NOTIFICATION_INTERVALL + 100);
+            Thread.Sleep(HOW_MANY_NOTIFICATION_WE_WAIT_FOR * OBS_NOTIFICATION_INTERVALL + 1000);
 
             Boolean success = mre.WaitOne(100);
             Assert.IsTrue(success, "Client has not received all expected responses");
