@@ -182,7 +182,7 @@ namespace CoAP.Proxy
                 }
             }
 
-            public Stack.IExchangeForwarder ExchangeForwarder
+            public IOutbox Outbox
             {
                 get { throw new NotImplementedException(); }
             }

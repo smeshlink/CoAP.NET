@@ -41,7 +41,7 @@ namespace CoAP.Net
         private DateTime _timestamp;
         private Boolean _complete;
         private IEndPoint _endpoint;
-        private IExchangeForwarder _forwarder;
+        private IOutbox _outbox;
         private IMessageDeliverer _deliverer;
 
         public event EventHandler Completed;
@@ -144,10 +144,10 @@ namespace CoAP.Net
             set { _timestamp = value; }
         }
 
-        public IExchangeForwarder Forwarder
+        public IOutbox Outbox
         {
-            get { return _forwarder ?? (_endpoint == null ? null : _endpoint.ExchangeForwarder); }
-            set { _forwarder = value; }
+            get { return _outbox ?? (_endpoint == null ? null : _endpoint.Outbox); }
+            set { _outbox = value; }
         }
 
         public IMessageDeliverer Deliverer

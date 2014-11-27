@@ -11,12 +11,21 @@
 
 using CoAP.Net;
 
-namespace CoAP.Stack
+namespace CoAP
 {
-    public interface IExchangeForwarder
+    public interface IOutbox
     {
+        /// <summary>
+        /// Sends the specified request over the connector that the stack is connected to.
+        /// </summary>
         void SendRequest(Exchange exchange, Request request);
+        /// <summary>
+        /// Sends the specified response over the connector that the stack is connected to.
+        /// </summary>
         void SendResponse(Exchange exchange, Response response);
+        /// <summary>
+        /// Sends the specified empty message over the connector that the stack is connected to.
+        /// </summary>
         void SendEmptyMessage(Exchange exchange, EmptyMessage message);
     }
 }

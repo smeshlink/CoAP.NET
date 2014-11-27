@@ -103,17 +103,17 @@ namespace CoAP.Stack
         {
             public override void SendRequest(INextLayer nextLayer, Exchange exchange, Request request)
             {
-                exchange.Forwarder.SendRequest(exchange, request);
+                exchange.Outbox.SendRequest(exchange, request);
             }
 
             public override void SendResponse(INextLayer nextLayer, Exchange exchange, Response response)
             {
-                exchange.Forwarder.SendResponse(exchange, response);
+                exchange.Outbox.SendResponse(exchange, response);
             }
 
             public override void SendEmptyMessage(INextLayer nextLayer, Exchange exchange, EmptyMessage message)
             {
-                exchange.Forwarder.SendEmptyMessage(exchange, message);
+                exchange.Outbox.SendEmptyMessage(exchange, message);
             }
         }
 

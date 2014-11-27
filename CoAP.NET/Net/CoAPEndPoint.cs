@@ -21,7 +21,7 @@ namespace CoAP.Net
     /// <summary>
     /// EndPoint encapsulates the stack that executes the CoAP protocol.
     /// </summary>
-    public class CoAPEndPoint : IEndPoint, IExchangeForwarder
+    public class CoAPEndPoint : IEndPoint, IOutbox
     {
         static readonly ILogger log = LogManager.GetLogger(typeof(CoAPEndPoint));
 
@@ -139,7 +139,7 @@ namespace CoAP.Net
         }
 
         /// <inheritdoc/>
-        public IExchangeForwarder ExchangeForwarder
+        public IOutbox Outbox
         {
             get { return this; }
         }
@@ -359,7 +359,7 @@ namespace CoAP.Net
             return channel;
         }
 
-        void IExchangeForwarder.SendRequest(Exchange exchange, Request request)
+        void IOutbox.SendRequest(Exchange exchange, Request request)
         {
             _matcher.SendRequest(exchange, request);
 
@@ -367,7 +367,7 @@ namespace CoAP.Net
                 _channel.Send(Serialize(request), request.Destination);
         }
 
-        void IExchangeForwarder.SendResponse(Exchange exchange, Response response)
+        void IOutbox.SendResponse(Exchange exchange, Response response)
         {
             _matcher.SendResponse(exchange, response);
 
@@ -375,7 +375,7 @@ namespace CoAP.Net
                 _channel.Send(Serialize(response), response.Destination);
         }
 
-        void IExchangeForwarder.SendEmptyMessage(Exchange exchange, EmptyMessage message)
+        void IOutbox.SendEmptyMessage(Exchange exchange, EmptyMessage message)
         {
             _matcher.SendEmptyMessage(exchange, message);
 

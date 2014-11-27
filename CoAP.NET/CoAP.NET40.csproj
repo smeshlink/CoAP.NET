@@ -96,6 +96,7 @@
     <Compile Include="Net\IEndPoint.cs" />
     <Compile Include="Net\IMatcher.cs" />
     <Compile Include="Net\IMessageDeliverer.cs" />
+    <Compile Include="Net\IOutbox.cs" />
     <Compile Include="Net\Matcher.cs" />
     <Compile Include="Observe\ObserveNotificationOrderer.cs" />
     <Compile Include="Observe\ObservingEndpoint.cs" />
@@ -134,7 +135,6 @@
     <Compile Include="Stack\Chain.cs" />
     <Compile Include="Stack\CoapStack.cs" />
     <Compile Include="Stack\IEntry.cs" />
-    <Compile Include="Stack\IExchangeForwarder.cs" />
     <Compile Include="Stack\ILayer.cs" />
     <Compile Include="Stack\LayerStack.cs" />
     <Compile Include="Stack\ObserveLayer.cs" />

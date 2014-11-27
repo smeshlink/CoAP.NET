@@ -37,9 +37,9 @@ namespace CoAP.Net
         /// </summary>
         IMessageDeliverer MessageDeliverer { get; set; }
         /// <summary>
-        /// Gets the exchange forwarder.
+        /// Gets the outbox.
         /// </summary>
-        IExchangeForwarder ExchangeForwarder { get; }
+        IOutbox Outbox { get; }
         /// <summary>
         /// Starts this endpoint and all its components.
         /// </summary>
