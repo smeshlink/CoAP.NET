@@ -216,7 +216,8 @@ namespace CoAP.Stack
             {
                 ObserveRelation relation = exchange.Relation;
                 if (log.IsDebugEnabled)
-                    log.Debug("Notification timed out. Cancel all relations with source " + relation.Source);
+                    log.Debug("Notification" + relation.Exchange.Request.TokenString
+                        + " timed out. Cancel all relations with source " + relation.Source);
                 relation.CancelAll();
             };
         }
