@@ -369,8 +369,10 @@ namespace CoAP
                     return "Accept";
                 case OptionType.IfMatch:
                     return "If-Match";
+#pragma warning disable 612, 618
                 case OptionType.FencepostDivisor:
                     return "Fencepost-Divisor";
+#pragma warning restore 612, 618
                 case OptionType.Block2:
                     return "Block2";
                 case OptionType.Block1:
@@ -407,7 +409,9 @@ namespace CoAP
                 case OptionType.Size1:
                 case OptionType.IfNoneMatch:
                 case OptionType.Accept:
+#pragma warning disable 612, 618
                 case OptionType.FencepostDivisor:
+#pragma warning restore 612, 618
                     return OptionFormat.Integer;
                 case OptionType.UriHost:
                 case OptionType.UriPath:
@@ -479,7 +483,9 @@ namespace CoAP
                 case OptionType.Block2:
                 case OptionType.Block1:
                 case OptionType.Accept:
+#pragma warning disable 612, 618
                 case OptionType.FencepostDivisor:
+#pragma warning restore 612, 618
                     return int32Convertor;
                 case OptionType.ProxyUri:
                 case OptionType.ETag:

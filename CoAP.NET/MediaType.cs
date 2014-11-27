@@ -17,7 +17,7 @@ namespace CoAP
 {
     /// <summary>
     /// This class describes the CoAP Media Type Registry as defined in
-    /// draft-ietf-core-coap (07), section 11.3.
+    /// RFC 7252, Section 12.3.
     /// </summary>
     public class MediaType
     {

@@ -135,7 +135,9 @@ namespace CoAP
                     return 15;
                 case OptionType.Observe:
                     return 10;
+#pragma warning disable 612, 618
                 case OptionType.FencepostDivisor:
+#pragma warning restore 612, 618
                     return 14;
                 case OptionType.Block2:
                     return 13;
@@ -176,8 +178,10 @@ namespace CoAP
                     return OptionType.Observe;
                 case 13:
                     return OptionType.Block2;
+#pragma warning disable 612, 618
                 case 14:
                     return OptionType.FencepostDivisor;
+#pragma warning restore 612, 618
                 default:
                     return (OptionType)optionNumber;
             }
@@ -534,8 +538,10 @@ namespace CoAP
                     return 12;
                 case OptionType.IfMatch:
                     return 13;
+#pragma warning disable 612, 618
                 case OptionType.FencepostDivisor:
                     return 14;
+#pragma warning restore 612, 618
                 case OptionType.Block2:
                     return 17;
                 case OptionType.Block1:
@@ -581,8 +587,10 @@ namespace CoAP
                     return OptionType.Accept;
                 case 13:
                     return OptionType.IfMatch;
+#pragma warning disable 612, 618
                 case 14:
                     return OptionType.FencepostDivisor;
+#pragma warning restore 612, 618
                 case 17:
                     return OptionType.Block2;
                 case 19:

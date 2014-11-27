@@ -12,7 +12,8 @@
 namespace CoAP
 {
     /// <summary>
-    /// CoAP option types
+    /// CoAP option types as defined in
+    /// RFC 7252, Section 12.2 and other CoAP extensions.
     /// </summary>
     public enum OptionType
     {
@@ -146,6 +147,7 @@ namespace CoAP
         /// no-op for fenceposting
         /// <remarks>draft-bormann-coap-misc-04</remarks>
         /// </summary>
+        [System.Obsolete]
         FencepostDivisor = 114,
     }
 
