@@ -32,6 +32,7 @@ namespace CoAP.Observe
         readonly Exchange _exchange;
         private Response _recentControlNotification;
         private Response _nextControlNotification;
+        private String _key;
         private Boolean _established;
         private DateTime _interestCheckTime = DateTime.Now;
         private Int32 _interestCheckCounter = 1;
@@ -63,6 +64,7 @@ namespace CoAP.Observe
             _endpoint = endpoint;
             _resource = resource;
             _exchange = exchange;
+            _key = String.Format("{0}#{1}", Source, exchange.Request.TokenString);
         }
 
         /// <summary>
@@ -79,6 +81,11 @@ namespace CoAP.Observe
         public Exchange Exchange
         {
             get { return _exchange; }
+        }
+
+        public String Key
+        {
+            get { return _key; }
         }
 
         /// <summary>
@@ -116,7 +123,7 @@ namespace CoAP.Observe
         public void Cancel()
         {
             if (log.IsDebugEnabled)
-                log.Debug("Cancel observe relation from " + _endpoint.EndPoint + " with " + _resource.Path);
+                log.Debug("Cancel observe relation from " + _key + " with " + _resource.Path);
             _established = false;
             _resource.RemoveObserveRelation(this);
             _endpoint.RemoveObserveRelation(this);

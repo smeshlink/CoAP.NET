@@ -36,7 +36,7 @@ namespace CoAP.Server.Resources
         private IResource _parent;
         private IDictionary<String, IResource> _children
             = new ConcurrentDictionary<String, IResource>();
-        private IDictionary<ObserveRelation, Boolean> _observeRelations
+        private ConcurrentDictionary<ObserveRelation, Boolean> _observeRelations
             = new ConcurrentDictionary<ObserveRelation, Boolean>();
         private ObserveNotificationOrderer _notificationOrderer
             = new ObserveNotificationOrderer();
@@ -259,13 +259,23 @@ namespace CoAP.Server.Resources
         /// <inheritdoc/>
         public void AddObserveRelation(ObserveRelation relation)
         {
-            _observeRelations[relation] = true;
+            if (_observeRelations.AddOrUpdate(relation, false, (k, v) => true))
+            {
+                if (log.IsDebugEnabled)
+                    log.Debug("Replacing observe relation between " + relation.Key + " and resource " + Uri);
+            }
+            else
+            {
+                if (log.IsDebugEnabled)
+                    log.Debug("Successfully established observe relation between " + relation.Key + " and resource " + Uri);
+            }
         }
 
         /// <inheritdoc/>
         public void RemoveObserveRelation(ObserveRelation relation)
         {
-            _observeRelations.Remove(relation);
+            Boolean val;
+            _observeRelations.TryRemove(relation, out val);
         }
 
         /// <summary>
@@ -413,8 +423,6 @@ namespace CoAP.Server.Resources
 
                 if (!relation.Established)
                 {
-                    if (log.IsDebugEnabled)
-                        log.Debug("Successfully established observe relation between " + relation.Source + " and resource " + Uri);
                     relation.Established = true;
                     AddObserveRelation(relation);
                 }
