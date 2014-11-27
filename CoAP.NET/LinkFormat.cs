@@ -68,7 +68,7 @@ namespace CoAP
         public static readonly Regex DelimiterRegex = new Regex("\\s*" + Delimiter + "+\\s*");
         public static readonly Regex SeparatorRegex = new Regex("\\s*" + Separator + "+\\s*");
 
-        public static readonly Regex ResourceNameRegex = new Regex("</[^>]*>");
+        public static readonly Regex ResourceNameRegex = new Regex("<[^>]*>");
         public static readonly Regex WordRegex = new Regex("\\w+");
         public static readonly Regex QuotedString = new Regex("\\G\".*?\"");
         public static readonly Regex Cardinal = new Regex("\\G\\d+");
@@ -105,7 +105,7 @@ namespace CoAP
                 String path = null;
                 while ((path = scanner.Find(ResourceNameRegex)) != null)
                 {
-                    path = path.Substring(2, path.Length - 3);
+                    path = path.Substring(1, path.Length - 2);
                     WebLink link = new WebLink(path);
 
                     String attr = null;
@@ -281,7 +281,7 @@ namespace CoAP
             String path = null;
             while ((path = scanner.Find(ResourceNameRegex)) != null)
             {
-                path = path.Substring(2, path.Length - 3);
+                path = path.Substring(1, path.Length - 2);
 
                 // Retrieve specified resource, create if necessary
                 RemoteResource resource = new RemoteResource(path);
