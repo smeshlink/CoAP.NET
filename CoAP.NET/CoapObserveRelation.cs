@@ -25,9 +25,6 @@ namespace CoAP
         readonly IEndPoint _endpoint;
         private Boolean _canceled;
         private Response _current;
-        private EventHandler<ResponseEventArgs> _onResponse;
-        private EventHandler _onReject;
-        private EventHandler _onTimeout;
 
         internal CoapObserveRelation(Request request, IEndPoint endpoint)
         {
@@ -69,23 +66,12 @@ namespace CoAP
             cancel.Destination = _request.Destination;
 
             // dispatch final response to the same message observers
-            cancel.Respond += _onResponse;
-            cancel.Reject += _onReject;
-            cancel.Timeout += _onTimeout;
+            cancel.CopyEventHandler(_request);
 
-            cancel.EndPoint = _request.EndPoint;
             cancel.Send(_endpoint);
             // cancel old ongoing request
             _request.IsCanceled = true;
             _canceled = true;
-        }
-
-        internal void SetHandlers(EventHandler<ResponseEventArgs> onResponse,
-            EventHandler onReject, EventHandler onTimeout)
-        {
-            _onResponse = onResponse;
-            _onReject = onReject;
-            _onTimeout = onTimeout;
         }
     }
 }

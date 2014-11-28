@@ -413,7 +413,7 @@ namespace CoAP
             ObserveNotificationOrderer orderer = new ObserveNotificationOrderer(_config);
             CoapObserveRelation relation = new CoapObserveRelation(request, endpoint);
 
-            EventHandler<ResponseEventArgs> onResponse = (o, e) =>
+            request.Respond += (o, e) =>
             {
                 Response resp = e.Response;
                 lock (orderer)
@@ -435,14 +435,8 @@ namespace CoAP
                 relation.Canceled = true;
                 Fail(error, r);
             };
-            EventHandler onReject = (o, e) => fail(FailReason.Rejected);
-            EventHandler onTimeout = (o, e) => fail(FailReason.TimedOut);
-
-            request.Respond += onResponse;
-            request.Reject += onReject;
-            request.Timeout += onTimeout;
-
-            relation.SetHandlers(onResponse, onReject, onTimeout);
+            request.Reject += (o, e) => fail(FailReason.Rejected);
+            request.Timeout += (o, e) => fail(FailReason.TimedOut);
 
             Prepare(request, endpoint).Send();
             return relation;

@@ -215,7 +215,7 @@ namespace CoAP
             {
                 _acknowledged = value;
                 if (value)
-                    Fire(Acknowledge);
+                    OnAcknowledged();
             }
         }
 
@@ -239,7 +239,7 @@ namespace CoAP
             {
                 _rejected = value;
                 if (value)
-                    Fire(Reject);
+                    OnRejected();
             }
         }
 
@@ -265,7 +265,7 @@ namespace CoAP
             {
                 _timedOut = value;
                 if (value)
-                    Fire(Timeout);
+                    OnTimedOut();
             }
         }
 
@@ -289,7 +289,7 @@ namespace CoAP
             {
                 _cancelled = value;
                 if (value)
-                    Fire(Cancel);
+                    OnCanceled();
             }
         }
 
@@ -415,6 +415,38 @@ namespace CoAP
             return this;
         }
 
+        /// <summary>
+        /// Called when being acknowledged.
+        /// </summary>
+        protected virtual void OnAcknowledged()
+        {
+            Fire(Acknowledge);
+        }
+
+        /// <summary>
+        /// Called when being rejected.
+        /// </summary>
+        protected virtual void OnRejected()
+        {
+            Fire(Reject);
+        }
+
+        /// <summary>
+        /// Called when being timed out.
+        /// </summary>
+        protected virtual void OnTimedOut()
+        {
+            Fire(Timeout);
+        }
+
+        /// <summary>
+        /// Called when being canceled.
+        /// </summary>
+        protected virtual void OnCanceled()
+        {
+            Fire(Cancel);
+        }
+
         internal void FireRetransmitting()
         {
             Fire(Retransmitting);
@@ -488,6 +520,36 @@ namespace CoAP
         public override Int32 GetHashCode()
         {
             return base.GetHashCode();
+        }
+
+        internal virtual void CopyEventHandler(Message src)
+        {
+            ForEach(src.Retransmitting, h => this.Retransmitting += h);
+            ForEach(src.Acknowledge, h => this.Acknowledge += h);
+            ForEach(src.Reject, h => this.Reject += h);
+            ForEach(src.Timeout, h => this.Timeout += h);
+            ForEach(src.Cancel, h => this.Cancel += h);
+        }
+
+        internal static void ForEach(EventHandler src, Action<EventHandler> action)
+        {
+            if (src == null)
+                return;
+            foreach (Delegate item in src.GetInvocationList())
+            {
+                action((EventHandler)item);
+            }
+        }
+
+        internal static void ForEach<TEventArgs>(EventHandler<TEventArgs> src,
+            Action<EventHandler<TEventArgs>> action) where TEventArgs : EventArgs
+        {
+            if (src == null)
+                return;
+            foreach (Delegate item in src.GetInvocationList())
+            {
+                action((EventHandler<TEventArgs>)item);
+            }
         }
 
         #region Options

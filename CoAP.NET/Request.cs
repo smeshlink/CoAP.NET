@@ -54,9 +54,6 @@ namespace CoAP
             : base(confirmable ? MessageType.CON : MessageType.NON, (Int32)method)
         {
             _method = method;
-            this.Reject += (o, e) => NotifyResponse();
-            this.Timeout += (o, e) => NotifyResponse();
-            this.Cancel += (o, e) => NotifyResponse();
         }
 
         /// <summary>
@@ -261,6 +258,27 @@ namespace CoAP
             }
         }
 
+        /// <inheritdoc/>
+        protected override void OnRejected()
+        {
+            NotifyResponse();
+            base.OnRejected();
+        }
+
+        /// <inheritdoc/>
+        protected override void OnTimedOut()
+        {
+            NotifyResponse();
+            base.OnTimedOut();
+        }
+
+        /// <inheritdoc/>
+        protected override void OnCanceled()
+        {
+            NotifyResponse();
+            base.OnCanceled();
+        }
+
         private void NotifyResponse()
         {
             lock (_sync)
@@ -287,6 +305,18 @@ namespace CoAP
         {
             if (Destination == null)
                 throw new InvalidOperationException("Missing Destination");
+        }
+
+        internal override void CopyEventHandler(Message src)
+        {
+            base.CopyEventHandler(src);
+
+            Request srcReq = src as Request;
+            if (srcReq != null)
+            {
+                ForEach(srcReq.Respond, h => this.Respond += h);
+                ForEach(srcReq.Responding, h => this.Responding += h);
+            }
         }
 
         /// <summary>
