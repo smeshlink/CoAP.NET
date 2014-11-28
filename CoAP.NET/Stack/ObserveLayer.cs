@@ -283,6 +283,7 @@ namespace CoAP.Stack
                     // use same Token
                     refresh.Token = request.Token;
                     refresh.Destination = request.Destination;
+                    refresh.CopyEventHandler(request);
                     if (log.IsDebugEnabled)
                         log.Debug("Re-registering for " + request);
                     _reregister(refresh);
