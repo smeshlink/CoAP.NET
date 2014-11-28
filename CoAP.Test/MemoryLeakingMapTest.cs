@@ -96,13 +96,13 @@ namespace CoAP
         [TestMethod]
         public void TestServer()
         {
-            //TestSimpleNONGet(UriFor(PIGGY));
+            TestSimpleNONGet(UriFor(PIGGY));
 
-            //TestSimpleGet(UriFor(PIGGY));
-            //TestSimpleGet(UriFor(SEPARATE));
+            TestSimpleGet(UriFor(PIGGY));
+            TestSimpleGet(UriFor(SEPARATE));
 
-            //TestBlockwise(UriFor(PIGGY));
-            //TestBlockwise(UriFor(SEPARATE));
+            TestBlockwise(UriFor(PIGGY));
+            TestBlockwise(UriFor(SEPARATE));
 
             TestObserve(UriFor(PIGGY));
         }
@@ -188,7 +188,7 @@ namespace CoAP
             }, reason => Assert.Fail(reason.ToString()));
 
             // Wait until we have received all the notifications and canceled the relation
-            Thread.Sleep(HOW_MANY_NOTIFICATION_WE_WAIT_FOR * OBS_NOTIFICATION_INTERVALL + 100000);
+            Thread.Sleep(HOW_MANY_NOTIFICATION_WE_WAIT_FOR * OBS_NOTIFICATION_INTERVALL + 3000);
 
             Boolean success = mre.WaitOne(100);
             Assert.IsTrue(success, "Client has not received all expected responses");
