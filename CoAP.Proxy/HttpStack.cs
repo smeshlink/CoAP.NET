@@ -26,7 +26,7 @@ namespace CoAP.Proxy
     /// </summary>
     public class HttpStack
     {
-        private const String ServerName = "CoAP.NET HTTP Cross-Proxy";
+        private const String ServerName = "CoAP.NET HTTP Proxy";
 
         /// <summary>
         /// Resource associated with the proxying behavior.

@@ -14,7 +14,7 @@ using System.Text;
 
 namespace CoAP.Util
 {
-    static class ByteArrayUtils
+    public static class ByteArrayUtils
     {
         const String digits = "0123456789ABCDEF";
 
@@ -39,6 +39,9 @@ namespace CoAP.Util
             }
         }
 
+        /// <summary>
+        /// Parses a bytes array from its hex string representation.
+        /// </summary>
         public static Byte[] FromHexStream(String hex)
         {
             try
@@ -60,6 +63,9 @@ namespace CoAP.Util
             catch { return null; }
         }
 
+        /// <summary>
+        /// Checks if the two bytes arrays are equal.
+        /// </summary>
         public static Boolean Equals(Byte[] bytes1, Byte[] bytes2)
         {
             if (bytes1 == null && bytes2 == null)
@@ -74,6 +80,9 @@ namespace CoAP.Util
             return true;
         }
 
+        /// <summary>
+        /// Computes the hash of the given bytes array.
+        /// </summary>
         public static Int32 ComputeHash(params Byte[] data)
         {
             unchecked

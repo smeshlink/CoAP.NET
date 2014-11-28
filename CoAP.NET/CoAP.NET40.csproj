@@ -43,7 +43,6 @@
       <HintPath>lib\NET40\Common.Logging.dll</HintPath>
     </Reference>
     <Reference Include="System" />
-    <Reference Include="System.Runtime.Remoting" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BlockOption.cs" />
@@ -71,11 +70,6 @@
     <Compile Include="EmptyMessage.cs" />
     <Compile Include="EndPoint\Resources\RemoteResource.cs" />
     <Compile Include="EndPoint\Resources\Resource.cs" />
-    <Compile Include="Http\IHttpRequest.cs" />
-    <Compile Include="Http\IHttpResponse.cs" />
-    <Compile Include="Http\IServiceProvider.cs" />
-    <Compile Include="Http\RemotingHttpRequest.cs" />
-    <Compile Include="Http\WebServer.cs" />
     <Compile Include="ICoapConfig.cs" />
     <Compile Include="LinkAttribute.cs" />
     <Compile Include="LinkFormat.cs" />
@@ -105,17 +99,6 @@
     <Compile Include="Option.cs" />
     <Compile Include="OptionType.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Proxy\CoapTranslator.cs" />
-    <Compile Include="Proxy\DirectProxyCoAPResolver.cs" />
-    <Compile Include="Proxy\HttpStack.cs" />
-    <Compile Include="Proxy\HttpTranslator.cs" />
-    <Compile Include="Proxy\ICacheResource.cs" />
-    <Compile Include="Proxy\IProxyCoAPResolver.cs" />
-    <Compile Include="Proxy\ProxyHttpServer.cs" />
-    <Compile Include="Proxy\Resources\ForwardingResource.cs" />
-    <Compile Include="Proxy\Resources\ProxyCoapClientResource.cs" />
-    <Compile Include="Proxy\Resources\ProxyHttpClientResource.cs" />
-    <Compile Include="Proxy\TranslationException.cs" />
     <Compile Include="Request.cs" />
     <Compile Include="Response.cs" />
     <Compile Include="ResponseEventArgs.cs" />
