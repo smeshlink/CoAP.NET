@@ -25,11 +25,11 @@ namespace CoAP.Deduplication
         private ConcurrentDictionary<Exchange.KeyID, Exchange> _incommingMessages
             = new ConcurrentDictionary<Exchange.KeyID, Exchange>();
         private Timer _timer;
-        private Int32 _lifecycle;
+        private ICoapConfig _config;
 
         public SweepDeduplicator(ICoapConfig config)
         {
-            _lifecycle = config.ExchangeLifecycle;
+            _config = config;
             _timer = new Timer(config.MarkAndSweepInterval);
             _timer.Elapsed += Sweep;
         }
@@ -39,7 +39,7 @@ namespace CoAP.Deduplication
             if (log.IsDebugEnabled)
                 log.Debug("Start Mark-And-Sweep with " + _incommingMessages.Count + " entries");
 
-            DateTime oldestAllowed = DateTime.Now.AddMilliseconds(-_lifecycle);
+            DateTime oldestAllowed = DateTime.Now.AddMilliseconds(-_config.ExchangeLifetime);
             List<Exchange.KeyID> keysToRemove = new List<Exchange.KeyID>();
             foreach (KeyValuePair<Exchange.KeyID, Exchange> pair in _incommingMessages)
             {

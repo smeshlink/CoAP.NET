@@ -51,7 +51,7 @@ namespace CoAP
 
         String Deduplicator { get; }
         Int32 CropRotationPeriod { get; }
-        Int32 ExchangeLifecycle { get; }
+        Int32 ExchangeLifetime { get; }
         Int64 MarkAndSweepInterval { get; }
 
         Int32 ChannelReceiveBufferSize { get; }

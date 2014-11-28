@@ -24,7 +24,7 @@ namespace CoAP
     public class MemoryLeakingHashMapTest
     {
         // Configuration for this test
-        public const int TEST_EXCHANGE_LIFECYCLE = 247; // 0.247 seconds
+        public const int TEST_EXCHANGE_LIFETIME = 247; // 0.247 seconds
         public const int TEST_SWEEP_DEDUPLICATOR_INTERVAL = 100; // 1 second
         public const int TEST_BLOCK_SIZE = 16; // 16 bytes
 
@@ -55,7 +55,7 @@ namespace CoAP
             CoapConfig config = new CoapConfig();
             config.Deduplicator = "MarkAndSweep";
             config.MarkAndSweepInterval = TEST_SWEEP_DEDUPLICATOR_INTERVAL;
-            config.ExchangeLifecycle = TEST_EXCHANGE_LIFECYCLE;
+            config.ExchangeLifetime = TEST_EXCHANGE_LIFETIME;
             config.MaxMessageSize = TEST_BLOCK_SIZE;
             config.DefaultBlockSize = TEST_BLOCK_SIZE;
 
@@ -188,7 +188,7 @@ namespace CoAP
             }, reason => Assert.Fail(reason.ToString()));
 
             // Wait until we have received all the notifications and canceled the relation
-            Thread.Sleep(HOW_MANY_NOTIFICATION_WE_WAIT_FOR * OBS_NOTIFICATION_INTERVALL + 1000);
+            Thread.Sleep(HOW_MANY_NOTIFICATION_WE_WAIT_FOR * OBS_NOTIFICATION_INTERVALL + 100000);
 
             Boolean success = mre.WaitOne(100);
             Assert.IsTrue(success, "Client has not received all expected responses");
@@ -277,7 +277,7 @@ namespace CoAP
         public EndpointSurveillant(String name, IEndPoint endpoint)
         {
             ICoapConfig config = endpoint.Config;
-            _exchangeLifecycle = config.ExchangeLifecycle;
+            _exchangeLifecycle = config.ExchangeLifetime;
             _sweepDuplicatorInterval = (Int32)config.MarkAndSweepInterval;
             _name = name;
 

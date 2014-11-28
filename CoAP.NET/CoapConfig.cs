@@ -56,7 +56,7 @@ namespace CoAP
         private Boolean _useRandomTokenStart = true;
         private String _deduplicator = CoAP.Deduplication.DeduplicatorFactory.MarkAndSweepDeduplicator;
         private Int32 _cropRotationPeriod = 2000; // ms
-        private Int32 _exchangeLifecycle = 247 * 1000; // ms
+        private Int32 _exchangeLifetime = 247 * 1000; // ms
         private Int64 _markAndSweepInterval = 10 * 1000; // ms
         private Int64 _notificationMaxAge = 128 * 1000; // ms
         private Int64 _notificationCheckIntervalTime = 24 * 60 * 60 * 1000; // ms
@@ -259,15 +259,15 @@ namespace CoAP
         }
 
         /// <inheritdoc/>
-        public Int32 ExchangeLifecycle
+        public Int32 ExchangeLifetime
         {
-            get { return _exchangeLifecycle; }
+            get { return _exchangeLifetime; }
             set
             {
-                if (_exchangeLifecycle != value)
+                if (_exchangeLifetime != value)
                 {
-                    _exchangeLifecycle = value;
-                    NotifyPropertyChanged("ExchangeLifecycle");
+                    _exchangeLifetime = value;
+                    NotifyPropertyChanged("ExchangeLifetime");
                 }
             }
         }
@@ -409,7 +409,7 @@ namespace CoAP
             UseRandomTokenStart = GetBoolean(nvc, "UseRandomTokenStart", "USE_RANDOM_TOKEN_START", UseRandomTokenStart);
             Deduplicator = GetString(nvc, "Deduplicator", "DEDUPLICATOR", Deduplicator);
             CropRotationPeriod = GetInt32(nvc, "CropRotationPeriod", "CROP_ROTATION_PERIOD", CropRotationPeriod);
-            ExchangeLifecycle = GetInt32(nvc, "ExchangeLifecycle", "EXCHANGE_LIFECYCLE", ExchangeLifecycle);
+            ExchangeLifetime = GetInt32(nvc, "ExchangeLifetime", "EXCHANGE_LIFETIME", ExchangeLifetime);
             MarkAndSweepInterval = GetInt64(nvc, "MarkAndSweepInterval", "MARK_AND_SWEEP_INTERVAL", MarkAndSweepInterval);
             NotificationMaxAge = GetInt64(nvc, "NotificationMaxAge", "NOTIFICATION_MAX_AGE", NotificationMaxAge);
             NotificationCheckIntervalTime = GetInt64(nvc, "NotificationCheckIntervalTime", "NOTIFICATION_CHECK_INTERVAL", NotificationCheckIntervalTime);
@@ -438,7 +438,7 @@ namespace CoAP
                 w.Write("UseRandomTokenStart="); w.WriteLine(UseRandomTokenStart);
                 w.Write("Deduplicator="); w.WriteLine(Deduplicator);
                 w.Write("CropRotationPeriod="); w.WriteLine(CropRotationPeriod);
-                w.Write("ExchangeLifecycle="); w.WriteLine(ExchangeLifecycle);
+                w.Write("ExchangeLifetime="); w.WriteLine(ExchangeLifetime);
                 w.Write("MarkAndSweepInterval="); w.WriteLine(MarkAndSweepInterval);
                 w.Write("NotificationMaxAge="); w.WriteLine(NotificationMaxAge);
                 w.Write("NotificationCheckIntervalTime="); w.WriteLine(NotificationCheckIntervalTime);
