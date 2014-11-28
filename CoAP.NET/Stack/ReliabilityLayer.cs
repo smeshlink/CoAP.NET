@@ -232,7 +232,7 @@ namespace CoAP.Stack
             
             if (ctx.FailedTransmissionCount > 0)
             {
-                ctx.CurrentTimeout *= _config.AckTimeoutScale;
+                ctx.CurrentTimeout = (Int32)(ctx.CurrentTimeout * _config.AckTimeoutScale);
             }
             else if (ctx.CurrentTimeout == 0)
             {

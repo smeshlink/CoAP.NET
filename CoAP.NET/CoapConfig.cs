@@ -48,7 +48,7 @@ namespace CoAP
         private Int32 _httpPort = 8080;
         private Int32 _ackTimeout = CoapConstants.AckTimeout;
         private Double _ackRandomFactor = CoapConstants.AckRandomFactor;
-        private Int32 _ackTimeoutScale = 2;
+        private Double _ackTimeoutScale = 2D;
         private Int32 _maxRetransmit = CoapConstants.MaxRetransmit;
         private Int32 _maxMessageSize = 1024;
         private Int32 _defaultBlockSize = CoapConstants.DefaultBlockSize;
@@ -147,7 +147,7 @@ namespace CoAP
         }
 
         /// <inheritdoc/>
-        public Int32 AckTimeoutScale
+        public Double AckTimeoutScale
         {
             get { return _ackTimeoutScale; }
             set
@@ -401,7 +401,7 @@ namespace CoAP
             HttpPort = GetInt32(nvc, "HttpPort", "HTTP_PORT", HttpPort);
             AckTimeout = GetInt32(nvc, "AckTimeout", "ACK_TIMEOUT", AckTimeout);
             AckRandomFactor = GetDouble(nvc, "AckRandomFactor", "ACK_RANDOM_FACTOR", AckRandomFactor);
-            AckTimeoutScale = GetInt32(nvc, "AckTimeoutScale", "ACK_TIMEOUT_SCALE", AckTimeoutScale);
+            AckTimeoutScale = GetDouble(nvc, "AckTimeoutScale", "ACK_TIMEOUT_SCALE", AckTimeoutScale);
             MaxRetransmit = GetInt32(nvc, "MaxRetransmit", "MAX_RETRANSMIT", MaxRetransmit);
             MaxMessageSize = GetInt32(nvc, "MaxMessageSize", "MAX_MESSAGE_SIZE", MaxMessageSize);
             DefaultBlockSize = GetInt32(nvc, "DefaultBlockSize", "DEFAULT_BLOCK_SIZE", DefaultBlockSize);

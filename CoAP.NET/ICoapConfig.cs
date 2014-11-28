@@ -33,7 +33,7 @@ namespace CoAP
 
         Int32 AckTimeout { get; }
         Double AckRandomFactor { get; }
-        Int32 AckTimeoutScale { get; }
+        Double AckTimeoutScale { get; }
         Int32 MaxRetransmit { get; }
 
         Int32 MaxMessageSize { get; }
