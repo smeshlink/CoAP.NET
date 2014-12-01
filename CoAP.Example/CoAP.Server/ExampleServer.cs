@@ -24,11 +24,8 @@ namespace CoAP.Examples
             {
                 server.Start();
 
-#if COAPALL
-                Console.Write("CoAP server [{0}] is listening on", server.Config.Spec.Name);
-#else
-                Console.Write("CoAP server [{0}] is listening on", Spec.Name);
-#endif
+                Console.Write("CoAP server [{0}] is listening on", server.Config.Version);
+
                 foreach (var item in server.EndPoints)
                 {
                     Console.Write(" ");

@@ -62,9 +62,18 @@ namespace CoAP
         private Int32 _channelSendBufferSize;
         private Int32 _channelReceivePacketSize = 2048;
 
+        /// <summary>
+        /// Instantiate.
+        /// </summary>
         public CoapConfig()
         {
             _port = Spec.DefaultPort;
+        }
+
+        /// <inheritdoc/>
+        public String Version
+        {
+            get { return Spec.Name; }
         }
         
         /// <inheritdoc/>

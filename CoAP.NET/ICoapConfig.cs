@@ -19,6 +19,10 @@ namespace CoAP
     public partial interface ICoapConfig : System.ComponentModel.INotifyPropertyChanged
     {
         /// <summary>
+        /// Gets the version of CoAP protocol.
+        /// </summary>
+        String Version { get; }
+        /// <summary>
         /// Gets the default CoAP port for normal CoAP communication (not secure).
         /// </summary>
         Int32 DefaultPort { get; }
