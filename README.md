@@ -140,7 +140,7 @@ more of those compile symbols.
 
 With drafts enabled, an interface <code>ISpec</code> will be introduced,
 representing draft specification. Define COAPXX to enable draft XX,
-or COAPALL to enable all supported drafts. All supported drafts will be
+or COAPALL to enable all supported drafts. All enabled drafts will be
 available in class [**Spec**] (CoAP.NET/Spec.cs):
 
 ```csharp
@@ -154,8 +154,8 @@ available in class [**Spec**] (CoAP.NET/Spec.cs):
   }
 ```
 
-With none of the symbols defined, only the latest
-version of draft will be compiled as the class [**Spec**] (CoAP.NET/Spec.cs),
+With none of the symbols defined, only the latest version of draft
+will be compiled as the class [**Spec**] (CoAP.NET/Spec.cs),
 with static members instead of various drafts:
 
 ```csharp
