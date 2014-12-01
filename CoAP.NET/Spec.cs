@@ -9,6 +9,10 @@
  * Please see README for more information.
  */
 
+#if COAPALL || COAP03 || COAP08 || COAP12 || COAP13 || COAP18
+#define DRAFT
+#endif
+
 using System;
 using System.Collections.Generic;
 using CoAP.Codec;
@@ -17,34 +21,38 @@ using CoAP.Util;
 
 namespace CoAP
 {
-#if COAPALL
-    public static class Spec
-    {
-        public static readonly ISpec Draft03 = new CoAP.Draft03();
-        public static readonly ISpec Draft08 = new CoAP.Draft08();
-        public static readonly ISpec Draft12 = new CoAP.Draft12();
-        public static readonly ISpec Draft13 = new CoAP.Draft13();
-        public static readonly ISpec Draft18 = new CoAP.Draft18();
-    }
-
-    public interface ISpec
-    {
-        String Name { get; }
-        Int32 DefaultPort { get; }
-        Byte[] Encode(Message msg);
-        Message Decode(Byte[] bytes);
-        IMessageEncoder NewMessageEncoder();
-        IMessageDecoder NewMessageDecoder(Byte[] data);
-    }
-#endif
-
     #region CoAP 03
 #if COAPALL || COAP03
-#if COAP03
-    public static class Spec
-#else
+    static partial class Spec
+    {
+        public static readonly ISpec Draft03 = new CoAP.Draft03();
+    }
+
+    namespace Net
+    {
+        partial class EndPointManager
+        {
+            private static IEndPoint _draft03;
+
+            public static IEndPoint Draft03
+            {
+                get
+                {
+                    if (_draft03 == null)
+                    {
+                        lock (typeof(EndPointManager))
+                        {
+                            if (_draft03 == null)
+                                _draft03 = CreateEndPoint(Spec.Draft03);
+                        }
+                    }
+                    return _draft03;
+                }
+            }
+        }
+    }
+
     class Draft03 : ISpec
-#endif
     {
         public const Int32 Version = 1;
         const Int32 VersionBits = 2;
@@ -61,46 +69,25 @@ namespace CoAP
 
         static readonly ILogger log = LogManager.GetLogger(typeof(Spec));
 
-#if COAP03
-        public const String Name = "draft-ietf-core-coap-03";
-        public const Int32 DefaultPort = 61616;
-#else
         public String Name { get { return "draft-ietf-core-coap-03"; } }
-        public Int32 DefaultPort { get { return 5683; } }
-#endif
+        public Int32 DefaultPort { get { return 61616; } }
 
-#if COAP03
-        public static IMessageEncoder NewMessageEncoder()
-#else
         public IMessageEncoder NewMessageEncoder()
-#endif
         {
             return new MessageEncoder03();
         }
 
-#if COAP03
-        public static IMessageDecoder NewMessageDecoder(Byte[] data)
-#else
         public IMessageDecoder NewMessageDecoder(Byte[] data)
-#endif
         {
             return new MessageDecoder03(data);
         }
 
-#if COAP03
-        public static Byte[] Encode(Message msg)
-#else
         public Byte[] Encode(Message msg)
-#endif
         {
             return NewMessageEncoder().Encode(msg);
         }
 
-#if COAP03
-        public static Message Decode(Byte[] bytes)
-#else
         public Message Decode(Byte[] bytes)
-#endif
         {
             return NewMessageDecoder(bytes).Decode();
         }
@@ -439,11 +426,36 @@ namespace CoAP
 
     #region CoAP 08
 #if COAPALL || COAP08
-#if COAP08
-    public static class Spec
-#else
+    static partial class Spec
+    {
+        public static readonly ISpec Draft08 = new CoAP.Draft08();
+    }
+
+    namespace Net
+    {
+        partial class EndPointManager
+        {
+            private static IEndPoint _draft08;
+
+            public static IEndPoint Draft08
+            {
+                get
+                {
+                    if (_draft08 == null)
+                    {
+                        lock (typeof(EndPointManager))
+                        {
+                            if (_draft08 == null)
+                                _draft08 = CreateEndPoint(Spec.Draft08);
+                        }
+                    }
+                    return _draft08;
+                }
+            }
+        }
+    }
+
     class Draft08 : ISpec
-#endif
     {
         public const Int32 Version = 1;
         const Int32 VersionBits = 2;
@@ -460,46 +472,25 @@ namespace CoAP
 
         static readonly ILogger log = LogManager.GetLogger(typeof(Spec));
 
-#if COAP08
-        public const String Name = "draft-ietf-core-coap-08";
-        public const Int32 DefaultPort = 5683;
-#else
         public String Name { get { return "draft-ietf-core-coap-08"; } }
         public Int32 DefaultPort { get { return 5683; } }
-#endif
 
-#if COAP08
-        public static IMessageEncoder NewMessageEncoder()
-#else
         public IMessageEncoder NewMessageEncoder()
-#endif
         {
             return new MessageEncoder08();
         }
 
-#if COAP08
-        public static IMessageDecoder NewMessageDecoder(Byte[] data)
-#else
         public IMessageDecoder NewMessageDecoder(Byte[] data)
-#endif
         {
             return new MessageDecoder08(data);
         }
 
-#if COAP08
-        public static Byte[] Encode(Message msg)
-#else
         public Byte[] Encode(Message msg)
-#endif
         {
             return NewMessageEncoder().Encode(msg);
         }
 
-#if COAP08
-        public static Message Decode(Byte[] bytes)
-#else
         public Message Decode(Byte[] bytes)
-#endif
         {
             return NewMessageDecoder(bytes).Decode();
         }
@@ -794,11 +785,36 @@ namespace CoAP
 
     #region CoAP 12
 #if COAPALL || COAP12
-#if COAP12
-    public static class Spec
-#else
+    static partial class Spec
+    {
+        public static readonly ISpec Draft12 = new CoAP.Draft12();
+    }
+
+    namespace Net
+    {
+        partial class EndPointManager
+        {
+            private static IEndPoint _draft12;
+
+            public static IEndPoint Draft12
+            {
+                get
+                {
+                    if (_draft12 == null)
+                    {
+                        lock (typeof(EndPointManager))
+                        {
+                            if (_draft12 == null)
+                                _draft12 = CreateEndPoint(Spec.Draft12);
+                        }
+                    }
+                    return _draft12;
+                }
+            }
+        }
+    }
+
     class Draft12 : ISpec
-#endif
     {
         public const Int32 Version = 1;
         const Int32 VersionBits = 2;
@@ -813,46 +829,25 @@ namespace CoAP
         const Int32 SingleOptionJumpBits = 8;
         const Int32 MaxOptionLengthBase = (1 << OptionLengthBaseBits) - 2;
 
-#if COAP12
-        public const String Name = "draft-ietf-core-coap-12";
-        public const Int32 DefaultPort = 5683;
-#else
         public String Name { get { return "draft-ietf-core-coap-12"; } }
         public Int32 DefaultPort { get { return 5683; } }
-#endif
 
-#if COAP12
-        public static IMessageEncoder NewMessageEncoder()
-#else
         public IMessageEncoder NewMessageEncoder()
-#endif
         {
             return new MessageEncoder12();
         }
 
-#if COAP12
-        public static IMessageDecoder NewMessageDecoder(Byte[] data)
-#else
         public IMessageDecoder NewMessageDecoder(Byte[] data)
-#endif
         {
             return new MessageDecoder12(data);
         }
 
-#if COAP12
-        public static Byte[] Encode(Message msg)
-#else
         public Byte[] Encode(Message msg)
-#endif
         {
             return NewMessageEncoder().Encode(msg);
         }
 
-#if COAP12
-        public static Message Decode(Byte[] bytes)
-#else
         public Message Decode(Byte[] bytes)
-#endif
         {
             return NewMessageDecoder(bytes).Decode();
         }
@@ -1109,11 +1104,36 @@ namespace CoAP
 
     #region CoAP 13
 #if COAPALL || COAP13
-#if COAP13
-    public static class Spec
-#else
+    static partial class Spec
+    {
+        public static readonly ISpec Draft13 = new CoAP.Draft13();
+    }
+
+    namespace Net
+    {
+        partial class EndPointManager
+        {
+            private static IEndPoint _draft13;
+
+            public static IEndPoint Draft13
+            {
+                get
+                {
+                    if (_draft13 == null)
+                    {
+                        lock (typeof(EndPointManager))
+                        {
+                            if (_draft13 == null)
+                                _draft13 = CreateEndPoint(Spec.Draft13);
+                        }
+                    }
+                    return _draft13;
+                }
+            }
+        }
+    }
+
     class Draft13 : ISpec
-#endif
     {
         const Int32 Version = 1;
         const Int32 VersionBits = 2;
@@ -1127,46 +1147,25 @@ namespace CoAP
 
         static readonly ILogger log = LogManager.GetLogger(typeof(Spec));
 
-#if COAP13
-        public const String Name = "draft-ietf-core-coap-13";
-        public const Int32 DefaultPort = 5683;
-#else
         public String Name { get { return "draft-ietf-core-coap-13"; } }
         public Int32 DefaultPort { get { return 5683; } }
-#endif
 
-#if COAP13
-        public static IMessageEncoder NewMessageEncoder()
-#else
         public IMessageEncoder NewMessageEncoder()
-#endif
         {
             return new MessageEncoder13();
         }
 
-#if COAP13
-        public static IMessageDecoder NewMessageDecoder(Byte[] data)
-#else
         public IMessageDecoder NewMessageDecoder(Byte[] data)
-#endif
         {
             return new MessageDecoder13(data);
         }
 
-#if COAP13
-        public static Byte[] Encode(Message msg)
-#else
         public Byte[] Encode(Message msg)
-#endif
         {
             return NewMessageEncoder().Encode(msg);
         }
 
-#if COAP13
-        public static Message Decode(Byte[] bytes)
-#else
         public Message Decode(Byte[] bytes)
-#endif
         {
             return NewMessageDecoder(bytes).Decode();
         }
@@ -1389,10 +1388,40 @@ namespace CoAP
 
     #region CoAP 18
 #if COAPALL || COAP18
-#if COAP18
-    public static class Spec
-#else
+    static partial class Spec
+    {
+        public static readonly ISpec Draft18 = new CoAP.Draft18();
+    }
+
+    namespace Net
+    {
+        partial class EndPointManager
+        {
+            private static IEndPoint _draft18;
+
+            public static IEndPoint Draft18
+            {
+                get
+                {
+                    if (_draft18 == null)
+                    {
+                        lock (typeof(EndPointManager))
+                        {
+                            if (_draft18 == null)
+                                _draft18 = CreateEndPoint(Spec.Draft18);
+                        }
+                    }
+                    return _draft18;
+                }
+            }
+        }
+    }
+#endif
+#if !DRAFT || COAPALL || COAP18
+#if DRAFT
     class Draft18 : ISpec
+#else
+    public static class Spec
 #endif
     {
         const Int32 Version = 1;
@@ -1405,46 +1434,46 @@ namespace CoAP
         const Int32 OptionLengthBits = 4;
         const Byte PayloadMarker = 0xFF;
 
-#if COAP18
-        public const String Name = "draft-ietf-core-coap-18";
-        public const Int32 DefaultPort = 5683;
+#if !DRAFT
+        public static readonly String Name = "draft-ietf-core-coap-18";
+        public static readonly Int32 DefaultPort = 5683;
 #else
         public String Name { get { return "draft-ietf-core-coap-18"; } }
         public Int32 DefaultPort { get { return 5683; } }
 #endif
 
-#if COAP18
-        public static IMessageEncoder NewMessageEncoder()
-#else
-        public IMessageEncoder NewMessageEncoder()
+        public
+#if !DRAFT
+ static
 #endif
+ IMessageEncoder NewMessageEncoder()
         {
             return new MessageEncoder18();
         }
 
-#if COAP18
-        public static IMessageDecoder NewMessageDecoder(Byte[] data)
-#else
-        public IMessageDecoder NewMessageDecoder(Byte[] data)
+        public
+#if !DRAFT
+ static
 #endif
+ IMessageDecoder NewMessageDecoder(Byte[] data)
         {
             return new MessageDecoder18(data);
         }
 
-#if COAP18
-        public static Byte[] Encode(Message msg)
-#else
-        public Byte[] Encode(Message msg)
+        public
+#if !DRAFT
+ static
 #endif
+ Byte[] Encode(Message msg)
         {
             return NewMessageEncoder().Encode(msg);
         }
 
-#if COAP18
-        public static Message Decode(Byte[] bytes)
-#else
-        public Message Decode(Byte[] bytes)
+        public
+#if !DRAFT
+ static
 #endif
+ Message Decode(Byte[] bytes)
         {
             return NewMessageDecoder(bytes).Decode();
         }
@@ -1625,4 +1654,150 @@ namespace CoAP
     }
 #endif
     #endregion
+
+#if DRAFT
+    public static partial class Spec
+    {
+        public static readonly ISpec Default =
+#if COAPALL || COAP18
+ Draft18;
+#elif COAP13
+ Draft13;
+#elif COAP12
+ Draft12;
+#elif COAP08
+ Draft08;
+#elif COAP03
+ Draft03;
+#endif
+    }
+
+    /// <summary>
+    /// Represents a draft version of CoAP specification.
+    /// </summary>
+    public interface ISpec
+    {
+        /// <summary>
+        /// Gets the name of this draft.
+        /// </summary>
+        String Name { get; }
+        /// <summary>
+        /// Gets the default CoAP port in this draft.
+        /// </summary>
+        Int32 DefaultPort { get; }
+        /// <summary>
+        /// Encodes a CoAP message into a bytes array.
+        /// </summary>
+        /// <param name="msg">the message to encode</param>
+        /// <returns>
+        /// the encoded bytes, or null if the message can not be encoded,
+        /// i.e. the message is not a <see cref="Request"/>, a <see cref="Response"/> or an <see cref="EmptyMessage"/>.
+        /// </returns>
+        Byte[] Encode(Message msg);
+        /// <summary>
+        /// Decodes a CoAP message from a bytes array.
+        /// </summary>
+        /// <param name="bytes">the encoded bytes</param>
+        /// <returns>the decoded message, or null if the bytes array can not be recognized.</returns>
+        Message Decode(Byte[] bytes);
+        /// <summary>
+        /// Gets a <see cref="IMessageEncoder"/>.
+        /// </summary>
+        IMessageEncoder NewMessageEncoder();
+        /// <summary>
+        /// Gets a <see cref="IMessageDecoder"/>.
+        /// </summary>
+        IMessageDecoder NewMessageDecoder(Byte[] data);
+    }
+
+    partial interface ICoapConfig
+    {
+        /// <summary>
+        /// Gets the specification to apply.
+        /// </summary>
+        ISpec Spec { get; }
+    }
+
+    partial class CoapConfig
+    {
+        private ISpec _spec = CoAP.Spec.Default;
+
+        /// <inheritdoc/>
+        public ISpec Spec
+        {
+            get { return _spec; }
+            set { _spec = value; NotifyPropertyChanged("Spec"); }
+        }
+    }
+
+    namespace Net
+    {
+        partial class CoAPEndPoint
+        {
+            public ISpec Spec
+            {
+                get { return Config.Spec; }
+            }
+        }
+
+        partial class EndPointManager
+        {
+            private static IEndPoint GetDefaultEndPoint()
+            {
+                return
+#if COAPALL || COAP18
+ Draft18;
+#elif COAP13
+ Draft13;
+#elif COAP12
+ Draft12;
+#elif COAP08
+ Draft08;
+#elif COAP03
+ Draft03;
+#endif
+            }
+
+            public static IEndPoint CreateEndPoint(ISpec spec)
+            {
+                CoapConfig config = new CoapConfig();
+                config.DefaultPort = spec.DefaultPort;
+                config.Spec = spec;
+                CoAPEndPoint ep = new CoAPEndPoint(config);
+                ep.Start();
+                return ep;
+            }
+        }
+    }
+#else
+    namespace Net
+    {
+        partial class EndPointManager
+        {
+            private static IEndPoint _default;
+
+            private static IEndPoint GetDefaultEndPoint()
+            {
+                if (_default == null)
+                {
+                    lock (typeof(EndPointManager))
+                    {
+                        if (_default == null)
+                        {
+                            _default = CreateEndPoint();
+                        }
+                    }
+                }
+                return _default;
+            }
+
+            private static IEndPoint CreateEndPoint()
+            {
+                CoAPEndPoint ep = new CoAPEndPoint(0);
+                ep.Start();
+                return ep;
+            }
+        }
+    }
+#endif
 }

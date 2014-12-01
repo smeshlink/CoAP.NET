@@ -21,7 +21,7 @@ namespace CoAP.Net
     /// <summary>
     /// EndPoint encapsulates the stack that executes the CoAP protocol.
     /// </summary>
-    public class CoAPEndPoint : IEndPoint, IOutbox
+    public partial class CoAPEndPoint : IEndPoint, IOutbox
     {
         static readonly ILogger log = LogManager.GetLogger(typeof(CoAPEndPoint));
 
@@ -90,20 +90,7 @@ namespace CoAP.Net
             _matcher = new Matcher(config);
             _coapStack = new CoapStack(config);
             _channel.DataReceived += ReceiveData;
-#if COAPALL
-            _spec = config.Spec;
-#endif
         }
-
-#if COAPALL
-        private ISpec _spec;
-
-        public ISpec Spec
-        {
-            get { return _spec; }
-            set { _spec = value; }
-        }
-#endif
 
         /// <inheritdoc/>
         public ICoapConfig Config

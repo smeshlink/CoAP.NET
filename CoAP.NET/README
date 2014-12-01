@@ -18,14 +18,16 @@ Thanks to the authors and their great job.
 
 BUILD
 
-To build CoAP.NET, define one of the following compile symbols:
-COAPALL, COAP03, COAP08, COAP12, COAP13
+By default, CoAP.NET will be compiled with the latest version of CoAP protocol.
+To enable drafts, define one or more of the following compile symbols:
+COAP03, COAP08, COAP12, COAP13, COAP18, COAPALL
 
-- COAPALL -- all supported drafts below
 - COAP03  -- [draft-ietf-core-coap-03] (http://tools.ietf.org/html/draft-ietf-core-coap-03)
 - COAP08  -- [draft-ietf-core-coap-08] (http://tools.ietf.org/html/draft-ietf-core-coap-08)
 - COAP12  -- [draft-ietf-core-coap-12] (http://tools.ietf.org/html/draft-ietf-core-coap-12)
 - COAP13  -- [draft-ietf-core-coap-13] (http://tools.ietf.org/html/draft-ietf-core-coap-13)
+- COAP18  -- [draft-ietf-core-coap-18] (http://tools.ietf.org/html/draft-ietf-core-coap-18)
+- COAPALL -- all supported drafts above
 
 With COAPALL defined, all supported drafts will be available in class Spec.
 With one of the other symbols defined (i.e. COAP08), only a specific

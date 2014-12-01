@@ -16,7 +16,7 @@ namespace CoAP
     /// <summary>
     /// Provides configuration for CoAP communication.
     /// </summary>
-    public interface ICoapConfig : System.ComponentModel.INotifyPropertyChanged
+    public partial interface ICoapConfig : System.ComponentModel.INotifyPropertyChanged
     {
         /// <summary>
         /// Gets the default CoAP port for normal CoAP communication (not secure).
@@ -57,12 +57,6 @@ namespace CoAP
         Int32 ChannelReceiveBufferSize { get; }
         Int32 ChannelSendBufferSize { get; }
         Int32 ChannelReceivePacketSize { get; }
-#if COAPALL
-        /// <summary>
-        /// Gets the specification to apply.
-        /// </summary>
-        ISpec Spec { get; }
-#endif
 
         /// <summary>
         /// Loads configuration from a config properties file.

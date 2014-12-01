@@ -127,15 +127,21 @@ Build
 A few compile symbols are introduced to build for different drafts of
 CoAP:
 
-- COAPALL -- all supported drafts below
 - COAP03  -- [draft-ietf-core-coap-03] (http://tools.ietf.org/html/draft-ietf-core-coap-03)
 - COAP08  -- [draft-ietf-core-coap-08] (http://tools.ietf.org/html/draft-ietf-core-coap-08)
 - COAP12  -- [draft-ietf-core-coap-12] (http://tools.ietf.org/html/draft-ietf-core-coap-12)
 - COAP13  -- [draft-ietf-core-coap-13] (http://tools.ietf.org/html/draft-ietf-core-coap-13)
 - COAP18  -- [draft-ietf-core-coap-18] (http://tools.ietf.org/html/draft-ietf-core-coap-18)
+- COAPALL -- all supported drafts above
 
-With COAPALL defined, all supported drafts will be available in class
-[**Spec**] (CoAP.NET/Spec.cs):
+By default (with no symbol defined), CoAP.NET will be compiled with
+the latest version of CoAP protocol. To enable drafts, define one or
+more of those compile symbols.
+
+With drafts enabled, an interface <code>ISpec</code> will be introduced,
+representing draft specification. Define COAPXX to enable draft XX,
+or COAPALL to enable all supported drafts. All supported drafts will be
+available in class [**Spec**] (CoAP.NET/Spec.cs):
 
 ```csharp
   public static class Spec
@@ -148,15 +154,15 @@ With COAPALL defined, all supported drafts will be available in class
   }
 ```
 
-With one of the other symbols defined (i.e. COAP18), only a specific
+With none of the symbols defined, only the latest
 version of draft will be compiled as the class [**Spec**] (CoAP.NET/Spec.cs),
-with constants and static methods instead of various drafts:
+with static members instead of various drafts:
 
 ```csharp
   public static class Spec
   {
-    public const String Name = "draft-ietf-core-coap-18";
-    public const Int32 DefaultPort = 5683;
+    public static readonly String Name = "draft-ietf-core-coap-18";
+    public static readonly Int32 DefaultPort = 5683;
     public static IMessageEncoder NewMessageEncoder();
     public static IMessageDecoder NewMessageDecoder(Byte[] data);
     public static Byte[] Encode(Message msg);

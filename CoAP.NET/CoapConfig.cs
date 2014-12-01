@@ -19,7 +19,7 @@ namespace CoAP
     /// <summary>
     /// Default implementation of <see cref="ICoapConfig"/>.
     /// </summary>
-    public class CoapConfig : ICoapConfig
+    public partial class CoapConfig : ICoapConfig
     {
         private static ICoapConfig _default;
 
@@ -39,11 +39,7 @@ namespace CoAP
             }
         }
 
-#if COAPALL
-        private Int32 _port = CoapConstants.DefaultPort;
-#else
-        private Int32 _port = Spec.DefaultPort;
-#endif
+        private Int32 _port;
         private Int32 _securePort = CoapConstants.DefaultSecurePort;
         private Int32 _httpPort = 8080;
         private Int32 _ackTimeout = CoapConstants.AckTimeout;
@@ -66,15 +62,10 @@ namespace CoAP
         private Int32 _channelSendBufferSize;
         private Int32 _channelReceivePacketSize = 2048;
 
-#if COAPALL
-        private ISpec _spec = CoAP.Spec.Draft18;
-
-        public ISpec Spec
+        public CoapConfig()
         {
-            get { return _spec; }
-            set { _spec = value; NotifyPropertyChanged("Spec"); }
+            _port = Spec.DefaultPort;
         }
-#endif
         
         /// <inheritdoc/>
         public Int32 DefaultPort
