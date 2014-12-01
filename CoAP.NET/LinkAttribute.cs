@@ -105,15 +105,13 @@ namespace CoAP
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public override String ToString()
         {
             return String.Format("name: {0} value: {1}", _name, _value);
         }
 
+        /// <inheritdoc/>
         public Int32 CompareTo(LinkAttribute other)
         {
             Int32 ret = _name.CompareTo(other.Name);

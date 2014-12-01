@@ -74,18 +74,28 @@ namespace CoAP.Channel
             }
         }
 
+        /// <summary>
+        /// Gets or sets the <see cref="Socket.ReceiveBufferSize"/>.
+        /// </summary>
         public Int32 ReceiveBufferSize
         {
             get { return _receiveBufferSize; }
             set { _receiveBufferSize = value; }
         }
 
+        /// <summary>
+        /// Gets or sets the <see cref="Socket.SendBufferSize"/>.
+        /// </summary>
         public Int32 SendBufferSize
         {
             get { return _sendBufferSize; }
             set { _sendBufferSize = value; }
         }
 
+        /// <summary>
+        /// Gets or sets the size of buffer for receiving packet.
+        /// The default value is <see cref="DefaultReceivePacketSize"/>.
+        /// </summary>
         public Int32 ReceivePacketSize
         {
             get { return _receivePacketSize; }

@@ -17,6 +17,9 @@ using CoAP.Observe;
 
 namespace CoAP
 {
+    /// <summary>
+    /// Provides convenient methods for accessing CoAP resources.
+    /// </summary>
     public class CoapClient
     {
         private static ILogger log = LogManager.GetLogger(typeof(CoapClient));
@@ -28,21 +31,43 @@ namespace CoAP
         private Int32 _blockwise;
         private Int32 _timeout = System.Threading.Timeout.Infinite;
 
+        /// <summary>
+        /// Occurs when a response has arrived.
+        /// </summary>
         public event EventHandler<ResponseEventArgs> Respond;
+        /// <summary>
+        /// Occurs if an exception is thrown while executing a request.
+        /// </summary>
         public event EventHandler<ErrorEventArgs> Error;
 
+        /// <summary>
+        /// Instantiates with default config.
+        /// </summary>
         public CoapClient()
             : this(null, null)
         { }
 
+        /// <summary>
+        /// Instantiates with default config.
+        /// </summary>
+        /// <param name="uri">the Uri of remote resource</param>
         public CoapClient(Uri uri)
             : this(uri, null)
         { }
 
+        /// <summary>
+        /// Instantiates.
+        /// </summary>
+        /// <param name="config">the config</param>
         public CoapClient(ICoapConfig config)
             : this(null, config)
         { }
 
+        /// <summary>
+        /// Instantiates.
+        /// </summary>
+        /// <param name="uri">the Uri of remote resource</param>
+        /// <param name="config">the config</param>
         public CoapClient(Uri uri, ICoapConfig config)
         {
             _uri = uri;
@@ -147,11 +172,20 @@ namespace CoAP
             return false;
         }
 
+        /// <summary>
+        /// Discovers remote resources.
+        /// </summary>
+        /// <returns>the descoverd <see cref="WebLink"/> representing remote resources, or null if no response</returns>
         public IEnumerable<WebLink> Discover()
         {
             return Discover(null);
         }
 
+        /// <summary>
+        /// Discovers remote resources.
+        /// </summary>
+        /// <param name="query">the query to filter resources</param>
+        /// <returns>the descoverd <see cref="WebLink"/> representing remote resources, or null if no response</returns>
         public IEnumerable<WebLink> Discover(String query)
         {
             Request discover = Prepare(Request.NewGet());
@@ -490,11 +524,24 @@ namespace CoAP
             return request;
         }
 
+        /// <summary>
+        /// Provides details about errors.
+        /// </summary>
         public enum FailReason
         {
-            Rejected, TimedOut
+            /// <summary>
+            /// The request has been rejected.
+            /// </summary>
+            Rejected,
+            /// <summary>
+            /// The request has been timed out.
+            /// </summary>
+            TimedOut
         }
 
+        /// <summary>
+        /// Provides event args for errors.
+        /// </summary>
         public class ErrorEventArgs : EventArgs
         {
             internal ErrorEventArgs(FailReason reason)
@@ -502,6 +549,9 @@ namespace CoAP
                 this.Reason = reason;
             }
 
+            /// <summary>
+            /// Gets the reason why failed.
+            /// </summary>
             public FailReason Reason { get; private set; }
         }
     }

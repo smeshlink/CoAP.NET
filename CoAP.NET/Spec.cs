@@ -25,6 +25,9 @@ namespace CoAP
 #if COAPALL || COAP03
     static partial class Spec
     {
+        /// <summary>
+        /// draft-ietf-core-coap-03
+        /// </summary>
         public static readonly ISpec Draft03 = new CoAP.Draft03();
     }
 
@@ -34,6 +37,9 @@ namespace CoAP
         {
             private static IEndPoint _draft03;
 
+            /// <summary>
+            /// <see cref="IEndPoint"/> with draft-ietf-core-coap-03.
+            /// </summary>
             public static IEndPoint Draft03
             {
                 get
@@ -428,6 +434,9 @@ namespace CoAP
 #if COAPALL || COAP08
     static partial class Spec
     {
+        /// <summary>
+        /// draft-ietf-core-coap-08
+        /// </summary>
         public static readonly ISpec Draft08 = new CoAP.Draft08();
     }
 
@@ -437,6 +446,9 @@ namespace CoAP
         {
             private static IEndPoint _draft08;
 
+            /// <summary>
+            /// <see cref="IEndPoint"/> with draft-ietf-core-coap-08.
+            /// </summary>
             public static IEndPoint Draft08
             {
                 get
@@ -787,6 +799,9 @@ namespace CoAP
 #if COAPALL || COAP12
     static partial class Spec
     {
+        /// <summary>
+        /// draft-ietf-core-coap-12
+        /// </summary>
         public static readonly ISpec Draft12 = new CoAP.Draft12();
     }
 
@@ -796,6 +811,9 @@ namespace CoAP
         {
             private static IEndPoint _draft12;
 
+            /// <summary>
+            /// <see cref="IEndPoint"/> with draft-ietf-core-coap-12.
+            /// </summary>
             public static IEndPoint Draft12
             {
                 get
@@ -1106,6 +1124,9 @@ namespace CoAP
 #if COAPALL || COAP13
     static partial class Spec
     {
+        /// <summary>
+        /// draft-ietf-core-coap-13
+        /// </summary>
         public static readonly ISpec Draft13 = new CoAP.Draft13();
     }
 
@@ -1115,6 +1136,9 @@ namespace CoAP
         {
             private static IEndPoint _draft13;
 
+            /// <summary>
+            /// <see cref="IEndPoint"/> with draft-ietf-core-coap-13.
+            /// </summary>
             public static IEndPoint Draft13
             {
                 get
@@ -1390,6 +1414,9 @@ namespace CoAP
 #if COAPALL || COAP18
     static partial class Spec
     {
+        /// <summary>
+        /// draft-ietf-core-coap-18
+        /// </summary>
         public static readonly ISpec Draft18 = new CoAP.Draft18();
     }
 
@@ -1399,6 +1426,9 @@ namespace CoAP
         {
             private static IEndPoint _draft18;
 
+            /// <summary>
+            /// <see cref="IEndPoint"/> with draft-ietf-core-coap-18.
+            /// </summary>
             public static IEndPoint Draft18
             {
                 get
@@ -1658,6 +1688,9 @@ namespace CoAP
 #if DRAFT
     public static partial class Spec
     {
+        /// <summary>
+        /// The default draft.
+        /// </summary>
         public static readonly ISpec Default =
 #if COAPALL || COAP18
  Draft18;

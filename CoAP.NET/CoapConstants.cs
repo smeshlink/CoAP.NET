@@ -19,9 +19,16 @@ namespace CoAP
     public static class CoapConstants
     {
         /// <summary>
-        /// The URI scheme for identifying CoAP resources
+        /// RFC 7252 CoAP version.
+        /// </summary>
+        public const Int32 Version = 0x01;
+        /// <summary>
+        /// The CoAP URI scheme.
         /// </summary>
         public const String UriScheme = "coap";
+        /// <summary>
+        /// The CoAPS URI scheme.
+        /// </summary>
         public const String SecureUriScheme = "coaps";
         /// <summary>
         /// The default CoAP port for normal CoAP communication (not secure).

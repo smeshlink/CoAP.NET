@@ -46,6 +46,7 @@ namespace CoAP.Observe
         /// <summary>
         /// Constructs a new observe relation.
         /// </summary>
+        /// <param name="config">the config</param>
         /// <param name="endpoint">the observing endpoint</param>
         /// <param name="resource">the observed resource</param>
         /// <param name="exchange">the exchange that tries to establish the observe relation</param>

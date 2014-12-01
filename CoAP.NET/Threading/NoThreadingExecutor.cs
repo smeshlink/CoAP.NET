@@ -13,6 +13,10 @@ using System;
 
 namespace CoAP.Threading
 {
+    /// <summary>
+    /// This <see cref="IExecutor"/> will execute tasks immediately in the calling thread.
+    /// No threading will be used.
+    /// </summary>
     public sealed class NoThreadingExecutor : IExecutor
     {
         internal NoThreadingExecutor()

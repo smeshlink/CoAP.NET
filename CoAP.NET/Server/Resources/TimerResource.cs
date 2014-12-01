@@ -14,10 +14,18 @@ using System.Threading;
 
 namespace CoAP.Server.Resources
 {
+    /// <summary>
+    /// Represents a periodic resource based on a timer.
+    /// </summary>
     public class TimerResource : Resource
     {
         private Timer _timer;
 
+        /// <summary>
+        /// Instantiates.
+        /// </summary>
+        /// <param name="resourceIdentifier">the name</param>
+        /// <param name="period">the period to notify</param>
         public TimerResource(String resourceIdentifier, Int32 period)
             : base(resourceIdentifier)
         { 
@@ -25,6 +33,10 @@ namespace CoAP.Server.Resources
             _timer = new Timer(Tick, null, 0, period);
         }
 
+        /// <summary>
+        /// Fires a changed event.
+        /// </summary>
+        /// <param name="o"></param>
         protected virtual void Tick(Object o)
         {
             Changed();

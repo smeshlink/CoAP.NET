@@ -20,6 +20,12 @@ namespace CoAP.Util
     /// </summary>
     public static class Utils
     {
+        /// <summary>
+        /// Insertion sort, to make the options list stably ordered.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="list">the list to sort</param>
+        /// <param name="comparison">the delegate for comparing</param>
         public static void InsertionSort<T>(IList<T> list, Comparison<T> comparison)
         {
             for (Int32 i = 1; i < list.Count; i++)
@@ -42,11 +48,17 @@ namespace CoAP.Util
             }
         }
 
+        /// <summary>
+        /// Checks if all items in both of the two enumerables are equal.
+        /// </summary>
         public static Boolean AreSequenceEqualTo<T>(IEnumerable<T> first, IEnumerable<T> second)
         {
             return AreSequenceEqualTo<T>(first, second, null);
         }
 
+        /// <summary>
+        /// Checks if all items in both of the two enumerables are equal.
+        /// </summary>
         public static Boolean AreSequenceEqualTo<T>(IEnumerable<T> first, IEnumerable<T> second, IEqualityComparer<T> comparer)
         {
             if (first == null && second == null)
@@ -73,6 +85,13 @@ namespace CoAP.Util
                 return false;
         }
 
+        /// <summary>
+        /// Finds the first matched item.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="source">the source to search</param>
+        /// <param name="condition">the condition delegate</param>
+        /// <returns>the item found, or null if none is matched</returns>
         public static T FirstOrDefault<T>(IEnumerable<T> source, Predicate<T> condition)
         {
             if (source != null)
@@ -86,6 +105,13 @@ namespace CoAP.Util
             return default(T);
         }
 
+        /// <summary>
+        /// Checks if matched item exists.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="source">the source to search</param>
+        /// <param name="condition">the condition delegate</param>
+        /// <returns>true if exists any matched item, otherwise false</returns>
         public static Boolean Contains<T>(IEnumerable<T> source, Predicate<T> condition)
         {
             if (source != null)
@@ -99,6 +125,9 @@ namespace CoAP.Util
             return false;
         }
 
+        /// <summary>
+        /// Stringify a message.
+        /// </summary>
         public static String ToString(Message msg)
         {
             StringBuilder sb = new StringBuilder();
@@ -138,6 +167,9 @@ namespace CoAP.Util
             return sb.ToString();
         }
 
+        /// <summary>
+        /// Stringify options in a message.
+        /// </summary>
         public static String OptionsToString(Message msg)
         {
             Boolean first = true;
@@ -185,11 +217,17 @@ namespace CoAP.Util
             return sb.ToString();
         }
 
+        /// <summary>
+        /// Stringify an enumerable.
+        /// </summary>
         public static String ToString<T>(IEnumerable<T> source)
         {
             return ToString(source, o => o.ToString());
         }
 
+        /// <summary>
+        /// Stringify an enumerable.
+        /// </summary>
         public static String ToString<T>(IEnumerable<T> source, Func<T, String> toString)
         {
             if (source == null)

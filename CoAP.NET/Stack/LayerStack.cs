@@ -18,6 +18,9 @@ namespace CoAP.Stack
     /// </summary>
     public class LayerStack : Chain<LayerStack, ILayer, INextLayer>
     {
+        /// <summary>
+        /// Instantiates.
+        /// </summary>
         public LayerStack()
             : base(
             e => new NextLayer(e),
@@ -25,31 +28,60 @@ namespace CoAP.Stack
             )
         { }
 
+        /// <summary>
+        /// Sends a request into the layer stack.
+        /// </summary>
+        /// <param name="request">the request to send</param>
         public void SendRequest(Request request)
         {
             Head.Filter.SendRequest(Head.NextFilter, null, request);
         }
 
+        /// <summary>
+        /// Sends a response into the layer stack.
+        /// </summary>
+        /// <param name="exchange">the exchange associated</param>
+        /// <param name="response">the response to send</param>
         public void SendResponse(Exchange exchange, Response response)
         {
             Head.Filter.SendResponse(Head.NextFilter, exchange, response);
         }
 
+        /// <summary>
+        /// Sends an empty message into the layer stack.
+        /// </summary>
+        /// <param name="exchange">the exchange associated</param>
+        /// <param name="message">the message to send</param>
         public void SendEmptyMessage(Exchange exchange, EmptyMessage message)
         {
             Head.Filter.SendEmptyMessage(Head.NextFilter, exchange, message);
         }
 
+        /// <summary>
+        /// Receives a request into the layer stack.
+        /// </summary>
+        /// <param name="exchange">the exchange associated</param>
+        /// <param name="request">the response to receive</param>
         public void ReceiveRequest(Exchange exchange, Request request)
         {
             Tail.Filter.ReceiveRequest(Tail.NextFilter, exchange, request);
         }
 
+        /// <summary>
+        /// Receives a response into the layer stack.
+        /// </summary>
+        /// <param name="exchange">the exchange associated</param>
+        /// <param name="response">the response to receive</param>
         public void ReceiveResponse(Exchange exchange, Response response)
         {
             Tail.Filter.ReceiveResponse(Tail.NextFilter, exchange, response);
         }
 
+        /// <summary>
+        /// Receives an empty message into the layer stack.
+        /// </summary>
+        /// <param name="exchange">the exchange associated</param>
+        /// <param name="message">the message to receive</param>
         public void ReceiveEmptyMessage(Exchange exchange, EmptyMessage message)
         {
             Tail.Filter.ReceiveEmptyMessage(Tail.NextFilter, exchange, message);

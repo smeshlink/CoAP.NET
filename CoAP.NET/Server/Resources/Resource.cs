@@ -83,6 +83,7 @@ namespace CoAP.Server.Resources
             }
         }
 
+        [Obsolete("Use Attributes.Title instead.")]
         public String Title
         {
             get { return Attributes.Title; }

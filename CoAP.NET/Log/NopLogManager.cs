@@ -20,17 +20,22 @@ namespace CoAP.Log
     /// </summary>
     public sealed class NopLogManager : ILogManager
     {
+        /// <summary>
+        /// The singleton instance.
+        /// </summary>
         public static readonly NopLogManager Instance = new NopLogManager();
         private static readonly NopLogger NOP = new NopLogger();
 
         private NopLogManager()
         { }
 
+        /// <inheritdoc/>
         public ILogger GetLogger(Type type)
         {
             return NOP;
         }
 
+        /// <inheritdoc/>
         public ILogger GetLogger(String name)
         {
             return NOP;

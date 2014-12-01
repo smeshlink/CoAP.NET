@@ -77,6 +77,9 @@ namespace CoAP
             set { SetValue(NUM, SZX, value); }
         }
 
+        /// <summary>
+        /// Gets the decoded block size in bytes (B).
+        /// </summary>
         public Int32 Size
         {
             get { return DecodeSZX(this.SZX); }

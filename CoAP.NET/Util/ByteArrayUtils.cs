@@ -14,6 +14,9 @@ using System.Text;
 
 namespace CoAP.Util
 {
+    /// <summary>
+    /// Utility methods for bytes array.
+    /// </summary>
     public static class ByteArrayUtils
     {
         const String digits = "0123456789ABCDEF";

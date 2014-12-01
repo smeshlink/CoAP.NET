@@ -14,6 +14,9 @@ using System.Threading;
 
 namespace CoAP.Threading
 {
+    /// <summary>
+    /// <see cref="IExecutor"/> that use the <see cref="ThreadPool"/>.
+    /// </summary>
     public sealed class ThreadPoolExecutor : IExecutor
     {
         /// <inheritdoc/>

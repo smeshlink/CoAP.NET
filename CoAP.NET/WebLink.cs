@@ -23,13 +23,23 @@ namespace CoAP
         readonly String _uri;
         readonly ResourceAttributes _attributes = new ResourceAttributes();
 
+        /// <summary>
+        /// Instantiates.
+        /// </summary>
+        /// <param name="uri">the uri of this resource.</param>
         public WebLink(String uri)
         {
             _uri = uri;
         }
 
+        /// <summary>
+        /// Gets the uri of this resource.
+        /// </summary>
         public String Uri { get { return _uri; } }
 
+        /// <summary>
+        /// Gets the attributes of this resource.
+        /// </summary>
         public ResourceAttributes Attributes { get { return _attributes; } }
 
         /// <inheritdoc/>

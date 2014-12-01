@@ -14,20 +14,34 @@ using System.Collections.Generic;
 
 namespace CoAP.Util
 {
+    /// <summary>
+    /// <see cref="IEqualityComparer&lt;T&gt;"/> for arrays.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public class ArrayEqualityComparer<T> : IEqualityComparer<T[]>
     {
         private static readonly IEqualityComparer<T[]> defaultInstance = new ArrayEqualityComparer<T>();
         private readonly IEqualityComparer<T> _elementComparer;
 
+        /// <summary>
+        /// Gets the default comparer.
+        /// </summary>
         public static IEqualityComparer<T[]> Default
         {
             get { return defaultInstance; }
         }
 
+        /// <summary>
+        /// Instantiates with default comparer for items in the array.
+        /// </summary>
         public ArrayEqualityComparer()
             : this(EqualityComparer<T>.Default)
         { }
 
+        /// <summary>
+        /// Instantiates.
+        /// </summary>
+        /// <param name="elementComparer">comparer for items in the array</param>
         public ArrayEqualityComparer(IEqualityComparer<T> elementComparer)
         {
             _elementComparer = elementComparer;

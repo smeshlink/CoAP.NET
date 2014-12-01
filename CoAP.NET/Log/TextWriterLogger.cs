@@ -20,6 +20,9 @@ namespace CoAP.Log
     {
         private System.IO.TextWriter _writer;
 
+        /// <summary>
+        /// Instantiates.
+        /// </summary>
         public TextWriterLogger(System.IO.TextWriter writer)
         {
             _writer = writer;

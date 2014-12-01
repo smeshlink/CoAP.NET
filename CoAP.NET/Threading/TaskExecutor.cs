@@ -14,6 +14,9 @@ using System.Threading.Tasks;
 
 namespace CoAP.Threading
 {
+    /// <summary>
+    /// <see cref="IExecutor"/> that use the <see cref="Task"/>.
+    /// </summary>
     public sealed class TaskExecutor : IExecutor
     {
         /// <inheritdoc/>

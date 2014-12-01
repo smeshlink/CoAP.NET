@@ -13,6 +13,9 @@ using System;
 
 namespace CoAP.Codec
 {
+    /// <summary>
+    /// Base class for message encoders.
+    /// </summary>
     public abstract class MessageEncoder : IMessageEncoder
     {
         /// <inheritdoc/>
@@ -52,6 +55,12 @@ namespace CoAP.Codec
                 return null;
         }
 
+        /// <summary>
+        /// Serializes a message.
+        /// </summary>
+        /// <param name="writer">the writer</param>
+        /// <param name="message">the message to write</param>
+        /// <param name="code">the code</param>
         protected abstract void Serialize(DatagramWriter writer, Message message, Int32 code);
     }
 }

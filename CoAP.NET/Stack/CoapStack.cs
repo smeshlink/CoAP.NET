@@ -20,6 +20,10 @@ namespace CoAP.Stack
     /// </summary>
     public class CoapStack : LayerStack
     {
+        /// <summary>
+        /// Instantiates.
+        /// </summary>
+        /// <param name="config"></param>
         public CoapStack(ICoapConfig config)
         {
             this.AddLast("Observe", new ObserveLayer(config));

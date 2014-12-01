@@ -13,20 +13,48 @@ using System;
 
 namespace CoAP.Codec
 {
+    /// <summary>
+    /// Base class for message decoders.
+    /// </summary>
     public abstract class MessageDecoder : IMessageDecoder
     {
+        /// <summary>
+        /// the bytes reader
+        /// </summary>
         protected DatagramReader _reader;
+        /// <summary>
+        /// the version of the decoding message
+        /// </summary>
         protected Int32 _version;
+        /// <summary>
+        /// the type of the decoding message
+        /// </summary>
         protected MessageType _type;
+        /// <summary>
+        /// the length of token
+        /// </summary>
         protected Int32 _tokenLength;
+        /// <summary>
+        /// the code of the decoding message
+        /// </summary>
         protected Int32 _code;
+        /// <summary>
+        /// the id of the decoding message
+        /// </summary>
         protected Int32 _id;
 
+        /// <summary>
+        /// Instantiates.
+        /// </summary>
+        /// <param name="data">the bytes array to decode</param>
         public MessageDecoder(Byte[] data)
         {
             _reader = new DatagramReader(data);
         }
 
+        /// <summary>
+        /// Reads protocol headers.
+        /// </summary>
         protected abstract void ReadProtocol();
 
         /// <inheritdoc/>
@@ -122,6 +150,10 @@ namespace CoAP.Codec
                 return null;
         }
 
+        /// <summary>
+        /// Parses the rest data other than protocol headers into the given message.
+        /// </summary>
+        /// <param name="message"></param>
         protected abstract void ParseMessage(Message message);
     }
 }

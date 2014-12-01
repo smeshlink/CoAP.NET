@@ -11,8 +11,11 @@
 
 namespace CoAP.Threading
 {
-    public static partial class Executors
+    static partial class Executors
     {
+        /// <summary>
+        /// The default <see cref="IExecutor"/> based on <see cref="System.Threading.ThreadPool"/>.
+        /// </summary>
         public static readonly IExecutor Default = new ThreadPoolExecutor();
     }
 }
