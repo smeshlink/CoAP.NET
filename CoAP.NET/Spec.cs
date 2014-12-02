@@ -9,7 +9,7 @@
  * Please see README for more information.
  */
 
-#if COAPALL || COAP03 || COAP08 || COAP12 || COAP13 || COAP18
+#if COAPALL || COAP03 || COAP08 || COAP12 || COAP13 || COAP18 || RFC7252
 #define DRAFT
 #endif
 
@@ -1410,14 +1410,22 @@ namespace CoAP
 #endif
     #endregion
 
-    #region CoAP 18
-#if COAPALL || COAP18
+    #region CoAP 18 & RFC7252
+#if COAPALL || COAP18 || RFC7252
     static partial class Spec
     {
+#if COAPALL || COAP18
         /// <summary>
         /// draft-ietf-core-coap-18
         /// </summary>
-        public static readonly ISpec Draft18 = new CoAP.Draft18();
+        public static readonly ISpec Draft18 = new CoAP.Draft18("draft-ietf-core-coap-18");
+#endif
+#if COAPALL || RFC7252
+        /// <summary>
+        /// RFC 7252
+        /// </summary>
+        public static readonly ISpec RFC7252 = new CoAP.Draft18("RFC 7252");
+#endif
     }
 
     namespace Net
@@ -1425,7 +1433,8 @@ namespace CoAP
         partial class EndPointManager
         {
             private static IEndPoint _draft18;
-
+            
+#if COAPALL || COAP18
             /// <summary>
             /// <see cref="IEndPoint"/> with draft-ietf-core-coap-18.
             /// </summary>
@@ -1444,10 +1453,31 @@ namespace CoAP
                     return _draft18;
                 }
             }
+#endif
+#if COAPALL || RFC7252
+            /// <summary>
+            /// <see cref="IEndPoint"/> with RFC 7252.
+            /// </summary>
+            public static IEndPoint RFC7252
+            {
+                get
+                {
+                    if (_draft18 == null)
+                    {
+                        lock (typeof(EndPointManager))
+                        {
+                            if (_draft18 == null)
+                                _draft18 = CreateEndPoint(Spec.RFC7252);
+                        }
+                    }
+                    return _draft18;
+                }
+            }
+#endif
         }
     }
 #endif
-#if !DRAFT || COAPALL || COAP18
+#if !DRAFT || COAPALL || COAP18 || RFC7252
 #if DRAFT
     class Draft18 : ISpec
 #else
@@ -1465,11 +1495,17 @@ namespace CoAP
         const Byte PayloadMarker = 0xFF;
 
 #if !DRAFT
-        public static readonly String Name = "draft-ietf-core-coap-18";
+        public static readonly String Name = "RFC 7252";
         public static readonly Int32 DefaultPort = 5683;
 #else
-        public String Name { get { return "draft-ietf-core-coap-18"; } }
+        private readonly String _name;
+        public String Name { get { return _name; } }
         public Int32 DefaultPort { get { return 5683; } }
+
+        public Draft18(String name)
+        {
+            _name = name;
+        }
 #endif
 
         public
@@ -1692,7 +1728,9 @@ namespace CoAP
         /// The default draft.
         /// </summary>
         public static readonly ISpec Default =
-#if COAPALL || COAP18
+#if COAPALL || RFC7252
+ RFC7252;
+#elif COAP18
  Draft18;
 #elif COAP13
  Draft13;
@@ -1778,7 +1816,9 @@ namespace CoAP
             private static IEndPoint GetDefaultEndPoint()
             {
                 return
-#if COAPALL || COAP18
+#if COAPALL || RFC7252
+ RFC7252;
+#elif COAP18
  Draft18;
 #elif COAP13
  Draft13;
