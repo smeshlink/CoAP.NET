@@ -15,7 +15,7 @@ using System.IO;
 
 namespace CoAP.Http
 {
-    interface IHttpRequest
+    public interface IHttpRequest
     {
         String Url { get; }
         String RequestUri { get; }

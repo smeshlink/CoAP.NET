@@ -14,7 +14,7 @@ using System.IO;
 
 namespace CoAP.Http
 {
-    interface IHttpResponse
+    public interface IHttpResponse
     {
         Stream OutputStream { get; }
         void AppendHeader(String name, String value);

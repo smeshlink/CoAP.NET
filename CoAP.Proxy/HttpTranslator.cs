@@ -20,7 +20,7 @@ using CoAP.Util;
 
 namespace CoAP.Proxy
 {
-    static class HttpTranslator
+    public static class HttpTranslator
     {
         private static readonly Dictionary<HttpStatusCode, StatusCode> http2coapCode = new Dictionary<HttpStatusCode, StatusCode>();
         private static readonly Dictionary<StatusCode, HttpStatusCode> coap2httpCode = new Dictionary<StatusCode, HttpStatusCode>();
