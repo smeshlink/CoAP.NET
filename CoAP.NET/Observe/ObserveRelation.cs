@@ -26,7 +26,6 @@ namespace CoAP.Observe
     {
         static readonly ILogger log = LogManager.GetLogger(typeof(ObserveRelation));
         readonly ICoapConfig _config;
-        readonly ObserveNotificationOrderer _orderer;
         readonly ObservingEndpoint _endpoint;
         readonly IResource _resource;
         readonly Exchange _exchange;
@@ -60,7 +59,6 @@ namespace CoAP.Observe
             if (exchange == null)
                 throw ThrowHelper.ArgumentNull("exchange");
             _config = config;
-            _orderer = new ObserveNotificationOrderer(config);
             _endpoint = endpoint;
             _resource = resource;
             _exchange = exchange;
