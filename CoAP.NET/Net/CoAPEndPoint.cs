@@ -263,6 +263,12 @@ namespace CoAP.Net
                     exchange.EndPoint = this;
                     _coapStack.ReceiveResponse(exchange, response);
                 }
+                else if (response.Type != MessageType.ACK)
+                {
+                    if (log.IsDebugEnabled)
+                        log.Debug("Rejecting unmatchable response from " + e.EndPoint);
+                    Reject(response);
+                }
             }
             else if (decoder.IsEmpty)
             {
@@ -272,12 +278,9 @@ namespace CoAP.Net
                 // CoAP Ping
                 if (message.Type == MessageType.CON || message.Type == MessageType.NON)
                 {
-                    EmptyMessage rst = EmptyMessage.NewRST(message);
-
                     if (log.IsDebugEnabled)
                         log.Debug("Responding to ping by " + e.EndPoint);
-
-                    _channel.Send(Serialize(rst), rst.Destination);
+                    Reject(message);
                 }
                 else
                 {
@@ -293,6 +296,12 @@ namespace CoAP.Net
             {
                 log.Debug("Silently ignoring non-CoAP message from " + e.EndPoint);
             }
+        }
+
+        private void Reject(Message message)
+        {
+            EmptyMessage rst = EmptyMessage.NewRST(message);
+            _channel.Send(Serialize(rst), rst.Destination);
         }
 
         private Byte[] Serialize(EmptyMessage message)
