@@ -32,7 +32,7 @@ namespace CoAP.Net
         private IMatcher _matcher;
         private Int32 _running;
         private System.Net.EndPoint _localEP;
-        private IExecutor _executor = Executors.Default;
+        private IExecutor _executor;
 
         /// <summary>
         /// Instantiates a new endpoint.
@@ -104,6 +104,7 @@ namespace CoAP.Net
             set
             {
                 _executor = value ?? Executors.NoThreading;
+                _coapStack.Executor = _executor;
             }
         }
 
@@ -142,6 +143,10 @@ namespace CoAP.Net
         {
             if (System.Threading.Interlocked.CompareExchange(ref _running, 1, 0) > 0)
                 return;
+
+            if (_executor == null)
+                Executor = Executors.Default;
+
             _localEP = _channel.LocalEndPoint;
             try
             {

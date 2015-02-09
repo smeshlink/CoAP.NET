@@ -10,6 +10,7 @@
  */
 
 using CoAP.Net;
+using CoAP.Threading;
 
 namespace CoAP.Stack
 {
@@ -18,6 +19,15 @@ namespace CoAP.Stack
     /// </summary>
     public class AbstractLayer : ILayer
     {
+        private IExecutor _executor;
+
+        /// <inheritdoc/>
+        public IExecutor Executor
+        {
+            get { return _executor; }
+            set { _executor = value; }
+        }
+
         /// <inheritdoc/>
         public virtual void SendRequest(INextLayer nextLayer, Exchange exchange, Request request)
         {

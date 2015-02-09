@@ -10,6 +10,7 @@
  */
 
 using CoAP.Net;
+using CoAP.Threading;
 
 namespace CoAP.Stack
 {
@@ -18,6 +19,10 @@ namespace CoAP.Stack
     /// </summary>
     public interface ILayer
     {
+        /// <summary>
+        /// Gets or set the executor to schedule tasks.
+        /// </summary>
+        IExecutor Executor { get; set; }
         /// <summary>
         /// Filters a request sending event.
         /// </summary>

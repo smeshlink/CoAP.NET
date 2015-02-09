@@ -9,8 +9,7 @@
  * Please see README for more information.
  */
 
-using CoAP.Net;
-using CoAP.Server;
+using CoAP.Threading;
 
 namespace CoAP.Stack
 {
@@ -30,6 +29,20 @@ namespace CoAP.Stack
             this.AddLast("Blockwise", new BlockwiseLayer(config));
             this.AddLast("Token", new TokenLayer(config));
             this.AddLast("Reliability", new ReliabilityLayer(config));
+        }
+
+        /// <summary>
+        /// Sets the <see cref="IExecutor"/> for all layers.
+        /// </summary>
+        public IExecutor Executor
+        {
+            set
+            {
+                foreach (IEntry<ILayer, INextLayer> entry in this.GetAll())
+                {
+                    entry.Filter.Executor = value;
+                }
+            }
         }
     }
 }

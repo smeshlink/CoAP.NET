@@ -190,7 +190,8 @@ namespace CoAP.Stack
                             log.Debug("Notification has been acknowledged, send the next one");
                         // this is not a self replacement, hence a new ID
                         next.ID = Message.None;
-                        SendResponse(nextLayer, exchange, next); // TODO: make this as new task?
+                        // Create a new task for sending next response so that we can leave the sync-block
+                        Executor.Start(() => SendResponse(nextLayer, exchange, next));
                     }
                 }
             };
@@ -217,9 +218,8 @@ namespace CoAP.Stack
                         }
                         relation.CurrentControlNotification = next;
                         relation.NextControlNotification = null;
-                        // TODO: make this as new task?
                         // Create a new task for sending next response so that we can leave the sync-block
-                        SendResponse(nextLayer, exchange, next);
+                        Executor.Start(() => SendResponse(nextLayer, exchange, next));
                     }
                 }
             };
