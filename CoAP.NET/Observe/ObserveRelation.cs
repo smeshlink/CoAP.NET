@@ -37,9 +37,8 @@ namespace CoAP.Observe
         private DateTime _interestCheckTime = DateTime.Now;
         private Int32 _interestCheckCounter = 1;
 
-        // The matcher must find the NON-notifications (MIDs) to remove from its hashmaps
         /// <summary>
-        /// The notifications that have been sent.
+        /// The notifications that have been sent, so they can be removed from the Matcher
         /// </summary>
         private ConcurrentQueue<Response> _notifications = new ConcurrentQueue<Response>();
 

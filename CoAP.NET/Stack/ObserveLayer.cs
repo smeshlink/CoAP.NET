@@ -57,7 +57,7 @@ namespace CoAP.Stack
                         if (relation.Check())
                         {
                             if (log.IsDebugEnabled)
-                                log.Debug("The observe relation requires the notification to be sent as CON");
+                                log.Debug("The observe relation check requires the notification to be sent as CON");
                             response.Type = MessageType.CON;
                         }
                         else
@@ -65,7 +65,6 @@ namespace CoAP.Stack
                             // By default use NON, but do not override resource decision
                             if (response.Type == MessageType.Unknown)
                                 response.Type = MessageType.NON;
-                            relation.AddNotification(response);
                         }
                     }
                 }
@@ -74,10 +73,19 @@ namespace CoAP.Stack
                 response.Last = false;
 
                 /*
+                 * The matcher must be able to find the NON notifications to remove
+                 * them from the exchangesByID map
+                 */
+                if (response.Type == MessageType.NON)
+                {
+                    relation.AddNotification(response);
+                }
+
+                /*
                  * Only one Confirmable message is allowed to be in transit. A CON
                  * is in transit as long as it has not been acknowledged, rejected,
                  * or timed out. All further notifications are postponed here. If a
-                 * former CON is acknowledged or timeouts, it starts the youngest
+                 * former CON is acknowledged or timeouts, it starts the freshest
                  * notification (In case of a timeout, it keeps the retransmission
                  * counter). When a fresh/younger notification arrives but must be
                  * postponed we forget any former notification.
@@ -88,7 +96,7 @@ namespace CoAP.Stack
                 }
 
                 // The decision whether to postpone this notification or not and the
-                // decision which notification is the youngest to send next must be
+                // decision which notification is the freshest to send next must be
                 // synchronized
                 lock (exchange)
                 {
@@ -97,6 +105,8 @@ namespace CoAP.Stack
                     {
                         if (log.IsDebugEnabled)
                             log.Debug("A former notification is still in transit. Postpone " + response);
+                        // use the same ID
+                        response.ID = current.ID;
                         relation.NextControlNotification = response;
                         return;
                     }
@@ -123,6 +133,7 @@ namespace CoAP.Stack
                         log.Debug("ObserveLayer rejecting notification for canceled Exchange");
                     EmptyMessage rst = EmptyMessage.NewRST(response);
                     SendEmptyMessage(nextLayer, exchange, rst);
+                    // Matcher sets exchange as complete when RST is sent
                 }
                 else
                 {
@@ -149,7 +160,6 @@ namespace CoAP.Stack
                 if (relation != null)
                 {
                     relation.Cancel();
-                    exchange.Complete = true;
                 } // else there was no observe relation ship and this layer ignores the rst
             }
             base.ReceiveEmptyMessage(nextLayer, exchange, message);
@@ -178,6 +188,8 @@ namespace CoAP.Stack
                     {
                         if (log.IsDebugEnabled)
                             log.Debug("Notification has been acknowledged, send the next one");
+                        // this is not a self replacement, hence a new ID
+                        next.ID = Message.None;
                         SendResponse(nextLayer, exchange, next); // TODO: make this as new task?
                     }
                 }
@@ -192,19 +204,19 @@ namespace CoAP.Stack
                     if (next != null)
                     {
                         if (log.IsDebugEnabled)
-                            log.Debug("The notification has timed out and there is a younger notification. Send the younger one");
-                        relation.NextControlNotification = null;
-                        // Send the next notification
+                            log.Debug("The notification has timed out and there is a fresher notification for the retransmission.");
+                        // Cancel the original retransmission and send the fresh notification here
                         response.IsCanceled = true;
-                        MessageType nt = next.Type;
-                        if (nt != MessageType.CON)
+                        // use the same ID
+                        next.ID = response.ID;
+                        // Convert all notification retransmissions to CON
+                        if (next.Type != MessageType.CON)
                         {
-                            if (log.IsDebugEnabled)
-                                log.Debug("The next notification's type was " + nt + ". Since it replaces a CON control notification, it becomes a CON as well");
+                            next.Type = MessageType.CON;
                             PrepareSelfReplacement(nextLayer, exchange, next);
-                            next.Type = MessageType.CON; // Force the next to be a Confirmable as well
                         }
                         relation.CurrentControlNotification = next;
+                        relation.NextControlNotification = null;
                         // TODO: make this as new task?
                         // Create a new task for sending next response so that we can leave the sync-block
                         SendResponse(nextLayer, exchange, next);
