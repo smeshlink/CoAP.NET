@@ -6,10 +6,10 @@ language: csharp
 install:
   - nuget restore CoAP.NET.2010.sln
   - nuget restore CoAP.NET40.2010.sln
-  - nuget install NUnit.Runners -Version 2.6.4 -OutputDirectory testrunner
+#  - nuget install NUnit.Runners -Version 2.6.4 -OutputDirectory testrunner
 script:
   - xbuild CoAP.NET.2010.sln /p:Configuration=Release
-  - mono ./testrunner/NUnit.Runners.2.6.4/tools/nunit-console.exe ./CoAP.Test/bin/Release/CoAP.Test.dll
+#  - mono ./testrunner/NUnit.Runners.2.6.4/tools/nunit-console.exe ./CoAP.Test/bin/Release/CoAP.Test.dll
   - xbuild CoAP.NET.2010.sln /t:Clean
   - xbuild CoAP.NET40.2010.sln /p:Configuration=Release
-  - mono ./testrunner/NUnit.Runners.2.6.4/tools/nunit-console.exe ./CoAP.Test/bin/Release/NET40/CoAP.Test.dll
+#  - mono ./testrunner/NUnit.Runners.2.6.4/tools/nunit-console.exe ./CoAP.Test/bin/Release/NET40/CoAP.Test.dll
