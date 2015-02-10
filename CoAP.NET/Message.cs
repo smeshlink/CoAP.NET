@@ -77,7 +77,13 @@ namespace CoAP
         /// <summary>
         /// Occurs when this message has been canceled.
         /// </summary>
+        [Obsolete("Will be name for related action in next release. Please use Cancelled instead.")]
         public event EventHandler Cancel;
+
+        /// <summary>
+        /// Occurs when this message has been canceled.
+        /// </summary>
+        public event EventHandler Cancelled;
 
         /// <summary>
         /// Instantiates a message.
@@ -272,17 +278,17 @@ namespace CoAP
         /// <summary>
         /// Gets or sets a value that indicates whether this CoAP message is canceled.
         /// </summary>
-        [Obsolete("Will be name for related event in the future. Please use IsCanceled instead.")]
+        [Obsolete("Will be removed in next release. Please use IsCanceled instead.")]
         public Boolean Canceled
         {
-            get { return IsCanceled; }
-            set { IsCanceled = value; }
+            get { return IsCancelled; }
+            set { IsCancelled = value; }
         }
 
         /// <summary>
         /// Gets or sets a value that indicates whether this CoAP message is canceled.
         /// </summary>
-        public Boolean IsCanceled
+        public Boolean IsCancelled
         {
             get { return _cancelled; }
             set
@@ -444,6 +450,7 @@ namespace CoAP
         /// </summary>
         protected virtual void OnCanceled()
         {
+            Fire(Cancelled);
             Fire(Cancel);
         }
 
@@ -528,6 +535,7 @@ namespace CoAP
             ForEach(src.Acknowledge, h => this.Acknowledge += h);
             ForEach(src.Reject, h => this.Reject += h);
             ForEach(src.Timeout, h => this.Timeout += h);
+            ForEach(src.Cancelled, h => this.Cancelled += h);
             ForEach(src.Cancel, h => this.Cancel += h);
         }
 

@@ -173,7 +173,7 @@ namespace CoAP.Stack
                 ctx.Cancel();
             }
 
-            if (response.Type == MessageType.CON && !exchange.Request.IsCanceled)
+            if (response.Type == MessageType.CON && !exchange.Request.IsCancelled)
             {
                 if (log.IsDebugEnabled)
                     log.Debug("Response is confirmable, send ACK.");
@@ -336,7 +336,7 @@ namespace CoAP.Stack
                         log.Debug("Timeout: message already rejected, cancel retransmission of " + _message);
                     return;
                 }
-                else if (_message.IsCanceled)
+                else if (_message.IsCancelled)
                 {
                     if (log.IsDebugEnabled)
                         log.Debug("Timeout: canceled (ID=" + _message.ID + "), do not retransmit");
@@ -350,7 +350,7 @@ namespace CoAP.Stack
                     _message.FireRetransmitting();
 
                     // message might have canceled
-                    if (!_message.IsCanceled)
+                    if (!_message.IsCancelled)
                         _retransmit(this);
                 }
                 else

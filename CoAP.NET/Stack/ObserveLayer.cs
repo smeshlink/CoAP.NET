@@ -126,7 +126,7 @@ namespace CoAP.Stack
         {
             if (response.HasOption(OptionType.Observe))
             {
-                if (exchange.Request.IsCanceled)
+                if (exchange.Request.IsCancelled)
                 {
                     // The request was canceled and we no longer want notifications
                     if (log.IsDebugEnabled)
@@ -207,7 +207,7 @@ namespace CoAP.Stack
                         if (log.IsDebugEnabled)
                             log.Debug("The notification has timed out and there is a fresher notification for the retransmission.");
                         // Cancel the original retransmission and send the fresh notification here
-                        response.IsCanceled = true;
+                        response.IsCancelled = true;
                         // use the same ID
                         next.ID = response.ID;
                         // Convert all notification retransmissions to CON
@@ -286,7 +286,7 @@ namespace CoAP.Stack
             void timer_Elapsed(Object sender, ElapsedEventArgs e)
             {
                 Request request = _exchange.Request;
-                if (!request.IsCanceled)
+                if (!request.IsCancelled)
                 {
                     Request refresh = Request.NewGet();
                     refresh.SetOptions(request.GetOptions());

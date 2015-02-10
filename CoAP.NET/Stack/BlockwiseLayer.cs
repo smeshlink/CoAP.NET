@@ -391,7 +391,7 @@ namespace CoAP.Stack
                         EmptyMessage rst = EmptyMessage.NewRST(response);
                         base.SendEmptyMessage(nextLayer, exchange, rst);
                     }
-                    exchange.Request.IsCanceled = true;
+                    exchange.Request.IsCancelled = true;
                 }
             }
         }
