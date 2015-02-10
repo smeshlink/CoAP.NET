@@ -61,17 +61,20 @@ namespace CoAP
         /// <summary>
         /// Occurs when this message has been acknowledged by the remote endpoint.
         /// </summary>
+        [Obsolete("Will be renamed to Acknowledged in next release.")]
         public event EventHandler Acknowledge;
 
         /// <summary>
         /// Occurs when this message has been rejected by the remote endpoint.
         /// </summary>
+        [Obsolete("Will be renamed to Rejected in next release.")]
         public event EventHandler Reject;
 
         /// <summary>
         /// Occurs when the client stops retransmitting the message and still has
         /// not received anything from the remote endpoint.
         /// </summary>
+        [Obsolete("Will be renamed to TimedOut in next release.")]
         public event EventHandler Timeout;
 
         /// <summary>
