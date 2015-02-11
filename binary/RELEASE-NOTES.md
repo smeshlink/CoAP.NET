@@ -1,6 +1,19 @@
 CoAP.NET Release Notes
 ======================
 
+changes in 1.0.0
+----------------
+
+* [added] support for RFC7252!
+* [improved] redefine compile symbols
+* [improved] rename events and properties in CoAP Message
+* [improved] allow random block request
+* [improved] separate CoAP.Proxy namespace
+* [improved] update Common.Logging to v3.0.0
+* [fixed] incorrect link format serialization
+* [fixed] null reference in CoAPClient.Discover()
+* [fixed] a lot of others
+
 changes in 0.18
 ---------------
 

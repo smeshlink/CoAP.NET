@@ -1,0 +1,160 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>CoAP.Proxy</name>
+    </assembly>
+    <members>
+        <member name="M:CoAP.Proxy.HttpTranslator.GetCoapResponse(System.Net.HttpWebResponse,CoAP.Request)">
+            <summary>
+            Gets the CoAP response from an incoming HTTP response. No null value is
+            returned. The response is created from a predefined mapping of the HTTP
+            response codes. If the code is 204, which has
+            multiple meaning, the mapping is handled looking on the request method
+            that has originated the response. The options are set thorugh the HTTP
+            headers and the option max-age, if not indicated, is set to the default
+            value (60 seconds). if the response has an enclosing entity, it is mapped
+            to a CoAP payload and the content-type of the CoAP message is set
+            properly.
+            </summary>
+            <param name="httpResponse">the http response</param>
+            <param name="coapRequest">the coap response</param>
+            <returns></returns>
+            <exception cref="T:System.ArgumentNullException"></exception>
+            <exception cref="T:CoAP.Proxy.TranslationException"></exception>
+        </member>
+        <member name="M:CoAP.Proxy.HttpTranslator.GetCoapRequest(CoAP.Http.IHttpRequest,System.String,System.Boolean)">
+            <summary>
+            Gets the coap request. Creates the CoAP request from the HTTP method and
+            mapping it through the properties file. The uri is translated using
+            regular expressions, the uri format expected is either the embedded
+            mapping (http://proxyname.domain:80/proxy/coapserver:5683/resource
+            converted in coap://coapserver:5683/resource) or the standard uri to
+            indicate a local request not to be forwarded. The method uses a decoder
+            to translate the application/x-www-form-urlencoded format of the uri. The
+            CoAP options are set translating the headers. If the HTTP message has an
+            enclosing entity, it is converted to create the payload of the CoAP
+            message; finally the content-type is set accordingly to the header and to
+            the entity type.
+            </summary>
+            <param name="httpRequest">the http request</param>
+            <param name="proxyResource"></param>
+            <param name="proxyingEnabled"></param>
+            <returns></returns>
+        </member>
+        <member name="M:CoAP.Proxy.HttpTranslator.GetCoapMediaType(System.String)">
+            <summary>
+            Gets the coap media type associated to the http content type. Firstly, it looks
+            for a predefined mapping. If this step fails, then it
+            tries to explicitly map/parse the declared mime/type by the http content type.
+            If even this step fails, it sets application/octet-stream as
+            content-type.
+            </summary>
+            <param name="httpContentTypeString"></param>
+            <returns></returns>
+        </member>
+        <member name="M:CoAP.Proxy.HttpTranslator.GetCoapOptions(System.Collections.Specialized.NameValueCollection)">
+            <summary>
+            Gets the coap options starting from an array of http headers. The
+            content-type is not handled by this method. The method iterates over an
+            array of headers and for each of them tries to find a predefined mapping
+            if the mapping does not exists it skips the header
+            ignoring it. The method handles separately certain headers which are
+            translated to options (such as accept or cache-control) whose content
+            should be semantically checked or requires ad-hoc translation. Otherwise,
+            the headers content is translated with the appropriate format required by
+            the mapped option.
+            </summary>
+            <param name="headers"></param>
+            <returns></returns>
+            <exception cref="T:System.ArgumentNullException"></exception>
+        </member>
+        <member name="M:CoAP.Proxy.HttpTranslator.GetHttpRequest(CoAP.Request)">
+            <summary>
+            Gets the http request starting from a CoAP request. The method creates
+            the HTTP request through its request line. The request line is built with
+            the uri coming from the string representing the CoAP method and the uri
+            obtained from the proxy-uri option. If a payload is provided, the HTTP
+            request encloses an HTTP entity and consequently the content-type is set.
+            Finally, the CoAP options are mapped to the HTTP headers.
+            </summary>
+            <param name="coapRequest">the coap request</param>
+            <returns>the http request</returns>
+            <exception cref="T:System.ArgumentNullException"></exception>
+            <exception cref="T:CoAP.Proxy.TranslationException"></exception> 
+        </member>
+        <member name="M:CoAP.Proxy.HttpTranslator.GetHttpHeaders(System.Collections.Generic.IEnumerable{CoAP.Option})">
+            <summary>
+            Gets the http headers from a list of CoAP options. The method iterates
+            over the list looking for a translation of each option in the predefined
+            mapping. This process ignores the proxy-uri and the content-type because
+            they are managed differently. If a mapping is present, the content of the
+            option is mapped to a string accordingly to its original format and set
+            as the content of the header.
+            </summary>
+            <param name="optionList"></param>
+            <returns></returns>
+            <exception cref="T:System.ArgumentNullException"></exception>
+        </member>
+        <member name="M:CoAP.Proxy.HttpTranslator.GetHttpResponse(CoAP.Http.IHttpRequest,CoAP.Response,CoAP.Http.IHttpResponse)">
+            <summary>
+            Sets the parameters of the incoming http response from a CoAP response.
+            The status code is mapped through the properties file and is set through
+            the StatusLine. The options are translated to the corresponding headers
+            and the max-age (in the header cache-control) is set to the default value
+            (60 seconds) if not already present. If the request method was not HEAD
+            and the coap response has a payload, the entity and the content-type are
+            set in the http response.
+            </summary>
+        </member>
+        <member name="T:CoAP.Proxy.HttpStack">
+            <summary>
+            Class encapsulating the logic of a http server. The class create a receiver
+            thread that it is always blocked on the listen primitive. For each connection
+            this thread creates a new thread that handles the client/server dialog.
+            </summary>
+        </member>
+        <member name="F:CoAP.Proxy.HttpStack.ProxyResourceName">
+            <summary>
+            Resource associated with the proxying behavior.
+            If a client requests resource indicated by
+            http://proxy-address/ProxyResourceName/coap-server, the proxying
+            handler will forward the request desired coap server.
+            </summary>
+        </member>
+        <member name="F:CoAP.Proxy.HttpStack.LocalResourceName">
+            <summary>
+            The resource associated with the local resources behavior.
+            If a client requests resource indicated by
+            http://proxy-address/LocalResourceName/coap-resource, the proxying
+            handler will forward the request to the local resource requested.
+            </summary>
+        </member>
+        <member name="T:CoAP.Proxy.CoapTranslator">
+            <summary>
+            Provides the translations between the messages from the internal CoAP nodes and external ones.
+            </summary>
+        </member>
+        <member name="M:CoAP.Proxy.CoapTranslator.GetRequest(CoAP.Request)">
+            <summary>
+            Starting from an external CoAP request, the method fills a new request
+            for the internal CoAP nodes. Translates the proxy-uri option in the uri
+            of the new request and simply copies the options and the payload from the
+            original request to the new one.
+            </summary>
+            <param name="incomingRequest">the original request</param>
+            <returns></returns>
+            <exception cref="T:System.ArgumentNullException">the <paramref name="incomingRequest"/> is null</exception>
+            <exception cref="T:CoAP.Proxy.TranslationException"></exception>
+        </member>
+        <member name="M:CoAP.Proxy.CoapTranslator.GetResponse(CoAP.Response)">
+            <summary>
+            Fills the new response with the response received from the internal CoAP
+            node. Simply copies the options and the payload from the forwarded
+            response to the new one.
+            </summary>
+            <param name="incomingResponse">the forwarded request</param>
+            <exception cref="T:System.ArgumentNullException">the <paramref name="incomingResponse"/> is null</exception>
+            <returns></returns>
+        </member>
+    </members>
+</doc>
