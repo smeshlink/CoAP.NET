@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+    <metadata>
+        <id>CoAP.Proxy</id>
+        <version>1.0.0</version>
+        <title>CoAP.Proxy</title>
+        <authors>Longshine</authors>
+        <owners>Longshine</owners>
+        <licenseUrl>https://github.com/smeshlink/CoAP.NET/blob/master/LICENSE</licenseUrl>
+        <projectUrl>https://github.com/smeshlink/CoAP.NET</projectUrl>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <description>CoAP.NET is an implementation in C# providing CoAP-based services to .NET applications.</description>
+        <summary>.NET implementation of the Constrained Application Protocol (CoAP)</summary>
+        <tags>6LoWPAN CoAP HTTP proxy</tags>
+        <frameworkAssemblies>
+            <frameworkAssembly assemblyName="System" targetFramework="" />
+            <frameworkAssembly assemblyName="System.Runtime.Remoting" targetFramework="" />
+        </frameworkAssemblies>
+        <dependencies>
+					<dependency id="CoAP" version="1.0.0" />
+        </dependencies>
+    </metadata>
+    <files>
+        <file src="binary\1.0.0\NET20\CoAP.Proxy.dll" target="lib\net20\CoAP.Proxy.dll" />
+        <file src="binary\1.0.0\NET20\CoAP.Proxy.pdb" target="lib\net20\CoAP.Proxy.pdb" />
+        <file src="binary\1.0.0\NET20\CoAP.Proxy.XML" target="lib\net20\CoAP.Proxy.XML" />
+        <file src="binary\1.0.0\NET40\CoAP.Proxy.dll" target="lib\net40\CoAP.Proxy.dll" />
+        <file src="binary\1.0.0\NET40\CoAP.Proxy.pdb" target="lib\net40\CoAP.Proxy.pdb" />
+        <file src="binary\1.0.0\NET40\CoAP.Proxy.XML" target="lib\net40\CoAP.Proxy.XML" />
+        <file src="LICENSE" target="LICENSE" />
+    </files>
+</package>

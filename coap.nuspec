@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
         <id>CoAP</id>
-        <version>0.18</version>
+        <version>1.0.0</version>
         <title>CoAP.NET</title>
         <authors>Longshine</authors>
         <owners>Longshine</owners>
@@ -11,7 +11,17 @@
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
         <description>CoAP.NET is an implementation in C# providing CoAP-based services to .NET applications.</description>
         <summary>.NET implementation of the Constrained Application Protocol (CoAP)</summary>
-        <releaseNotes>* 0.18
+        <releaseNotes>* 1.0.0
+  - Add support for RFC7252!
+  - Redefine compile symbols
+  - Rename events and properties in CoAP Message
+  - Allow random block request
+  - Separate CoAP.Proxy namespace
+  - Update Common.Logging to v3.0.0
+  - Fix incorrect link format serialization
+  - Fix null reference in CoAPClient.Discover()
+  - Fix a lot of others
+* 0.18
   - Add support for CoAP-18
   - Add new layers and stack structure
   - Add new server and client APIs
@@ -46,43 +56,18 @@
 * 0.08
   - Update to CoAP-08
   - Support both IPv6/IPv4</releaseNotes>
-        <tags>6LoWPAN blockwise CoAP observe</tags>
+        <tags>6LoWPAN blockwise CoAP observe RFC7252</tags>
         <frameworkAssemblies>
             <frameworkAssembly assemblyName="System" targetFramework="" />
-            <frameworkAssembly assemblyName="System.Runtime.Remoting" targetFramework="" />
         </frameworkAssemblies>
     </metadata>
     <files>
-        <file src="binary\0.18\NET20\CoAP.NET-03.dll" target="lib\net20\CoAP.NET-03.dll" />
-        <file src="binary\0.18\NET20\CoAP.NET-03.pdb" target="lib\net20\CoAP.NET-03.pdb" />
-        <file src="binary\0.18\NET20\CoAP.NET-03.XML" target="lib\net20\CoAP.NET-03.XML" />
-        <file src="binary\0.18\NET20\CoAP.NET-08.dll" target="lib\net20\CoAP.NET-08.dll" />
-        <file src="binary\0.18\NET20\CoAP.NET-08.pdb" target="lib\net20\CoAP.NET-08.pdb" />
-        <file src="binary\0.18\NET20\CoAP.NET-08.XML" target="lib\net20\CoAP.NET-08.XML" />
-        <file src="binary\0.18\NET20\CoAP.NET-13.dll" target="lib\net20\CoAP.NET-13.dll" />
-        <file src="binary\0.18\NET20\CoAP.NET-13.pdb" target="lib\net20\CoAP.NET-13.pdb" />
-        <file src="binary\0.18\NET20\CoAP.NET-13.XML" target="lib\net20\CoAP.NET-13.XML" />
-        <file src="binary\0.18\NET20\CoAP.NET-18.dll" target="lib\net20\CoAP.NET-18.dll" />
-        <file src="binary\0.18\NET20\CoAP.NET-18.pdb" target="lib\net20\CoAP.NET-18.pdb" />
-        <file src="binary\0.18\NET20\CoAP.NET-18.XML" target="lib\net20\CoAP.NET-18.XML" />
-        <file src="binary\0.18\NET20\CoAP.NET.dll" target="lib\net20\CoAP.NET.dll" />
-        <file src="binary\0.18\NET20\CoAP.NET.pdb" target="lib\net20\CoAP.NET.pdb" />
-        <file src="binary\0.18\NET20\CoAP.NET.XML" target="lib\net20\CoAP.NET.XML" />
-        <file src="binary\0.18\NET40\CoAP.NET-03.dll" target="lib\net40\CoAP.NET-03.dll" />
-        <file src="binary\0.18\NET40\CoAP.NET-03.pdb" target="lib\net40\CoAP.NET-03.pdb" />
-        <file src="binary\0.18\NET40\CoAP.NET-03.XML" target="lib\net40\CoAP.NET-03.XML" />
-        <file src="binary\0.18\NET40\CoAP.NET-08.dll" target="lib\net40\CoAP.NET-08.dll" />
-        <file src="binary\0.18\NET40\CoAP.NET-08.pdb" target="lib\net40\CoAP.NET-08.pdb" />
-        <file src="binary\0.18\NET40\CoAP.NET-08.XML" target="lib\net40\CoAP.NET-08.XML" />
-        <file src="binary\0.18\NET40\CoAP.NET-13.dll" target="lib\net40\CoAP.NET-13.dll" />
-        <file src="binary\0.18\NET40\CoAP.NET-13.pdb" target="lib\net40\CoAP.NET-13.pdb" />
-        <file src="binary\0.18\NET40\CoAP.NET-13.XML" target="lib\net40\CoAP.NET-13.XML" />
-        <file src="binary\0.18\NET40\CoAP.NET-18.dll" target="lib\net40\CoAP.NET-18.dll" />
-        <file src="binary\0.18\NET40\CoAP.NET-18.pdb" target="lib\net40\CoAP.NET-18.pdb" />
-        <file src="binary\0.18\NET40\CoAP.NET-18.XML" target="lib\net40\CoAP.NET-18.XML" />
-        <file src="binary\0.18\NET40\CoAP.NET.dll" target="lib\net40\CoAP.NET.dll" />
-        <file src="binary\0.18\NET40\CoAP.NET.pdb" target="lib\net40\CoAP.NET.pdb" />
-        <file src="binary\0.18\NET40\CoAP.NET.XML" target="lib\net40\CoAP.NET.XML" />
+        <file src="binary\1.0.0\NET20\CoAP.NET.dll" target="lib\net20\CoAP.NET.dll" />
+        <file src="binary\1.0.0\NET20\CoAP.NET.pdb" target="lib\net20\CoAP.NET.pdb" />
+        <file src="binary\1.0.0\NET20\CoAP.NET.XML" target="lib\net20\CoAP.NET.XML" />
+        <file src="binary\1.0.0\NET40\CoAP.NET.dll" target="lib\net40\CoAP.NET.dll" />
+        <file src="binary\1.0.0\NET40\CoAP.NET.pdb" target="lib\net40\CoAP.NET.pdb" />
+        <file src="binary\1.0.0\NET40\CoAP.NET.XML" target="lib\net40\CoAP.NET.XML" />
         <file src="LICENSE" target="LICENSE" />
     </files>
 </package>
