@@ -176,7 +176,7 @@ namespace CoAP.Stack
 
         private void PrepareSelfReplacement(INextLayer nextLayer, Exchange exchange, Response response)
         {
-            response.Acknowledge += (o, e) =>
+            response.Acknowledged += (o, e) =>
             {
                 lock (exchange)
                 {
@@ -224,7 +224,7 @@ namespace CoAP.Stack
                 }
             };
 
-            response.Timeout += (o, e) =>
+            response.TimedOut += (o, e) =>
             {
                 ObserveRelation relation = exchange.Relation;
                 if (log.IsDebugEnabled)

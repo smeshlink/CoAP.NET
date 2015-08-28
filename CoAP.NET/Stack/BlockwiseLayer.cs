@@ -481,7 +481,7 @@ namespace CoAP.Stack
             block.Destination = response.Destination;
             block.Token = response.Token;
             block.SetOptions(response.GetOptions());
-            block.Timeout += (o, e) => response.IsTimedOut = true;
+            block.TimedOut += (o, e) => response.IsTimedOut = true;
 
             Int32 payloadSize = response.PayloadSize;
             Int32 currentSize = 1 << (4 + szx);

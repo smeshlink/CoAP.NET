@@ -61,27 +61,18 @@ namespace CoAP
         /// <summary>
         /// Occurs when this message has been acknowledged by the remote endpoint.
         /// </summary>
-        [Obsolete("Will be renamed to Acknowledged in next release.")]
-        public event EventHandler Acknowledge;
+        public event EventHandler Acknowledged;
 
         /// <summary>
         /// Occurs when this message has been rejected by the remote endpoint.
         /// </summary>
-        [Obsolete("Will be renamed to Rejected in next release.")]
-        public event EventHandler Reject;
+        public event EventHandler Rejected;
 
         /// <summary>
         /// Occurs when the client stops retransmitting the message and still has
         /// not received anything from the remote endpoint.
         /// </summary>
-        [Obsolete("Will be renamed to TimedOut in next release.")]
-        public event EventHandler Timeout;
-
-        /// <summary>
-        /// Occurs when this message has been canceled.
-        /// </summary>
-        [Obsolete("Will be name for related action in next release. Please use Cancelled instead.")]
-        public event EventHandler Cancel;
+        public event EventHandler TimedOut;
 
         /// <summary>
         /// Occurs when this message has been canceled.
@@ -207,16 +198,6 @@ namespace CoAP
         /// <summary>
         /// Gets or sets a value indicating whether this message has been acknowledged.
         /// </summary>
-        [Obsolete("Will be name for related event in the future. Please use IsAcknowledged instead.")]
-        public Boolean Acknowledged
-        {
-            get { return IsAcknowledged; }
-            set { IsAcknowledged = value; }
-        }
-
-        /// <summary>
-        /// Gets or sets a value indicating whether this message has been acknowledged.
-        /// </summary>
         public Boolean IsAcknowledged
         {
             get { return _acknowledged; }
@@ -226,16 +207,6 @@ namespace CoAP
                 if (value)
                     OnAcknowledged();
             }
-        }
-
-        /// <summary>
-        /// Gets or sets a value indicating whether this message has been rejected.
-        /// </summary>
-        [Obsolete("Will be name for related event in the future. Please use IsRejected instead.")]
-        public Boolean Rejected
-        {
-            get { return IsRejected; }
-            set { IsRejected = value; }
         }
 
         /// <summary>
@@ -256,17 +227,6 @@ namespace CoAP
         /// Gets or sets a value that indicates whether this CoAP message has timed out.
         /// Confirmable messages in particular might timeout.
         /// </summary>
-        [Obsolete("Will be name for related event in the future. Please use IsTimedOut instead.")]
-        public Boolean TimedOut
-        {
-            get { return IsTimedOut; }
-            set { IsTimedOut = value; }
-        }
-
-        /// <summary>
-        /// Gets or sets a value that indicates whether this CoAP message has timed out.
-        /// Confirmable messages in particular might timeout.
-        /// </summary>
         public Boolean IsTimedOut
         {
             get { return _timedOut; }
@@ -276,16 +236,6 @@ namespace CoAP
                 if (value)
                     OnTimedOut();
             }
-        }
-
-        /// <summary>
-        /// Gets or sets a value that indicates whether this CoAP message is canceled.
-        /// </summary>
-        [Obsolete("Will be removed in next release. Please use IsCanceled instead.")]
-        public Boolean Canceled
-        {
-            get { return IsCancelled; }
-            set { IsCancelled = value; }
         }
 
         /// <summary>
@@ -425,11 +375,19 @@ namespace CoAP
         }
 
         /// <summary>
+        /// Cancels this message.
+        /// </summary>
+        public void Cancel()
+        {
+            IsCancelled = true;
+        }
+
+        /// <summary>
         /// Called when being acknowledged.
         /// </summary>
         protected virtual void OnAcknowledged()
         {
-            Fire(Acknowledge);
+            Fire(Acknowledged);
         }
 
         /// <summary>
@@ -437,7 +395,7 @@ namespace CoAP
         /// </summary>
         protected virtual void OnRejected()
         {
-            Fire(Reject);
+            Fire(Rejected);
         }
 
         /// <summary>
@@ -445,7 +403,7 @@ namespace CoAP
         /// </summary>
         protected virtual void OnTimedOut()
         {
-            Fire(Timeout);
+            Fire(TimedOut);
         }
 
         /// <summary>
@@ -454,7 +412,6 @@ namespace CoAP
         protected virtual void OnCanceled()
         {
             Fire(Cancelled);
-            Fire(Cancel);
         }
 
         internal void FireRetransmitting()
@@ -535,11 +492,10 @@ namespace CoAP
         internal virtual void CopyEventHandler(Message src)
         {
             ForEach(src.Retransmitting, h => this.Retransmitting += h);
-            ForEach(src.Acknowledge, h => this.Acknowledge += h);
-            ForEach(src.Reject, h => this.Reject += h);
-            ForEach(src.Timeout, h => this.Timeout += h);
+            ForEach(src.Acknowledged, h => this.Acknowledged += h);
+            ForEach(src.Rejected, h => this.Rejected += h);
+            ForEach(src.TimedOut, h => this.TimedOut += h);
             ForEach(src.Cancelled, h => this.Cancelled += h);
-            ForEach(src.Cancel, h => this.Cancel += h);
         }
 
         internal static void ForEach(EventHandler src, Action<EventHandler> action)

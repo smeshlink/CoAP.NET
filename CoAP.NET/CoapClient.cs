@@ -393,8 +393,8 @@ namespace CoAP
         public void SendAsync(Request request, Action<Response> done = null, Action<FailReason> fail = null)
         {
             request.Respond += (o, e) => Deliver(done, e);
-            request.Reject += (o, e) => Fail(fail, FailReason.Rejected);
-            request.Timeout += (o, e) => Fail(fail, FailReason.TimedOut);
+            request.Rejected += (o, e) => Fail(fail, FailReason.Rejected);
+            request.TimedOut += (o, e) => Fail(fail, FailReason.TimedOut);
             
             Prepare(request).Send();
         }
@@ -469,8 +469,8 @@ namespace CoAP
                 relation.Canceled = true;
                 Fail(error, r);
             };
-            request.Reject += (o, e) => fail(FailReason.Rejected);
-            request.Timeout += (o, e) => fail(FailReason.TimedOut);
+            request.Rejected += (o, e) => fail(FailReason.Rejected);
+            request.TimedOut += (o, e) => fail(FailReason.TimedOut);
 
             Prepare(request, endpoint).Send();
             return relation;
