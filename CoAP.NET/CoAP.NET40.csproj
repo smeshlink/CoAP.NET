@@ -99,6 +99,7 @@
     <Compile Include="Observe\ObservingEndpoint.cs" />
     <Compile Include="Observe\ObserveManager.cs" />
     <Compile Include="Observe\ObserveRelation.cs" />
+    <Compile Include="Observe\ReregisterEventArgs.cs" />
     <Compile Include="Option.cs" />
     <Compile Include="OptionType.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

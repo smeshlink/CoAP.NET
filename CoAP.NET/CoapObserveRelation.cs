@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2011-2014, Longxiang He <helongxiang@smeshlink.com>,
+ * Copyright (c) 2011-2015, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
  * This program is distributed in the hope that it will be useful,
@@ -11,6 +11,7 @@
 
 using System;
 using CoAP.Net;
+using CoAP.Observe;
 
 namespace CoAP
 {
@@ -21,15 +22,21 @@ namespace CoAP
     /// </summary>
     public class CoapObserveRelation
     {
+        readonly ICoapConfig _config;
         readonly Request _request;
         readonly IEndPoint _endpoint;
         private Boolean _canceled;
         private Response _current;
+        private ObserveNotificationOrderer _orderer;
 
-        internal CoapObserveRelation(Request request, IEndPoint endpoint)
+        public CoapObserveRelation(Request request, IEndPoint endpoint, ICoapConfig config)
         {
+            _config = config;
             _request = request;
             _endpoint = endpoint;
+            _orderer = new ObserveNotificationOrderer(config);
+
+            request.Reregistering += OnReregister;
         }
 
         public Request Request
@@ -40,7 +47,12 @@ namespace CoAP
         public Response Current
         {
             get { return _current; }
-            internal set { _current = value; }
+            set { _current = value; }
+        }
+
+        public ObserveNotificationOrderer Orderer
+        {
+            get { return _orderer; }
         }
 
         public Boolean Canceled
@@ -72,6 +84,15 @@ namespace CoAP
             // cancel old ongoing request
             _request.IsCancelled = true;
             _canceled = true;
+        }
+
+        private void OnReregister(Object sender, ReregisterEventArgs e)
+        {
+            // TODO: update request in observe handle for correct cancellation?
+            //_request = e.RefreshRequest;
+
+            // reset orderer to accept any sequence number since server might have rebooted
+            _orderer = new ObserveNotificationOrderer(_config);
         }
     }
 }

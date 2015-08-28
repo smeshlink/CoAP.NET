@@ -298,6 +298,7 @@ namespace CoAP.Stack
                     refresh.CopyEventHandler(request);
                     if (log.IsDebugEnabled)
                         log.Debug("Re-registering for " + request);
+                    request.FireReregister(refresh);
                     _reregister(refresh);
                 }
                 else

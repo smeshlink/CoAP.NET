@@ -14,6 +14,7 @@ using System.Net;
 using System.Text.RegularExpressions;
 using CoAP.Log;
 using CoAP.Net;
+using CoAP.Observe;
 
 namespace CoAP
 {
@@ -36,7 +37,16 @@ namespace CoAP
         /// Fired when a response arrives.
         /// </summary>
         public event EventHandler<ResponseEventArgs> Respond;
+
+        /// <summary>
+        /// Occurs when a block of response arrives in a blockwise transfer.
+        /// </summary>
         public event EventHandler<ResponseEventArgs> Responding;
+
+        /// <summary>
+        /// Occurs when a observing request is reregistering.
+        /// </summary>
+        public event EventHandler<ReregisterEventArgs> Reregistering;
 
         /// <summary>
         /// Initializes a request message.
@@ -299,6 +309,13 @@ namespace CoAP
             EventHandler<ResponseEventArgs> h = Responding;
             if (h != null)
                 h(this, new ResponseEventArgs(response));
+        }
+
+        internal void FireReregister(Request refresh)
+        {
+            EventHandler<ReregisterEventArgs> h = Reregistering;
+            if (h != null)
+                h(this, new ReregisterEventArgs(refresh));
         }
 
         private void ValidateBeforeSending()

@@ -444,15 +444,14 @@ namespace CoAP
         private CoapObserveRelation ObserveAsync(Request request, Action<Response> notify, Action<FailReason> error)
         {
             IEndPoint endpoint = GetEffectiveEndpoint(request);
-            ObserveNotificationOrderer orderer = new ObserveNotificationOrderer(_config);
-            CoapObserveRelation relation = new CoapObserveRelation(request, endpoint);
+            CoapObserveRelation relation = new CoapObserveRelation(request, endpoint, _config);
 
             request.Respond += (o, e) =>
             {
                 Response resp = e.Response;
-                lock (orderer)
+                lock (relation)
                 {
-                    if (orderer.IsNew(resp))
+                    if (relation.Orderer.IsNew(resp))
                     {
                         relation.Current = resp;
                         Deliver(notify, e);

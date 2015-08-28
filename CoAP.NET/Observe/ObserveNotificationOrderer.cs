@@ -19,7 +19,7 @@ namespace CoAP.Observe
     /// This class holds the state of an observe relation such
     /// as the timeout of the last notification and the current number.
     /// </summary>
-    class ObserveNotificationOrderer
+    public class ObserveNotificationOrderer
     {
         readonly ICoapConfig _config;
         private Int32 _number;
