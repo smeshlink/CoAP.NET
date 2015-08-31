@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2011-2014, Longxiang He <helongxiang@smeshlink.com>,
+ * Copyright (c) 2011-2015, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
  * This program is distributed in the hope that it will be useful,
