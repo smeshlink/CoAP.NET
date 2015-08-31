@@ -31,7 +31,7 @@ namespace CoAP
         private Uri _uri;
         private Response _currentResponse;
         private IEndPoint _endPoint;
-        private Object _sync = new Byte[0];
+        private Object _sync;
 
         /// <summary>
         /// Fired when a response arrives.
@@ -159,7 +159,8 @@ namespace CoAP
             set
             {
                 _currentResponse = value;
-                NotifyResponse();
+                if (_sync != null)
+                    NotifyResponse();
                 FireRespond(value);
             }
         }
@@ -255,6 +256,18 @@ namespace CoAP
         /// <exception cref="System.Threading.ThreadInterruptedException"></exception>
         public Response WaitForResponse(Int32 millisecondsTimeout)
         {
+            // lazy initialization of a lock
+            if (_sync == null)
+            {
+                lock (this)
+                {
+                    if (_sync == null)
+                    {
+                        _sync = new Byte[0];
+                    }
+                }
+            }
+
             lock (_sync)
             {
                 if (_currentResponse == null &&
@@ -271,21 +284,24 @@ namespace CoAP
         /// <inheritdoc/>
         protected override void OnRejected()
         {
-            NotifyResponse();
+            if (_sync != null)
+                NotifyResponse();
             base.OnRejected();
         }
 
         /// <inheritdoc/>
         protected override void OnTimedOut()
         {
-            NotifyResponse();
+            if (_sync != null)
+                NotifyResponse();
             base.OnTimedOut();
         }
 
         /// <inheritdoc/>
         protected override void OnCanceled()
         {
-            NotifyResponse();
+            if (_sync != null)
+                NotifyResponse();
             base.OnCanceled();
         }
 
