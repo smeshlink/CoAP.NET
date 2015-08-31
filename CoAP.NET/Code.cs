@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2011-2013, Longxiang He <helongxiang@smeshlink.com>,
+ * Copyright (c) 2011-2015, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
  * This program is distributed in the hope that it will be useful,
@@ -173,7 +173,7 @@ namespace CoAP
         /// </summary>
         public static Boolean IsSuccess(Int32 code)
         {
-            return code >= Created && code < BadRequest;
+            return code >= 64 && code < 96;
         }
 
         /// <summary>
