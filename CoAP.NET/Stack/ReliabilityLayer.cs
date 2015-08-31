@@ -297,7 +297,22 @@ namespace CoAP.Stack
 
             public void Cancel()
             {
-                _timer.Stop();
+                Timer t = System.Threading.Interlocked.Exchange(ref _timer, null);
+
+                // avoid race condition of multiple responses (e.g., notifications)
+                if (t == null)
+                    return;
+
+                try
+                {
+                    t.Stop();
+                    t.Dispose();
+                }
+                catch (ObjectDisposedException)
+                {
+                    // ignore
+                }
+
                 if (log.IsDebugEnabled)
                 {
                     log.Debug("Cancel retransmission for -->");
@@ -306,8 +321,6 @@ namespace CoAP.Stack
                     else
                         log.Debug(_exchange.CurrentResponse);
                 }
-                _timer.Dispose();
-                _timer = null;
             }
 
             public void Dispose()
