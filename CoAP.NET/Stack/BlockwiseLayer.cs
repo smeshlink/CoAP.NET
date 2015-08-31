@@ -362,6 +362,9 @@ namespace CoAP.Stack
                         AssembleMessage(status, assembled, response);
                         assembled.Type = response.Type;
 
+                        // set overall transfer RTT
+                        assembled.RTT = (DateTime.Now - exchange.Timestamp).TotalMilliseconds;
+
                         // Check if this response is a notification
                         Int32 observe = status.Observe;
                         if (observe != BlockwiseStatus.NoObserve)

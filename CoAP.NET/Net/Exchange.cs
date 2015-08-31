@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2011-2014, Longxiang He <helongxiang@smeshlink.com>,
+ * Copyright (c) 2011-2015, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
  * This program is distributed in the hope that it will be useful,
@@ -38,7 +38,7 @@ namespace CoAP.Net
         private BlockwiseStatus _responseBlockStatus;
         private ObserveRelation _relation;
         private BlockOption _block1ToAck;
-        private DateTime _timestamp;
+        readonly DateTime _timestamp;
         private Boolean _complete;
         private IEndPoint _endpoint;
         private IOutbox _outbox;
@@ -138,10 +138,12 @@ namespace CoAP.Net
             set { _block1ToAck = value; }
         }
 
+        /// <summary>
+        /// Gets the time when this exchange was created.
+        /// </summary>
         public DateTime Timestamp
         {
             get { return _timestamp; }
-            set { _timestamp = value; }
         }
 
         public IOutbox Outbox
