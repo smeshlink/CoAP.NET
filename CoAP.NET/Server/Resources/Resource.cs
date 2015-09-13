@@ -72,11 +72,14 @@ namespace CoAP.Server.Resources
                 lock (this)
                 {
                     IResource parent = _parent;
-                    lock (parent)
+                    if  (parent != null)
                     {
-                        parent.Remove(this);
-                        _name = value;
-                        parent.Add(this);
+                        lock (parent)
+                        {
+                            parent.Remove(this);
+                            _name = value;
+                            parent.Add(this);
+                        }
                     }
                     AdjustChildrenPath();
                 }
