@@ -72,8 +72,12 @@ namespace CoAP.Server.Resources
                 lock (this)
                 {
                     IResource parent = _parent;
-                    if  (parent != null)
-                    {
+					if (parent == null)
+					{
+						_name = value;
+					}
+					else
+					{
                         lock (parent)
                         {
                             parent.Remove(this);
