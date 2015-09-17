@@ -2,11 +2,25 @@
 using System.Collections.Generic;
 using CoAP.Util;
 
+namespace CoAP.Client.DNX
+{
+	// DNX entry point
+	public class Program
+	{
+		public void Main(string[] args)
+		{
+			CoAP.Examples.ExampleClient.Main(args);
+		}
+	}
+}
+
 namespace CoAP.Examples
 {
-    class ExampleClient
+
+	// .NET 2, .NET 4 entry point
+	class ExampleClient
     {
-        static void Main(String[] args)
+        public static void Main(String[] args)
         {
             String method = null;
             Uri uri = null;
