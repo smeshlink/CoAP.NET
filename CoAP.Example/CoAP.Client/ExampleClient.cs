@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using CoAP.Util;
+
+#if DNX451
 using Common.Logging;
 using Common.Logging.Configuration;
 
@@ -19,6 +21,7 @@ namespace CoAP.Client.DNX
 		}
 	}
 }
+#endif
 
 namespace CoAP.Examples
 {
