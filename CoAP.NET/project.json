@@ -1,0 +1,22 @@
+﻿{
+  "version": "1.0.0-*",
+  "description": "CoAP.NET.DNX Class Library",
+  "authors": [ "Sergei Gnezdov" ],
+  "tags": [ "" ],
+  "projectUrl": "",
+  "licenseUrl": "",
+  "frameworks": {
+    "dnx451": { "frameworkAssemblies": {"System.ServiceModel": ""} }
+  },
+  "dependencies": {
+    "Common.Logging": "3.3.0"
+  },
+  "compileExclude": [
+    "Channel/UDPChannel.NET20.cs",
+    "Threading/Executors.NET20.cs",
+    "Util/System",
+    "Util/System.Collections.Concurrent",
+    "Util/System.Collections.Generic",
+    "Util/Delegates.cs"
+  ]
+}
