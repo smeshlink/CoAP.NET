@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using CoAP.Util;
+using Common.Logging;
+using Common.Logging.Configuration;
 
 namespace CoAP.Client.DNX
 {
@@ -9,6 +11,10 @@ namespace CoAP.Client.DNX
 	{
 		public void Main(string[] args)
 		{
+			NameValueCollection console_props = new NameValueCollection();
+			console_props["showDateTime"] = "true";
+			console_props["level"] = "Debug";
+			LogManager.Adapter = new Common.Logging.Simple.ConsoleOutLoggerFactoryAdapter(console_props);
 			CoAP.Examples.ExampleClient.Main(args);
 		}
 	}
