@@ -213,8 +213,12 @@ namespace CoAP.Server.Resources
             return _attributes.GetOrAdd(name, key =>
             {
                 List<String> list = new List<String>();
-                return new SynchronizedCollection<String>(((ICollection)list).SyncRoot, list, false);
-            });
+#if DNX451
+				return new SynchronizedCollection<String>(((ICollection)list).SyncRoot, list);
+#else
+				return new SynchronizedCollection<String>(((ICollection)list).SyncRoot, list, false);
+#endif
+			});
         }
 
         static Boolean IsEmpty(IEnumerable<String> values)

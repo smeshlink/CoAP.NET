@@ -4,6 +4,9 @@
 .svn
 Apps
 
+# DNX project file with a complete list of resolved dependencies
+project.lock.json
+
 # User-specific files
 *.suo
 *.user
