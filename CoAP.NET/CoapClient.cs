@@ -162,7 +162,6 @@ namespace CoAP
                 request.Token = CoapConstants.EmptyToken;
                 request.URI = Uri;
                 request.Send().WaitForResponse(timeout);
-                request.IsCancelled = true;
                 return request.IsRejected;
             }
             catch (System.Threading.ThreadInterruptedException)

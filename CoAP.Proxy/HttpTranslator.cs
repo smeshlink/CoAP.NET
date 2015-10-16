@@ -269,7 +269,8 @@ namespace CoAP.Proxy
                 if (proxyingEnabled)
                 {
                     // if the uri hasn't the indication of the scheme, add it
-                    if (!uriString.StartsWith("coap://"))
+                    if (!uriString.StartsWith("coap://") &&
+                        !uriString.StartsWith("coaps://"))
                     {
                         uriString = "coap://" + uriString;
                     }
