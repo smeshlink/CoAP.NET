@@ -2,11 +2,34 @@
 using System.Collections.Generic;
 using CoAP.Util;
 
+#if DNX451
+using Common.Logging;
+using Common.Logging.Configuration;
+
+namespace CoAP.Client.DNX
+{
+	// DNX entry point
+	public class Program
+	{
+		public void Main(string[] args)
+		{
+			NameValueCollection console_props = new NameValueCollection();
+			console_props["showDateTime"] = "true";
+			console_props["level"] = "Debug";
+			LogManager.Adapter = new Common.Logging.Simple.ConsoleOutLoggerFactoryAdapter(console_props);
+			CoAP.Examples.ExampleClient.Main(args);
+		}
+	}
+}
+#endif
+
 namespace CoAP.Examples
 {
-    class ExampleClient
+
+	// .NET 2, .NET 4 entry point
+	class ExampleClient
     {
-        static void Main(String[] args)
+        public static void Main(String[] args)
         {
             String method = null;
             Uri uri = null;
