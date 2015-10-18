@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2011-2014, Longxiang He <helongxiang@smeshlink.com>,
+ * Copyright (c) 2011-2015, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
  * This program is distributed in the hope that it will be useful,
@@ -23,7 +23,6 @@ namespace CoAP.Proxy
         readonly ICacheResource _cacheResource = new NoCache(); // TODO cache implementation
         private IProxyCoAPResolver _proxyCoapResolver;
         private HttpStack _httpStack;
-        private ProxyEndPoint _proxyEndPoint;
 
         public ProxyHttpServer()
             : this(CoapConfig.Default.HttpPort)
@@ -33,7 +32,6 @@ namespace CoAP.Proxy
         {
             _httpStack = new HttpStack(httpPort);
             _httpStack.RequestHandler = HandleRequest;
-            _proxyEndPoint = new ProxyEndPoint(this);
         }
 
         public IProxyCoAPResolver ProxyCoapResolver
@@ -44,8 +42,8 @@ namespace CoAP.Proxy
 
         private void HandleRequest(Request request)
         {
-            Exchange exchange = new Exchange(request, Origin.Remote);
-            exchange.EndPoint = _proxyEndPoint;
+            Exchange exchange = new ProxyExchange(this, request);
+            exchange.Request = request;
 
             Response response = null;
             // ignore the request if it is reset or acknowledge
@@ -70,7 +68,6 @@ namespace CoAP.Proxy
             }
             else
             {
-
                 // edit the request to be correctly forwarded if the proxy-uri is
                 // set
                 if (request.HasOption(OptionType.ProxyUri))
@@ -129,92 +126,45 @@ namespace CoAP.Proxy
             request.UriPath = clientPath;
         }
 
-        class ProxyEndPoint : IEndPoint
+        class ProxyExchange : Exchange
         {
             readonly ProxyHttpServer _server;
+            readonly Request _request;
 
-            public ProxyEndPoint(ProxyHttpServer server)
+            public ProxyExchange(ProxyHttpServer server, Request request)
+                : base(request, Origin.Remote)
             {
                 _server = server;
+                _request = request;
             }
 
-            public void SendResponse(Exchange exchange, Response response)
+            public override void SendAccept()
+            {
+                // has no meaning for HTTP: do nothing
+            }
+
+            public override void SendReject()
+            {
+                // TODO: close the HTTP connection to signal rejection
+            }
+
+            public override void SendResponse(Response response)
             {
                 // Redirect the response to the HttpStack instead of a normal
                 // CoAP endpoint.
-                exchange.Request.Response = response;
+                // TODO: When we change endpoint to be an interface, we can
+                // redirect the responses a little more elegantly.
                 try
                 {
-                    _server.ResponseProduced(exchange.Request, response);
-                    _server._httpStack.DoSendResponse(exchange.Request, response);
+                    _request.Response = response;
+                    _server.ResponseProduced(_request, response);
+                    _server._httpStack.DoSendResponse(_request, response);
                 }
                 catch (Exception e)
                 {
                     if (log.IsWarnEnabled)
                         log.Warn("Exception while responding to Http request", e);
                 }
-            }
-
-            public ICoapConfig Config
-            {
-                get { throw new NotImplementedException(); }
-            }
-
-            public System.Net.EndPoint LocalEndPoint
-            {
-                get { throw new NotImplementedException(); }
-            }
-
-            public bool Running
-            {
-                get { throw new NotImplementedException(); }
-            }
-
-            public IMessageDeliverer MessageDeliverer
-            {
-                get
-                {
-                    throw new NotImplementedException();
-                }
-                set
-                {
-                    throw new NotImplementedException();
-                }
-            }
-
-            public IOutbox Outbox
-            {
-                get { throw new NotImplementedException(); }
-            }
-
-            public void Start()
-            {
-                throw new NotImplementedException();
-            }
-
-            public void Stop()
-            {
-                throw new NotImplementedException();
-            }
-
-            public void Clear()
-            {
-                throw new NotImplementedException();
-            }
-
-            public void SendRequest(Request request)
-            {
-                throw new NotImplementedException();
-            }
-
-            public void SendEmptyMessage(Exchange exchange, EmptyMessage message)
-            {
-                throw new NotImplementedException();
-            }
-
-            public void Dispose()
-            {
-                throw new NotImplementedException();
             }
         }
 

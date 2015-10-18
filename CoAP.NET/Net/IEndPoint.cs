@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2011-2014, Longxiang He <helongxiang@smeshlink.com>,
+ * Copyright (c) 2011-2015, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
  * This program is distributed in the hope that it will be useful,
@@ -40,6 +40,30 @@ namespace CoAP.Net
         /// Gets the outbox.
         /// </summary>
         IOutbox Outbox { get; }
+        /// <summary>
+        /// Occurs when a request is about to be sent.
+        /// </summary>
+        event EventHandler<MessageEventArgs<Request>> SendingRequest;
+        /// <summary>
+        /// Occurs when a response is about to be sent.
+        /// </summary>
+        event EventHandler<MessageEventArgs<Response>> SendingResponse;
+        /// <summary>
+        /// Occurs when a an empty message is about to be sent.
+        /// </summary>
+        event EventHandler<MessageEventArgs<EmptyMessage>> SendingEmptyMessage;
+        /// <summary>
+        /// Occurs when a request request has been received.
+        /// </summary>
+        event EventHandler<MessageEventArgs<Request>> ReceivingRequest;
+        /// <summary>
+        /// Occurs when a response has been received.
+        /// </summary>
+        event EventHandler<MessageEventArgs<Response>> ReceivingResponse;
+        /// <summary>
+        /// Occurs when an empty message has been received.
+        /// </summary>
+        event EventHandler<MessageEventArgs<EmptyMessage>> ReceivingEmptyMessage;
         /// <summary>
         /// Starts this endpoint and all its components.
         /// </summary>

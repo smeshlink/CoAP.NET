@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2011-2014, Longxiang He <helongxiang@smeshlink.com>,
+ * Copyright (c) 2011-2015, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
  * This program is distributed in the hope that it will be useful,
@@ -33,6 +33,19 @@ namespace CoAP.Net
         private Int32 _running;
         private System.Net.EndPoint _localEP;
         private IExecutor _executor;
+
+        /// <inheritdoc/>
+        public event EventHandler<MessageEventArgs<Request>> SendingRequest;
+        /// <inheritdoc/>
+        public event EventHandler<MessageEventArgs<Response>> SendingResponse;
+        /// <inheritdoc/>
+        public event EventHandler<MessageEventArgs<EmptyMessage>> SendingEmptyMessage;
+        /// <inheritdoc/>
+        public event EventHandler<MessageEventArgs<Request>> ReceivingRequest;
+        /// <inheritdoc/>
+        public event EventHandler<MessageEventArgs<Response>> ReceivingResponse;
+        /// <inheritdoc/>
+        public event EventHandler<MessageEventArgs<EmptyMessage>> ReceivingEmptyMessage;
 
         /// <summary>
         /// Instantiates a new endpoint.
@@ -240,6 +253,9 @@ namespace CoAP.Net
                         EmptyMessage rst = new EmptyMessage(MessageType.RST);
                         rst.Destination = e.EndPoint;
                         rst.ID = decoder.ID;
+
+                        Fire(SendingEmptyMessage, rst);
+
                         _channel.Send(Serialize(rst), rst.Destination);
 
                         if (log.IsWarnEnabled)
@@ -249,11 +265,17 @@ namespace CoAP.Net
                 }
 
                 request.Source = e.EndPoint;
-                Exchange exchange = _matcher.ReceiveRequest(request);
-                if (exchange != null)
+
+                Fire(ReceivingRequest, request);
+
+                if (!request.IsCancelled)
                 {
-                    exchange.EndPoint = this;
-                    _coapStack.ReceiveRequest(exchange, request);
+                    Exchange exchange = _matcher.ReceiveRequest(request);
+                    if (exchange != null)
+                    {
+                        exchange.EndPoint = this;
+                        _coapStack.ReceiveRequest(exchange, request);
+                    }
                 }
             }
             else if (decoder.IsResponse)
@@ -261,18 +283,23 @@ namespace CoAP.Net
                 Response response = decoder.DecodeResponse();
                 response.Source = e.EndPoint;
 
-                Exchange exchange = _matcher.ReceiveResponse(response);
-                if (exchange != null)
+                Fire(ReceivingResponse, response);
+
+                if (!response.IsCancelled)
                 {
-                    response.RTT = (DateTime.Now - exchange.Timestamp).TotalMilliseconds;
-                    exchange.EndPoint = this;
-                    _coapStack.ReceiveResponse(exchange, response);
-                }
-                else if (response.Type != MessageType.ACK)
-                {
-                    if (log.IsDebugEnabled)
-                        log.Debug("Rejecting unmatchable response from " + e.EndPoint);
-                    Reject(response);
+                    Exchange exchange = _matcher.ReceiveResponse(response);
+                    if (exchange != null)
+                    {
+                        response.RTT = (DateTime.Now - exchange.Timestamp).TotalMilliseconds;
+                        exchange.EndPoint = this;
+                        _coapStack.ReceiveResponse(exchange, response);
+                    }
+                    else if (response.Type != MessageType.ACK)
+                    {
+                        if (log.IsDebugEnabled)
+                            log.Debug("Rejecting unmatchable response from " + e.EndPoint);
+                        Reject(response);
+                    }
                 }
             }
             else if (decoder.IsEmpty)
@@ -280,20 +307,25 @@ namespace CoAP.Net
                 EmptyMessage message = decoder.DecodeEmptyMessage();
                 message.Source = e.EndPoint;
 
-                // CoAP Ping
-                if (message.Type == MessageType.CON || message.Type == MessageType.NON)
+                Fire(ReceivingEmptyMessage, message);
+
+                if (!message.IsCancelled)
                 {
-                    if (log.IsDebugEnabled)
-                        log.Debug("Responding to ping by " + e.EndPoint);
-                    Reject(message);
-                }
-                else
-                {
-                    Exchange exchange = _matcher.ReceiveEmptyMessage(message);
-                    if (exchange != null)
+                    // CoAP Ping
+                    if (message.Type == MessageType.CON || message.Type == MessageType.NON)
                     {
-                        exchange.EndPoint = this;
-                        _coapStack.ReceiveEmptyMessage(exchange, message);
+                        if (log.IsDebugEnabled)
+                            log.Debug("Responding to ping by " + e.EndPoint);
+                        Reject(message);
+                    }
+                    else
+                    {
+                        Exchange exchange = _matcher.ReceiveEmptyMessage(message);
+                        if (exchange != null)
+                        {
+                            exchange.EndPoint = this;
+                            _coapStack.ReceiveEmptyMessage(exchange, message);
+                        }
                     }
                 }
             }
@@ -306,7 +338,11 @@ namespace CoAP.Net
         private void Reject(Message message)
         {
             EmptyMessage rst = EmptyMessage.NewRST(message);
-            _channel.Send(Serialize(rst), rst.Destination);
+
+            Fire(SendingEmptyMessage, rst);
+
+            if (!rst.IsCancelled)
+                _channel.Send(Serialize(rst), rst.Destination);
         }
 
         private Byte[] Serialize(EmptyMessage message)
@@ -342,6 +378,12 @@ namespace CoAP.Net
             return bytes;
         }
 
+        private void Fire<T>(EventHandler<MessageEventArgs<T>> handler, T msg) where T : Message
+        {
+            if (handler != null)
+                handler(this, new MessageEventArgs<T>(msg));
+        }
+
         static IChannel NewUDPChannel(Int32 port, ICoapConfig config)
         {
             UDPChannel channel = new UDPChannel(port);
@@ -364,6 +406,8 @@ namespace CoAP.Net
         {
             _matcher.SendRequest(exchange, request);
 
+            Fire(SendingRequest, request);
+
             if (!request.IsCancelled)
                 _channel.Send(Serialize(request), request.Destination);
         }
@@ -372,6 +416,8 @@ namespace CoAP.Net
         {
             _matcher.SendResponse(exchange, response);
 
+            Fire(SendingResponse, response);
+
             if (!response.IsCancelled)
                 _channel.Send(Serialize(response), response.Destination);
         }
@@ -379,6 +425,8 @@ namespace CoAP.Net
         void IOutbox.SendEmptyMessage(Exchange exchange, EmptyMessage message)
         {
             _matcher.SendEmptyMessage(exchange, message);
+
+            Fire(SendingEmptyMessage, message);
 
             if (!message.IsCancelled)
                 _channel.Send(Serialize(message), message.Destination);

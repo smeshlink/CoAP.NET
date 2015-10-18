@@ -177,7 +177,7 @@ namespace CoAP.Net
         /// Reject this exchange and therefore the request.
         /// Sends an RST back to the client.
         /// </summary>
-        public void SendReject()
+        public virtual void SendReject()
         {
             System.Diagnostics.Debug.Assert(_origin == Origin.Remote);
             _request.IsRejected = true;
@@ -190,7 +190,7 @@ namespace CoAP.Net
         /// type was a <code>CON</code> and the request has not been acknowledged
         /// yet, it sends an ACK to the client.
         /// </summary>
-        public void SendAccept()
+        public virtual void SendAccept()
         {
             System.Diagnostics.Debug.Assert(_origin == Origin.Remote);
             if (_request.Type == MessageType.CON && !_request.IsAcknowledged)
@@ -205,7 +205,7 @@ namespace CoAP.Net
         /// Sends the specified response over the same endpoint
         /// as the request has arrived.
         /// </summary>
-        public void SendResponse(Response response)
+        public virtual void SendResponse(Response response)
         {
             response.Destination = _request.Source;
             Response = response;
