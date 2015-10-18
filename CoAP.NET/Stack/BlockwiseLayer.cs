@@ -241,6 +241,21 @@ namespace CoAP.Stack
         /// <inheritdoc/>
         public override void ReceiveResponse(INextLayer nextLayer, Exchange exchange, Response response)
         {
+            // do not continue fetching blocks if canceled
+            if (exchange.Request.IsCancelled)
+            {
+                // reject (in particular for Block+Observe)
+                if (response.Type != MessageType.ACK)
+                {
+                    if (log.IsDebugEnabled)
+                        log.Debug("Rejecting blockwise transfer for canceled Exchange");
+                    EmptyMessage rst = EmptyMessage.NewRST(response);
+                    SendEmptyMessage(nextLayer, exchange, rst);
+                    // Matcher sets exchange as complete when RST is sent
+                }
+                return;
+            }
+
             if (!response.HasOption(OptionType.Block1) && !response.HasOption(OptionType.Block2))
             {
                 // There is no block1 or block2 option, therefore it is a normal response
