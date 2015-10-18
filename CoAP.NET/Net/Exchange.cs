@@ -272,7 +272,7 @@ namespace CoAP.Net
             {
                 _id = id;
                 _endpoint = ep;
-                _hash = id * 31 + ep.GetHashCode();
+                _hash = id * 31 + (ep == null ? 0 : ep.GetHashCode());
             }
 
             /// <inheritdoc/>
@@ -287,27 +287,27 @@ namespace CoAP.Net
                 KeyID other = obj as KeyID;
                 if (other == null)
                     return false;
-                return _id == other._id && _endpoint.Equals(other._endpoint);
+                return _id == other._id && Object.Equals(_endpoint, other._endpoint);
             }
 
             /// <inheritdoc/>
             public override String ToString()
             {
-                return "KeyID[" + _id + " from " + _endpoint + "]";
+                return "KeyID[" + _id + " for " + _endpoint + "]";
             }
         }
 
         public class KeyToken
         {
             private readonly Byte[] _token;
-            private readonly System.Net.EndPoint _endpoint;
             private readonly Int32 _hash;
 
-            public KeyToken(Byte[] token, System.Net.EndPoint ep)
+            public KeyToken(Byte[] token)
             {
+                if (token == null)
+                    throw new ArgumentNullException("token");
                 _token = token;
-                _endpoint = ep;
-                _hash = ByteArrayUtils.ComputeHash(_token) * 31 + ep.GetHashCode();
+                _hash = ByteArrayUtils.ComputeHash(_token);
             }
 
             /// <inheritdoc/>
@@ -328,7 +328,7 @@ namespace CoAP.Net
             /// <inheritdoc/>
             public override String ToString()
             {
-                return "KeyToken[" + BitConverter.ToString(_token) + " from " + _endpoint + "]";
+                return "KeyToken[" + BitConverter.ToString(_token) + "]";
             }
         }
 
@@ -363,7 +363,7 @@ namespace CoAP.Net
             /// <inheritdoc/>
             public override String ToString()
             {
-                return "KeyUri[" + _uri + " from " + _endpoint + "]";
+                return "KeyUri[" + _uri + " for " + _endpoint + "]";
             }
         }
     }

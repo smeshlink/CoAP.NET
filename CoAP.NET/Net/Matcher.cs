@@ -22,11 +22,20 @@ namespace CoAP.Net
     {
         static readonly ILogger log = LogManager.GetLogger(typeof(Matcher));
 
-        readonly IDictionary<Exchange.KeyID, Exchange> _exchangesByID       // for outgoing
+        /// <summary>
+        /// for all
+        /// </summary>
+        readonly IDictionary<Exchange.KeyID, Exchange> _exchangesByID
             = new ConcurrentDictionary<Exchange.KeyID, Exchange>();
+        /// <summary>
+        /// for outgoing
+        /// </summary>
         readonly IDictionary<Exchange.KeyToken, Exchange> _exchangesByToken
             = new ConcurrentDictionary<Exchange.KeyToken, Exchange>();
-        readonly IDictionary<Exchange.KeyUri, Exchange> _ongoingExchanges   // for blockwise
+        /// <summary>
+        /// for blockwise
+        /// </summary>
+        readonly IDictionary<Exchange.KeyUri, Exchange> _ongoingExchanges
             = new ConcurrentDictionary<Exchange.KeyUri, Exchange>();
         private Int32 _running;
         private Int32 _currentID;
@@ -73,13 +82,14 @@ namespace CoAP.Net
 
             /*
              * The request is a CON or NON and must be prepared for these responses
-             * - CON  => ACK/RST/ACK+response/CON+response/NON+response
-             * - NON => RST/CON+response/NON+response
+             * - CON => ACK / RST / ACK+response / CON+response / NON+response
+             * - NON => RST / CON+response / NON+response
              * If this request goes lost, we do not get anything back.
              */
 
-            Exchange.KeyID keyID = new Exchange.KeyID(request.ID, request.Destination);
-            Exchange.KeyToken keyToken = new Exchange.KeyToken(request.Token, request.Destination);
+            // the MID is from the local namespace -- use blank address
+            Exchange.KeyID keyID = new Exchange.KeyID(request.ID, null);
+            Exchange.KeyToken keyToken = new Exchange.KeyToken(request.Token);
 
             exchange.Completed += OnExchangeCompleted;
 
@@ -98,16 +108,13 @@ namespace CoAP.Net
 
             /*
              * The response is a CON or NON or ACK and must be prepared for these
-             * - CON  => ACK/RST // we only care to stop retransmission
-             * - NON => RST // we don't care
-             * - ACK  => nothing!
+             * - CON => ACK / RST // we only care to stop retransmission
+             * - NON => RST // we only care for observe
+             * - ACK => nothing!
              * If this response goes lost, we must be prepared to get the same 
              * CON/NON request with same MID again. We then find the corresponding
              * exchange and the ReliabilityLayer resends this response.
              */
-
-            if (response.Destination == null)
-                throw new InvalidOperationException("Response has no destination set");
 
             // If this is a CON notification we now can forget all previous NON notifications
             if (response.Type == MessageType.CON || response.Type == MessageType.ACK)
@@ -119,6 +126,7 @@ namespace CoAP.Net
                 }
             }
 
+            // Blockwise transfers are identified by URI and remote endpoint
             if (response.HasOption(OptionType.Block2))
             {
                 Request request = exchange.Request;
@@ -142,18 +150,15 @@ namespace CoAP.Net
             // Do not insert ACKs and RSTs.
             if (response.Type == MessageType.CON || response.Type == MessageType.NON)
             {
-                Exchange.KeyID keyID = new Exchange.KeyID(response.ID, response.Destination);
+                Exchange.KeyID keyID = new Exchange.KeyID(response.ID, null);
                 _exchangesByID[keyID] = exchange;
             }
 
-            if (response.Type == MessageType.ACK || response.Type == MessageType.NON)
+            // Only CONs and Observe keep the exchange active
+            if (response.Type != MessageType.CON && response.Last)
             {
-                // Since this is an ACK or NON, the exchange is over with sending this response.
-                if (response.Last)
-                {
-                    exchange.Complete = true;
-                }
-            } // else this is a CON and we need to wait for the ACK or RST
+                exchange.Complete = true;
+            }
         }
 
         /// <inheritdoc/>
@@ -164,12 +169,6 @@ namespace CoAP.Net
                 // We have rejected the request or response
                 exchange.Complete = true;
             }
-
-            /*
-             * We do not expect any response for an empty message
-             */
-            if (message.ID == Message.None && log.IsWarnEnabled)
-                log.Warn("Empy message " + message + " has no ID // debugging");
         }
 
         /// <inheritdoc/>
@@ -207,7 +206,7 @@ namespace CoAP.Net
                 else
                 {
                     if (log.IsInfoEnabled)
-                        log.Info("Message is a duplicate, ignore: " + request);
+                        log.Info("Duplicate request: " + request);
                     request.Duplicate = true;
                     return previous;
                 }
@@ -218,6 +217,7 @@ namespace CoAP.Net
 
                 if (log.IsDebugEnabled)
                     log.Debug("Lookup ongoing exchange for " + keyUri);
+
                 Exchange ongoing;
                 if (_ongoingExchanges.TryGetValue(keyUri, out ongoing))
                 {
@@ -225,7 +225,7 @@ namespace CoAP.Net
                     if (prev != null)
                     {
                         if (log.IsInfoEnabled)
-                            log.Info("Message is a duplicate: " + request);
+                            log.Info("Duplicate ongoing request: " + request);
                         request.Duplicate = true;
                     }
                     return ongoing;
@@ -254,7 +254,7 @@ namespace CoAP.Net
                     else
                     {
                         if (log.IsInfoEnabled)
-                            log.Info("Message is a duplicate: " + request);
+                            log.Info("Duplicate initial request: " + request);
                         request.Duplicate = true;
                         return previous;
                     }
@@ -272,8 +272,15 @@ namespace CoAP.Net
 		     * 		=> resend ACK
 		     */
 
-            Exchange.KeyID keyId = new Exchange.KeyID(response.ID, response.Source);
-            Exchange.KeyToken keyToken = new Exchange.KeyToken(response.Token, response.Source);
+            Exchange.KeyID keyId;
+            if (response.Type == MessageType.ACK)
+                // own namespace
+                keyId = new Exchange.KeyID(response.ID, null);
+            else
+                // remote namespace
+                keyId = new Exchange.KeyID(response.ID, response.Source);
+
+            Exchange.KeyToken keyToken = new Exchange.KeyToken(response.Token);
 
             Exchange exchange;
             if (_exchangesByToken.TryGetValue(keyToken, out exchange))
@@ -283,14 +290,15 @@ namespace CoAP.Net
                 if (prev != null)
                 {
                     // (and thus it holds: prev == exchange)
-                    if (log.IsDebugEnabled)
-                        log.Debug("Duplicate response " + response);
+                    if (log.IsInfoEnabled)
+                        log.Info("Duplicate response for open exchange: " + response);
                     response.Duplicate = true;
                 }
                 else
                 {
+                    keyId = new Exchange.KeyID(exchange.CurrentRequest.ID, null);
                     if (log.IsDebugEnabled)
-                        log.Debug("Exchange got reply: Cleaning up " + keyId);
+                        log.Debug("Exchange got response: Cleaning up " + keyId);
                     _exchangesByID.Remove(keyId);
                 }
 
@@ -298,27 +306,30 @@ namespace CoAP.Net
                 {
                     // The token matches but not the MID. This is a response for an older exchange
                     if (log.IsWarnEnabled)
-                        log.Warn("Token matches but not MID: Expected " + exchange.CurrentRequest.ID + " but was " + response.ID);
-                    // ignore response
-                    return null;
+                        log.Warn("Possible MID reuse before lifetime end: " + response.TokenString + " expected MID " + exchange.CurrentRequest.ID + " but received " + response.ID);
                 }
-                else
-                {
-                    // this is a separate response that we can deliver
-                    return exchange;
-                }
+
+                return exchange;
             }
             else
             {
                 // There is no exchange with the given token.
                 if (response.Type != MessageType.ACK)
                 {
+                    // only act upon separate responses
                     Exchange prev = _deduplicator.Find(keyId);
                     if (prev != null)
                     {
+                        if (log.IsInfoEnabled)
+                            log.Info("Duplicate response for completed exchange: " + response);
                         response.Duplicate = true;
                         return prev;
                     }
+                }
+                else
+                {
+                    if (log.IsInfoEnabled)
+                        log.Info("Ignoring unmatchable piggy-backed response: " + response);
                 }
                 // ignore response
                 return null;
@@ -328,7 +339,8 @@ namespace CoAP.Net
         /// <inheritdoc/>
         public Exchange ReceiveEmptyMessage(EmptyMessage message)
         {
-            Exchange.KeyID keyID = new Exchange.KeyID(message.ID, message.Source);
+            // local namespace
+            Exchange.KeyID keyID = new Exchange.KeyID(message.ID, null);
             Exchange exchange;
             if (_exchangesByID.TryGetValue(keyID, out exchange))
             {
@@ -340,10 +352,9 @@ namespace CoAP.Net
             else
             {
                 if (log.IsInfoEnabled)
-                    log.Info("Matcher received empty message that does not match any exchange: " + message);
-                // ignore message;
+                    log.Info("Ignoring unmatchable empty message: " + message);
                 return null;
-            } // else, this is an ACK for an unknown exchange and we ignore it
+            }
         }
 
         /// <inheritdoc/>
@@ -361,7 +372,8 @@ namespace CoAP.Net
 
             foreach (Response previous in relation.ClearNotifications())
             {
-                Exchange.KeyID keyId = new Exchange.KeyID(previous.ID, previous.Destination);
+                // notifications are local MID namespace
+                Exchange.KeyID keyId = new Exchange.KeyID(previous.ID, null);
                 _exchangesByID.Remove(keyId);
             }
         }
@@ -378,9 +390,8 @@ namespace CoAP.Net
             if (exchange.Origin == Origin.Local)
             {
                 // this endpoint created the Exchange by issuing a request
-                Request request = exchange.Request;
-                Exchange.KeyToken keyToken = new Exchange.KeyToken(exchange.CurrentRequest.Token, request.Destination);
-                Exchange.KeyID keyID = new Exchange.KeyID(request.ID, request.Destination);
+                Exchange.KeyID keyID = new Exchange.KeyID(exchange.CurrentRequest.ID, null);
+                Exchange.KeyToken keyToken = new Exchange.KeyToken(exchange.CurrentRequest.Token);
 
                 if (log.IsDebugEnabled)
                     log.Debug("Exchange completed: Cleaning up " + keyToken);
@@ -389,7 +400,7 @@ namespace CoAP.Net
                 // in case an empty ACK was lost
                 _exchangesByID.Remove(keyID);
             }
-            else
+            else // Origin.Remote
             {
                 // this endpoint created the Exchange to respond a request
                 Request request = exchange.CurrentRequest;
@@ -398,20 +409,17 @@ namespace CoAP.Net
                     // TODO: We can optimize this and only do it, when the request really had blockwise transfer
                     Exchange.KeyUri uriKey = new Exchange.KeyUri(request.URI, request.Source);
                     //if (log.IsDebugEnabled)
-                    //    log.Debug("++++++++++++++++++Remote ongoing completed, cleaning up "+uriKey);
+                    //    log.Debug("Remote ongoing completed, cleaning up "+uriKey);
                     _ongoingExchanges.Remove(uriKey);
                 }
 
-                // TODO: What if the request is only a block?
-                // TODO: This should only happen if the transfer was blockwise
-
                 Response response = exchange.Response;
-                if (response != null)
+                if (response != null && response.Type != MessageType.ACK)
                 {
                     // only response MIDs are stored for ACK and RST, no reponse Tokens
-                    Exchange.KeyID midKey = new Exchange.KeyID(response.ID, response.Destination);
+                    Exchange.KeyID midKey = new Exchange.KeyID(response.ID, null);
                     //if (log.IsDebugEnabled)
-                    //    log.Debug("++++++++++++++++++Remote ongoing completed, cleaning up " + midKey);
+                    //    log.Debug("Remote ongoing completed, cleaning up " + midKey);
                     _exchangesByID.Remove(midKey);
                 }
 
