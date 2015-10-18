@@ -36,8 +36,8 @@ namespace CoAP.Server.Resources
         private IResource _parent;
         private IDictionary<String, IResource> _children
             = new ConcurrentDictionary<String, IResource>();
-        private ConcurrentDictionary<ObserveRelation, Boolean> _observeRelations
-            = new ConcurrentDictionary<ObserveRelation, Boolean>();
+        private ConcurrentDictionary<String, ObserveRelation> _observeRelations
+            = new ConcurrentDictionary<String, ObserveRelation>();
         private ObserveNotificationOrderer _notificationOrderer
             = new ObserveNotificationOrderer();
 
@@ -267,8 +267,16 @@ namespace CoAP.Server.Resources
         /// <inheritdoc/>
         public void AddObserveRelation(ObserveRelation relation)
         {
-            if (_observeRelations.AddOrUpdate(relation, false, (k, v) => true))
+            ObserveRelation old = null;
+            _observeRelations.AddOrUpdate(relation.Key, relation, (k, v) =>
             {
+                old = v;
+                return relation;
+            });
+
+            if (old != null)
+            {
+                old.Cancel();
                 if (log.IsDebugEnabled)
                     log.Debug("Replacing observe relation between " + relation.Key + " and resource " + Uri);
             }
@@ -282,8 +290,7 @@ namespace CoAP.Server.Resources
         /// <inheritdoc/>
         public void RemoveObserveRelation(ObserveRelation relation)
         {
-            Boolean val;
-            _observeRelations.TryRemove(relation, out val);
+            ((ICollection<KeyValuePair<String, ObserveRelation>>)_observeRelations).Remove(new KeyValuePair<String, ObserveRelation>(relation.Key, relation));
         }
 
         /// <summary>
@@ -291,7 +298,7 @@ namespace CoAP.Server.Resources
         /// </summary>
         public void ClearObserveRelations()
         {
-            foreach (ObserveRelation relation in _observeRelations.Keys)
+            foreach (ObserveRelation relation in _observeRelations.Values)
             {
                 relation.Cancel();
             }
@@ -312,7 +319,7 @@ namespace CoAP.Server.Resources
              * from the list of observers.
              * This method is called, when the resource is deleted.
              */
-            foreach (ObserveRelation relation in _observeRelations.Keys)
+            foreach (ObserveRelation relation in _observeRelations.Values)
             {
                 relation.Cancel();
                 relation.Exchange.SendResponse(new Response(code));
@@ -406,7 +413,7 @@ namespace CoAP.Server.Resources
         private void NotifyObserverRelations()
         {
             _notificationOrderer.GetNextObserveNumber();
-            foreach (ObserveRelation relation in _observeRelations.Keys)
+            foreach (ObserveRelation relation in _observeRelations.Values)
             {
                 relation.NotifyObservers();
             }
