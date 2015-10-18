@@ -110,10 +110,10 @@ namespace CoAP.Stack
                     }
                     else
                     {
-                        Response error = Response.CreatePiggybackedResponse(request, StatusCode.RequestEntityIncomplete);
+                        Response error = Response.CreateResponse(request, StatusCode.RequestEntityIncomplete);
                         error.AddOption(new BlockOption(OptionType.Block1, block1.NUM, block1.SZX, block1.M));
                         error.SetPayload("Changed Content-Format");
-                        request.IsAcknowledged = true;
+                        
                         exchange.CurrentResponse = error;
                         base.SendResponse(nextLayer, exchange, error);
                         return;
@@ -125,15 +125,13 @@ namespace CoAP.Stack
                         if (log.IsDebugEnabled)
                             log.Debug("There are more blocks to come. Acknowledge this block.");
 
-                        if (request.Type == MessageType.CON)
-                        {
-                            Response piggybacked = Response.CreatePiggybackedResponse(request, StatusCode.Continue);
-                            piggybacked.AddOption(new BlockOption(OptionType.Block1, block1.NUM, block1.SZX, true));
-                            piggybacked.Last = false;
-                            request.IsAcknowledged = true;
-                            exchange.CurrentResponse = piggybacked;
-                            base.SendResponse(nextLayer, exchange, piggybacked);
-                        }
+                        Response piggybacked = Response.CreateResponse(request, StatusCode.Continue);
+                        piggybacked.AddOption(new BlockOption(OptionType.Block1, block1.NUM, block1.SZX, true));
+                        piggybacked.Last = false;
+
+                        exchange.CurrentResponse = piggybacked;
+                        base.SendResponse(nextLayer, exchange, piggybacked);
+
                         // do not assemble and deliver the request yet
                     }
                     else
@@ -148,9 +146,9 @@ namespace CoAP.Stack
                         EarlyBlock2Negotiation(exchange, request);
 
                         // Assemble and deliver
-                        Request assembled = new Request(request.Method); // getAssembledRequest(status, request);
+                        Request assembled = new Request(request.Method);
                         AssembleMessage(status, assembled, request);
-                        // assembled.setAcknowledged(true); // TODO: prevents accept from sending ACK. Maybe the resource uses separate...
+
                         exchange.Request = assembled;
                         base.ReceiveRequest(nextLayer, exchange, assembled);
                     }
@@ -160,10 +158,9 @@ namespace CoAP.Stack
                     // ERROR, wrong number, Incomplete
                     if (log.IsWarnEnabled)
                         log.Warn("Wrong block number. Expected " + status.CurrentNUM + " but received " + block1.NUM + ". Respond with 4.08 (Request Entity Incomplete).");
-                    Response error = Response.CreatePiggybackedResponse(request, StatusCode.RequestEntityIncomplete);
+                    Response error = Response.CreateResponse(request, StatusCode.RequestEntityIncomplete);
                     error.AddOption(new BlockOption(OptionType.Block1, block1.NUM, block1.SZX, block1.M));
                     error.SetPayload("Wrong block number");
-                    request.IsAcknowledged = true;
                     exchange.CurrentResponse = error;
                     base.SendResponse(nextLayer, exchange, error);
                 }
@@ -217,30 +214,20 @@ namespace CoAP.Stack
 
             if (RequiresBlockwise(exchange, response))
             {
-                // This must be a large response to a GET or POST request (PUT?)
                 if (log.IsDebugEnabled)
                     log.Debug("Response payload " + response.PayloadSize + "/" + _maxMessageSize + " requires Blockwise");
 
                 BlockwiseStatus status = FindResponseBlockStatus(exchange, response);
 
                 Response block = GetNextResponseBlock(response, status);
-                block.Type = response.Type; // This is only true for the first block
+                
                 if (block1 != null) // in case we still have to ack the last block1
                     block.SetOption(block1);
                 if (block.Token == null)
                     block.Token = exchange.Request.Token;
 
-                if (response.HasOption(OptionType.Observe))
-                {
-                    // the ACK for the first block should acknowledge the whole notification
-                    exchange.CurrentResponse = response;
-                }
-                else
-                {
-                    exchange.CurrentResponse = block;
-                }
+                exchange.CurrentResponse = block;
                 base.SendResponse(nextLayer, exchange, block);
-
             }
             else
             {
@@ -477,14 +464,23 @@ namespace CoAP.Stack
 
         private Response GetNextResponseBlock(Response response, BlockwiseStatus status)
         {
+            Response block;
             Int32 szx = status.CurrentSZX;
             Int32 num = status.CurrentNUM;
-            Response block = new Response(response.StatusCode);
-            // block.setType(response.getType()); // NO! First block has type from origin response, all other depend on current request
-            block.Destination = response.Destination;
-            block.Token = response.Token;
-            block.SetOptions(response.GetOptions());
-            block.TimedOut += (o, e) => response.IsTimedOut = true;
+
+            if (response.HasOption(OptionType.Observe))
+            {
+                // a blockwise notification transmits the first block only
+                block = response;
+            }
+            else
+            {
+                block = new Response(response.StatusCode);
+                block.Destination = response.Destination;
+                block.Token = response.Token;
+                block.SetOptions(response.GetOptions());
+                block.TimedOut += (o, e) => response.IsTimedOut = true;
+            }
 
             Int32 payloadSize = response.PayloadSize;
             Int32 currentSize = 1 << (4 + szx);
@@ -494,12 +490,15 @@ namespace CoAP.Stack
                 Int32 to = Math.Min((num + 1) * currentSize, response.PayloadSize);
                 Int32 length = to - from;
                 Byte[] blockPayload = new Byte[length];
+                Boolean m = to < response.PayloadSize;
+                block.SetBlock2(szx, m, num);
+
+                // crop payload -- do after calculation of m in case block==response
                 Array.Copy(response.Payload, from, blockPayload, 0, length);
                 block.Payload = blockPayload;
 
-                Boolean m = to < response.PayloadSize;
-                block.AddOption(new BlockOption(OptionType.Block2, num, szx, m));
-                block.Last = !m;
+                // do not complete notifications
+                block.Last = !m && !response.HasOption(OptionType.Observe);
 
                 status.Complete = !m;
             }

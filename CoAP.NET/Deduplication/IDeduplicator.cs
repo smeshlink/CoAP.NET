@@ -19,9 +19,26 @@ namespace CoAP.Deduplication
     /// </summary>
     public interface IDeduplicator
     {
+        /// <summary>
+        /// Starts.
+        /// </summary>
         void Start();
+        /// <summary>
+        /// Stops.
+        /// </summary>
         void Stop();
+        /// <summary>
+        /// Clears the state of this deduplicator.
+        /// </summary>
         void Clear();
+        /// <summary>
+        /// Checks if the specified key is already associated with a previous
+        /// exchange and otherwise associates the key with the exchange specified.
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="exchange"></param>
+        /// <returns>the previous exchange associated with the specified key,
+        /// or <code>null</code> if there was no mapping for the key</returns>
         Exchange FindPrevious(Exchange.KeyID key, Exchange exchange);
         Exchange Find(Exchange.KeyID key);
     }

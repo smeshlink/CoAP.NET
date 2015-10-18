@@ -135,13 +135,13 @@ namespace CoAP.Net
                 {
                     // Remember ongoing blockwise GET requests
                     if (log.IsDebugEnabled)
-                        log.Debug("Ongoing Block2 started, storing " + keyUri + "\nOngoing " + request + "\nOngoing " + response);
+                        log.Debug("Ongoing Block2 started, storing " + keyUri + " for " + request);
                     _ongoingExchanges[keyUri] = exchange;
                 }
                 else
                 {
                     if (log.IsDebugEnabled)
-                        log.Debug("Ongoing Block2 completed, cleaning up " + keyUri + "\nOngoing " + request + "\nOngoing " + response);
+                        log.Debug("Ongoing Block2 completed, cleaning up " + keyUri + " for " + request);
                     _ongoingExchanges.Remove(keyUri);
                 }
             }
@@ -227,6 +227,17 @@ namespace CoAP.Net
                         if (log.IsInfoEnabled)
                             log.Info("Duplicate ongoing request: " + request);
                         request.Duplicate = true;
+                    }
+                    else
+                    {
+                        // the exchange is continuing, we can (i.e., must) clean up the previous response
+                        if (ongoing.CurrentResponse.Type != MessageType.ACK && !ongoing.CurrentResponse.HasOption(OptionType.Observe))
+                        {
+                            keyId = new Exchange.KeyID(ongoing.CurrentResponse.ID, null);
+                            if (log.IsDebugEnabled)
+                                log.Debug("Ongoing exchange got new request: Cleaning up " + keyId);
+                            _exchangesByID.Remove(keyId);
+                        }
                     }
                     return ongoing;
                 }
@@ -403,17 +414,8 @@ namespace CoAP.Net
             else // Origin.Remote
             {
                 // this endpoint created the Exchange to respond a request
-                Request request = exchange.CurrentRequest;
-                if (request != null)
-                {
-                    // TODO: We can optimize this and only do it, when the request really had blockwise transfer
-                    Exchange.KeyUri uriKey = new Exchange.KeyUri(request.URI, request.Source);
-                    //if (log.IsDebugEnabled)
-                    //    log.Debug("Remote ongoing completed, cleaning up "+uriKey);
-                    _ongoingExchanges.Remove(uriKey);
-                }
 
-                Response response = exchange.Response;
+                Response response = exchange.CurrentResponse;
                 if (response != null && response.Type != MessageType.ACK)
                 {
                     // only response MIDs are stored for ACK and RST, no reponse Tokens
@@ -421,6 +423,15 @@ namespace CoAP.Net
                     //if (log.IsDebugEnabled)
                     //    log.Debug("Remote ongoing completed, cleaning up " + midKey);
                     _exchangesByID.Remove(midKey);
+                }
+
+                Request request = exchange.CurrentRequest;
+                if (response.HasOption(OptionType.Block2) && request != null)
+                {
+                    Exchange.KeyUri uriKey = new Exchange.KeyUri(request.URI, request.Source);
+                    //if (log.IsDebugEnabled)
+                    //    log.Debug("Remote ongoing completed, cleaning up "+uriKey);
+                    _ongoingExchanges.Remove(uriKey);
                 }
 
                 // Remove all remaining NON-notifications if this exchange is an observe relation

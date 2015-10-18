@@ -66,26 +66,12 @@ namespace CoAP
         }
 
         /// <summary>
-        /// Creates a piggy-backed response with the specified response code
-        /// to the specified request.
+        /// Creates a response to the specified request with the specified response code.
+        /// The destination endpoint of the response is the source endpoint of the request.
+        /// The response has the same token as the request.
+        /// Type and ID are usually set automatically by the <see cref="CoAP.Stack.ReliabilityLayer"/>.
         /// </summary>
-        public static Response CreatePiggybackedResponse(Request request, StatusCode code)
-        {
-            Response response = new Response(code);
-            response.ID = request.ID;
-            response.Type = MessageType.ACK;
-            response.Destination = request.Source;
-            response.Token = request.Token;
-            return response;
-        }
-
-        /// <summary>
-        /// Creates a separate response with the specified response code to the
-	    /// specified request. The destination address of the response is the source
-	    /// address of the request. The response has the same token as the request
-        /// but needs another MID from the CoAP network stack.
-        /// </summary>
-        public static Response CreateSeparateResponse(Request request, StatusCode code)
+        public static Response CreateResponse(Request request, StatusCode code)
         {
             Response response = new Response(code);
             response.Destination = request.Source;
