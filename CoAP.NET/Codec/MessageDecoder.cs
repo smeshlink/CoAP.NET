@@ -21,27 +21,27 @@ namespace CoAP.Codec
         /// <summary>
         /// the bytes reader
         /// </summary>
-        protected DatagramReader _reader;
+        protected DatagramReader m_reader;
         /// <summary>
         /// the version of the decoding message
         /// </summary>
-        protected Int32 _version;
+        protected Int32 m_version;
         /// <summary>
         /// the type of the decoding message
         /// </summary>
-        protected MessageType _type;
+        protected MessageType m_type;
         /// <summary>
         /// the length of token
         /// </summary>
-        protected Int32 _tokenLength;
+        protected Int32 m_tokenLength;
         /// <summary>
         /// the code of the decoding message
         /// </summary>
-        protected Int32 _code;
+        protected Int32 m_code;
         /// <summary>
         /// the id of the decoding message
         /// </summary>
-        protected Int32 _id;
+        protected Int32 m_id;
 
         /// <summary>
         /// Instantiates.
@@ -49,7 +49,7 @@ namespace CoAP.Codec
         /// <param name="data">the bytes array to decode</param>
         public MessageDecoder(Byte[] data)
         {
-            _reader = new DatagramReader(data);
+            m_reader = new DatagramReader(data);
         }
 
         /// <summary>
@@ -63,7 +63,7 @@ namespace CoAP.Codec
         /// <inheritdoc/>
         public Boolean IsReply
         {
-            get { return _type == MessageType.ACK || _type == MessageType.RST; }
+            get { return m_type == MessageType.ACK || m_type == MessageType.RST; }
         }
 
         /// <inheritdoc/>
@@ -71,8 +71,8 @@ namespace CoAP.Codec
         {
             get
             {
-                return _code >= CoapConstants.RequestCodeLowerBound &&
-                    _code <= CoapConstants.RequestCodeUpperBound;
+                return m_code >= CoapConstants.RequestCodeLowerBound &&
+                    m_code <= CoapConstants.RequestCodeUpperBound;
             }
         }
 
@@ -81,36 +81,36 @@ namespace CoAP.Codec
         {
             get
             {
-                return _code >= CoapConstants.ResponseCodeLowerBound &&
-                  _code <= CoapConstants.ResponseCodeUpperBound;
+                return m_code >= CoapConstants.ResponseCodeLowerBound &&
+                  m_code <= CoapConstants.ResponseCodeUpperBound;
             }
         }
 
         /// <inheritdoc/>
         public Boolean IsEmpty
         {
-            get { return _code == Code.Empty; }
+            get { return m_code == Code.Empty; }
         }
 
         /// <inheritdoc/>
         public Int32 Version
         {
-            get { return _version; }
+            get { return m_version; }
         }
 
         /// <inheritdoc/>
         public Int32 ID
         {
-            get { return _id; }
+            get { return m_id; }
         }
 
         /// <inheritdoc/>
         public Request DecodeRequest()
         {
             System.Diagnostics.Debug.Assert(IsRequest);
-            Request request = new Request((Method)_code);
-            request.Type = _type;
-            request.ID = _id;
+            Request request = new Request((Method)m_code);
+            request.Type = m_type;
+            request.ID = m_id;
             ParseMessage(request);
             return request;
         }
@@ -119,9 +119,9 @@ namespace CoAP.Codec
         public Response DecodeResponse()
         {
             System.Diagnostics.Debug.Assert(IsResponse);
-            Response response = new Response((StatusCode)_code);
-            response.Type = _type;
-            response.ID = _id;
+            Response response = new Response((StatusCode)m_code);
+            response.Type = m_type;
+            response.ID = m_id;
             ParseMessage(response);
             return response;
         }
@@ -130,9 +130,9 @@ namespace CoAP.Codec
         public EmptyMessage DecodeEmptyMessage()
         {
             System.Diagnostics.Debug.Assert(!IsRequest && !IsResponse);
-            EmptyMessage message = new EmptyMessage(_type);
-            message.Type = _type;
-            message.ID = _id;
+            EmptyMessage message = new EmptyMessage(m_type);
+            message.Type = m_type;
+            message.ID = m_id;
             ParseMessage(message);
             return message;
         }

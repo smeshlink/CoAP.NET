@@ -365,17 +365,17 @@ namespace CoAP
 
             public override Boolean IsWellFormed
             {
-                get { return _version == Version; }
+                get { return m_version == Version; }
             }
 
             protected override void ReadProtocol()
             {
                 // read headers
-                _version = _reader.Read(VersionBits);
-                _type = (MessageType)_reader.Read(TypeBits);
-                _optionCount = _reader.Read(OptionCountBits);
-                _code = MapInCode(_reader.Read(CodeBits));
-                _id = _reader.Read(IDBits);
+                m_version = m_reader.Read(VersionBits);
+                m_type = (MessageType)m_reader.Read(TypeBits);
+                _optionCount = m_reader.Read(OptionCountBits);
+                m_code = MapInCode(m_reader.Read(CodeBits));
+                m_id = m_reader.Read(IDBits);
             }
 
             protected override void ParseMessage(Message msg)
@@ -385,7 +385,7 @@ namespace CoAP
                 for (Int32 i = 0; i < _optionCount; i++)
                 {
                     // read option delta bits
-                    Int32 optionDelta = _reader.Read(OptionDeltaBits);
+                    Int32 optionDelta = m_reader.Read(OptionDeltaBits);
 
                     currentOption += optionDelta;
                     OptionType currentOptionType = GetOptionType(currentOption);
@@ -393,20 +393,20 @@ namespace CoAP
                     if (IsFencepost(currentOption))
                     {
                         // read number of options
-                        _reader.Read(OptionLengthBaseBits);
+                        m_reader.Read(OptionLengthBaseBits);
                     }
                     else
                     {
                         // read option length
-                        Int32 length = _reader.Read(OptionLengthBaseBits);
+                        Int32 length = m_reader.Read(OptionLengthBaseBits);
                         if (length > MaxOptionLengthBase)
                         {
                             // read extended option length
-                            length += _reader.Read(OptionLengthExtendedBits);
+                            length += m_reader.Read(OptionLengthExtendedBits);
                         }
                         // read option
                         Option opt = Option.Create(currentOptionType);
-                        opt.RawValue = _reader.ReadBytes(length);
+                        opt.RawValue = m_reader.ReadBytes(length);
 
                         if (opt.Type == OptionType.ContentType)
                         {
@@ -423,7 +423,7 @@ namespace CoAP
                 if (msg.Token == null)
                     msg.Token = CoapConstants.EmptyToken;
 
-                msg.Payload = _reader.ReadBytesLeft();
+                msg.Payload = m_reader.ReadBytesLeft();
             }
         }
     }
@@ -738,17 +738,17 @@ namespace CoAP
 
             public override Boolean IsWellFormed
             {
-                get { return _version == Version; }
+                get { return m_version == Version; }
             }
 
             protected override void ReadProtocol()
             {
                 // read headers
-                _version = _reader.Read(VersionBits);
-                _type = (MessageType)_reader.Read(TypeBits);
-                _optionCount = _reader.Read(OptionCountBits);
-                _code = _reader.Read(CodeBits);
-                _id = _reader.Read(IDBits);
+                m_version = m_reader.Read(VersionBits);
+                m_type = (MessageType)m_reader.Read(TypeBits);
+                _optionCount = m_reader.Read(OptionCountBits);
+                m_code = m_reader.Read(CodeBits);
+                m_id = m_reader.Read(IDBits);
             }
 
             protected override void ParseMessage(Message msg)
@@ -758,7 +758,7 @@ namespace CoAP
                 for (Int32 i = 0; i < _optionCount; i++)
                 {
                     // read option delta bits
-                    Int32 optionDelta = _reader.Read(OptionDeltaBits);
+                    Int32 optionDelta = m_reader.Read(OptionDeltaBits);
 
                     currentOption += optionDelta;
                     OptionType currentOptionType = GetOptionType(currentOption);
@@ -766,20 +766,20 @@ namespace CoAP
                     if (IsFencepost(currentOption))
                     {
                         // read number of options
-                        _reader.Read(OptionLengthBaseBits);
+                        m_reader.Read(OptionLengthBaseBits);
                     }
                     else
                     {
                         // read option length
-                        Int32 length = _reader.Read(OptionLengthBaseBits);
+                        Int32 length = m_reader.Read(OptionLengthBaseBits);
                         if (length > MaxOptionLengthBase)
                         {
                             // read extended option length
-                            length += _reader.Read(OptionLengthExtendedBits);
+                            length += m_reader.Read(OptionLengthExtendedBits);
                         }
                         // read option
                         Option opt = Option.Create(currentOptionType);
-                        opt.RawValue = _reader.ReadBytes(length);
+                        opt.RawValue = m_reader.ReadBytes(length);
 
                         msg.AddOption(opt);
                     }
@@ -788,7 +788,7 @@ namespace CoAP
                 if (msg.Token == null)
                     msg.Token = CoapConstants.EmptyToken;
 
-                msg.Payload = _reader.ReadBytesLeft();
+                msg.Payload = m_reader.ReadBytesLeft();
             }
         }
     }
@@ -1031,17 +1031,17 @@ namespace CoAP
 
             public override Boolean IsWellFormed
             {
-                get { return _version == Version; }
+                get { return m_version == Version; }
             }
 
             protected override void ReadProtocol()
             {
                 // read headers
-                _version = _reader.Read(VersionBits);
-                _type = (MessageType)_reader.Read(TypeBits);
-                _optionCount = _reader.Read(OptionCountBits);
-                _code = _reader.Read(CodeBits);
-                _id = _reader.Read(IDBits);
+                m_version = m_reader.Read(VersionBits);
+                m_type = (MessageType)m_reader.Read(TypeBits);
+                _optionCount = m_reader.Read(OptionCountBits);
+                m_code = m_reader.Read(CodeBits);
+                m_id = m_reader.Read(IDBits);
             }
 
             protected override void ParseMessage(Message msg)
@@ -1049,15 +1049,15 @@ namespace CoAP
                 // read options
                 Int32 currentOption = 0;
                 Boolean hasMoreOptions = _optionCount == 15;
-                for (Int32 i = 0; (i < _optionCount || hasMoreOptions) && _reader.BytesAvailable; i++)
+                for (Int32 i = 0; (i < _optionCount || hasMoreOptions) && m_reader.BytesAvailable; i++)
                 {
                     // first 4 option bits: either option jump or option delta
-                    Int32 optionDelta = _reader.Read(OptionDeltaBits);
+                    Int32 optionDelta = m_reader.Read(OptionDeltaBits);
 
                     if (optionDelta == 15)
                     {
                         // option jump or end-of-options marker
-                        Int32 bits = _reader.Read(4);
+                        Int32 bits = m_reader.Read(4);
                         switch (bits)
                         {
                             case 0:
@@ -1066,15 +1066,15 @@ namespace CoAP
                                 continue;
                             case 1:
                                 // 0xF1 (Delta = 15)
-                                optionDelta = 15 + _reader.Read(OptionDeltaBits);
+                                optionDelta = 15 + m_reader.Read(OptionDeltaBits);
                                 break;
                             case 2:
                                 // Delta = ((Option Jump Value) + 2) * 8
-                                optionDelta = (_reader.Read(8) + 2) * 8 + _reader.Read(OptionDeltaBits);
+                                optionDelta = (m_reader.Read(8) + 2) * 8 + m_reader.Read(OptionDeltaBits);
                                 break;
                             case 3:
                                 // Delta = ((Option Jump Value) + 258) * 8
-                                optionDelta = (_reader.Read(16) + 258) * 8 + _reader.Read(OptionDeltaBits);
+                                optionDelta = (m_reader.Read(16) + 258) * 8 + m_reader.Read(OptionDeltaBits);
                                 break;
                             default:
                                 break;
@@ -1084,7 +1084,7 @@ namespace CoAP
                     currentOption += optionDelta;
                     OptionType currentOptionType = GetOptionType(currentOption);
 
-                    Int32 length = _reader.Read(OptionLengthBaseBits);
+                    Int32 length = m_reader.Read(OptionLengthBaseBits);
                     if (length == 15)
                     {
                         /*
@@ -1098,14 +1098,14 @@ namespace CoAP
                         Int32 additionalLength = 0;
                         do
                         {
-                            additionalLength = _reader.Read(8);
+                            additionalLength = m_reader.Read(8);
                             length += additionalLength;
                         } while (additionalLength >= 255);
                     }
 
                     // read option
                     Option opt = Option.Create(currentOptionType);
-                    opt.RawValue = _reader.ReadBytes(length);
+                    opt.RawValue = m_reader.ReadBytes(length);
 
                     msg.AddOption(opt);
                 }
@@ -1113,7 +1113,7 @@ namespace CoAP
                 if (msg.Token == null)
                     msg.Token = CoapConstants.EmptyToken;
 
-                msg.Payload = _reader.ReadBytesLeft();
+                msg.Payload = m_reader.ReadBytesLeft();
             }
         }
     }
@@ -1351,55 +1351,55 @@ namespace CoAP
 
             public override Boolean IsWellFormed
             {
-                get { return _version == Version; }
+                get { return m_version == Version; }
             }
 
             protected override void ReadProtocol()
             {
                 // read headers
-                _version = _reader.Read(VersionBits);
-                _type = (MessageType)_reader.Read(TypeBits);
-                _tokenLength = _reader.Read(TokenLengthBits);
-                _code = _reader.Read(CodeBits);
-                _id = _reader.Read(IDBits);
+                m_version = m_reader.Read(VersionBits);
+                m_type = (MessageType)m_reader.Read(TypeBits);
+                m_tokenLength = m_reader.Read(TokenLengthBits);
+                m_code = m_reader.Read(CodeBits);
+                m_id = m_reader.Read(IDBits);
             }
 
             protected override void ParseMessage(Message msg)
             {
                 // read token
-                if (_tokenLength > 0)
-                    msg.Token = _reader.ReadBytes(_tokenLength);
+                if (m_tokenLength > 0)
+                    msg.Token = m_reader.ReadBytes(m_tokenLength);
                 else
                     msg.Token = CoapConstants.EmptyToken;
 
                 // read options
                 Int32 currentOption = 0;
-                while (_reader.BytesAvailable)
+                while (m_reader.BytesAvailable)
                 {
-                    Byte nextByte = _reader.ReadNextByte();
+                    Byte nextByte = m_reader.ReadNextByte();
                     if (nextByte == PayloadMarker)
                     {
-                        if (!_reader.BytesAvailable)
+                        if (!m_reader.BytesAvailable)
                             // the presence of a marker followed by a zero-length payload
                             // must be processed as a message format error
                             throw new InvalidOperationException();
 
-                        msg.Payload = _reader.ReadBytesLeft();
+                        msg.Payload = m_reader.ReadBytesLeft();
                     }
                     else
                     {
                         // the first 4 bits of the byte represent the option delta
                         Int32 optionDeltaNibble = (0xF0 & nextByte) >> 4;
-                        currentOption += GetValueFromOptionNibble(optionDeltaNibble, _reader);
+                        currentOption += GetValueFromOptionNibble(optionDeltaNibble, m_reader);
 
                         // the second 4 bits represent the option length
                         Int32 optionLengthNibble = (0x0F & nextByte);
-                        Int32 optionLength = GetValueFromOptionNibble(optionLengthNibble, _reader);
+                        Int32 optionLength = GetValueFromOptionNibble(optionLengthNibble, m_reader);
 
                         // read option
                         OptionType currentOptionType = GetOptionType(currentOption);
                         Option opt = Option.Create(currentOptionType);
-                        opt.RawValue = _reader.ReadBytes(optionLength);
+                        opt.RawValue = m_reader.ReadBytes(optionLength);
 
                         msg.AddOption(opt);
                     }
@@ -1662,55 +1662,55 @@ namespace CoAP
 
             public override Boolean IsWellFormed
             {
-                get { return _version == Version; }
+                get { return m_version == Version; }
             }
 
             protected override void ReadProtocol()
             {
                 // read headers
-                _version = _reader.Read(VersionBits);
-                _type = (MessageType)_reader.Read(TypeBits);
-                _tokenLength = _reader.Read(TokenLengthBits);
-                _code = _reader.Read(CodeBits);
-                _id = _reader.Read(IDBits);
+                m_version = m_reader.Read(VersionBits);
+                m_type = (MessageType)m_reader.Read(TypeBits);
+                m_tokenLength = m_reader.Read(TokenLengthBits);
+                m_code = m_reader.Read(CodeBits);
+                m_id = m_reader.Read(IDBits);
             }
 
             protected override void ParseMessage(Message msg)
             {
                 // read token
-                if (_tokenLength > 0)
-                    msg.Token = _reader.ReadBytes(_tokenLength);
+                if (m_tokenLength > 0)
+                    msg.Token = m_reader.ReadBytes(m_tokenLength);
                 else
                     msg.Token = CoapConstants.EmptyToken;
 
                 // read options
                 Int32 currentOption = 0;
-                while (_reader.BytesAvailable)
+                while (m_reader.BytesAvailable)
                 {
-                    Byte nextByte = _reader.ReadNextByte();
+                    Byte nextByte = m_reader.ReadNextByte();
                     if (nextByte == PayloadMarker)
                     {
-                        if (!_reader.BytesAvailable)
+                        if (!m_reader.BytesAvailable)
                             // the presence of a marker followed by a zero-length payload
                             // must be processed as a message format error
                             throw new InvalidOperationException();
 
-                        msg.Payload = _reader.ReadBytesLeft();
+                        msg.Payload = m_reader.ReadBytesLeft();
                         break;
                     }
                     else
                     {
                         // the first 4 bits of the byte represent the option delta
                         Int32 optionDeltaNibble = (0xF0 & nextByte) >> 4;
-                        currentOption += GetValueFromOptionNibble(optionDeltaNibble, _reader);
+                        currentOption += GetValueFromOptionNibble(optionDeltaNibble, m_reader);
 
                         // the second 4 bits represent the option length
                         Int32 optionLengthNibble = (0x0F & nextByte);
-                        Int32 optionLength = GetValueFromOptionNibble(optionLengthNibble, _reader);
+                        Int32 optionLength = GetValueFromOptionNibble(optionLengthNibble, m_reader);
 
                         // read option
                         Option opt = Option.Create((OptionType)currentOption);
-                        opt.RawValue = _reader.ReadBytes(optionLength);
+                        opt.RawValue = m_reader.ReadBytes(optionLength);
 
                         msg.AddOption(opt);
                     }
