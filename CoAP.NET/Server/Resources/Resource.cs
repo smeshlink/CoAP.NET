@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2011-2014, Longxiang He <helongxiang@smeshlink.com>,
+ * Copyright (c) 2011-2015, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
  * This program is distributed in the hope that it will be useful,
@@ -401,21 +401,45 @@ namespace CoAP.Server.Resources
         /// transitively ancestor. If no ancestor defines its own executor, the
         /// thread that has called this method performs the notification.
         /// </summary>
+        /// <seealso cref="Changed(Func<ObserveRelation, Boolean>)"/>
         public void Changed()
+        {
+            Changed(null);
+        }
+
+        /// <summary>
+        /// Notifies a filtered set of CoAP clients that have established an observe
+	    /// relation with this resource that the state has changed by reprocessing
+	    /// their original request that has established the relation. The notification
+	    /// is done by the executor of this resource or on the executor of its parent or
+	    /// transitively ancestor. If no ancestor defines its own executor, the
+        /// thread that has called this method performs the notification.
+        /// </summary>
+        /// <param name="filter">the filter to select set of relations,
+        /// or <code>null</code> if all clients should be notified</param>
+        public void Changed(Func<ObserveRelation, Boolean> filter)
         {
             IExecutor executor = this.Executor;
             if (executor != null)
-                executor.Start(() => NotifyObserverRelations());
+                executor.Start(() => NotifyObserverRelations(filter));
             else
-                NotifyObserverRelations();
+                NotifyObserverRelations(filter);
         }
 
-        private void NotifyObserverRelations()
+        /// <summary>
+        /// Notifies all CoAP clients that have established an observe relation with
+	    /// this resource that the state has changed by reprocessing their original
+        /// request that has established the relation.
+        /// </summary>
+        /// <param name="filter">the filter to select set of relations,
+        /// or <code>null</code> if all clients should be notified</param>
+        protected void NotifyObserverRelations(Func<ObserveRelation, Boolean> filter)
         {
             _notificationOrderer.GetNextObserveNumber();
             foreach (ObserveRelation relation in _observeRelations.Values)
             {
-                relation.NotifyObservers();
+                if (filter == null || filter(relation))
+                    relation.NotifyObservers();
             }
         }
 
