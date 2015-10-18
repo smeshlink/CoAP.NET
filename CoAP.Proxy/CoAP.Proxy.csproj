@@ -36,6 +36,18 @@
     <Reference Include="System.Runtime.Remoting" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\CoAP.NET\Util\System\Funcs.cs">
+      <Link>Util\System\Funcs.cs</Link>
+    </Compile>
+    <Compile Include="..\CoAP.NET\Util\System.Collections.Concurrent\ConcurrentDictionary.cs">
+      <Link>Util\System.Collections.Concurrent\ConcurrentDictionary.cs</Link>
+    </Compile>
+    <Compile Include="..\CoAP.NET\Util\System.Threading\SpinWait.cs">
+      <Link>Util\System.Threading\SpinWait.cs</Link>
+    </Compile>
+    <Compile Include="..\CoAP.NET\Util\System.Threading\Volatile.cs">
+      <Link>Util\System.Threading\Volatile.cs</Link>
+    </Compile>
     <Compile Include="CoapTranslator.cs" />
     <Compile Include="DirectProxyCoAPResolver.cs" />
     <Compile Include="HttpStack.cs" />
@@ -52,9 +64,6 @@
     <Compile Include="Resources\ForwardingResource.cs" />
     <Compile Include="Resources\ProxyCoapClientResource.cs" />
     <Compile Include="Resources\ProxyHttpClientResource.cs" />
-    <Compile Include="Util\System.Collections.Concurrent\ConcurrentDictionary.cs" />
-    <Compile Include="Util\System.Collections.Concurrent\SplitOrderedList.cs" />
-    <Compile Include="Util\System\Funcs.cs" />
     <Compile Include="Util\ThrowHelper.cs" />
     <Compile Include="TranslationException.cs" />
   </ItemGroup>

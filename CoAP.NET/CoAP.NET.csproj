@@ -22,6 +22,7 @@
     <DefineConstants>TRACE;DEBUG;COAPALL</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -139,9 +140,12 @@
     <Compile Include="Util\System.Collections.Concurrent\ConcurrentDictionary.cs" />
     <Compile Include="Util\System.Collections.Concurrent\ConcurrentQueue.cs" />
     <Compile Include="Util\System.Collections.Concurrent\IProducerConsumerCollection.cs" />
-    <Compile Include="Util\System.Collections.Concurrent\SplitOrderedList.cs" />
+    <Compile Include="Util\System.Collections.Generic\BitHelper.cs" />
+    <Compile Include="Util\System.Collections.Generic\HashHelpers.cs" />
     <Compile Include="Util\System.Collections.Generic\HashSet.cs" />
     <Compile Include="Util\System.Collections.Generic\SynchronizedCollection.cs" />
+    <Compile Include="Util\System.Threading\SpinWait.cs" />
+    <Compile Include="Util\System.Threading\Volatile.cs" />
     <Compile Include="Util\ThrowHelper.cs" />
     <Compile Include="Util\Utils.cs" />
     <Compile Include="Util\WaitFuture.cs" />
