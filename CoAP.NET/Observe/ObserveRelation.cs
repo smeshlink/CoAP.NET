@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2011-2014, Longxiang He <helongxiang@smeshlink.com>,
+ * Copyright (c) 2011-2015, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
  * This program is distributed in the hope that it will be useful,
@@ -122,6 +122,9 @@ namespace CoAP.Observe
         {
             if (log.IsDebugEnabled)
                 log.Debug("Cancel observe relation from " + _key + " with " + _resource.Path);
+            // stop ongoing retransmissions
+            if (_exchange.Response != null)
+                _exchange.Response.Cancel();
             _established = false;
             _resource.RemoveObserveRelation(this);
             _endpoint.RemoveObserveRelation(this);
