@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2011-2014, Longxiang He <helongxiang@smeshlink.com>,
+ * Copyright (c) 2011-2015, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
  * This program is distributed in the hope that it will be useful,
@@ -12,6 +12,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Collections.Concurrent;
 
 namespace CoAP.Util
 {
@@ -245,6 +246,21 @@ namespace CoAP.Util
                 }
             }
             return sb.ToString();
+        }
+
+        /// <summary>
+        /// Puts a value associated with a key into a ConcurrentDictionary,
+        /// and returns the old value, or null if not exists.
+        /// </summary>
+        internal static TValue Put<TKey, TValue>(ConcurrentDictionary<TKey, TValue> dic, TKey key, TValue value)
+        {
+            TValue old = default(TValue);
+            dic.AddOrUpdate(key, value, (k, v) =>
+            {
+                old = v;
+                return value;
+            });
+            return old;
         }
     }
 }

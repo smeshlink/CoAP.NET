@@ -10,6 +10,7 @@
  */
 
 using System;
+using System.Timers;
 using CoAP.Log;
 using CoAP.Net;
 
@@ -21,6 +22,7 @@ namespace CoAP.Stack
 
         private Int32 _maxMessageSize;
         private Int32 _defaultBlockSize;
+        private Int32 _blockTimeout;
 
         /// <summary>
         /// Constructs a new blockwise layer.
@@ -29,6 +31,7 @@ namespace CoAP.Stack
         {
             _maxMessageSize = config.MaxMessageSize;
             _defaultBlockSize = config.DefaultBlockSize;
+            _blockTimeout = config.BlockwiseStatusLifetime;
             if (log.IsDebugEnabled)
                 log.Debug("BlockwiseLayer uses MaxMessageSize: " + _maxMessageSize + " and DefaultBlockSize:" + _defaultBlockSize);
 
@@ -42,6 +45,8 @@ namespace CoAP.Stack
                 _maxMessageSize = config.MaxMessageSize;
             else if (String.Equals(e.PropertyName, "DefaultBlockSize"))
                 _defaultBlockSize = config.DefaultBlockSize;
+            else if (String.Equals(e.PropertyName, "BlockwiseStatusLifetime"))
+                _blockTimeout = config.BlockwiseStatusLifetime;
         }
 
         /// <inheritdoc/>
@@ -185,6 +190,7 @@ namespace CoAP.Stack
                     if (log.IsDebugEnabled)
                         log.Debug("Ongoing is complete " + status);
                     exchange.ResponseBlockStatus = null;
+                    ClearBlockCleanup(exchange);
                 }
                 else
                 {
@@ -226,6 +232,20 @@ namespace CoAP.Stack
                 if (block.Token == null)
                     block.Token = exchange.Request.Token;
 
+                if (status.Complete)
+                {
+                    // clean up blockwise status
+                    if (log.IsDebugEnabled)
+                        log.Debug("Ongoing finished on first block " + status);
+                    exchange.ResponseBlockStatus = null;
+                    ClearBlockCleanup(exchange);
+                }
+                else
+                {
+                    if (log.IsDebugEnabled)
+                        log.Debug("Ongoing started " + status);
+                }
+
                 exchange.CurrentResponse = block;
                 base.SendResponse(nextLayer, exchange, block);
             }
@@ -234,6 +254,8 @@ namespace CoAP.Stack
                 if (block1 != null)
                     response.SetOption(block1);
                 exchange.CurrentResponse = response;
+                // Block1 transfer completed
+                ClearBlockCleanup(exchange);
                 base.SendResponse(nextLayer, exchange, response);
             }
         }
@@ -328,30 +350,24 @@ namespace CoAP.Stack
                     {
                         if (log.IsDebugEnabled)
                             log.Debug("Request the next response block");
-                        // TODO: If this is a notification, do we have to use
-                        // another token now?
 
                         Request request = exchange.Request;
                         Int32 num = block2.NUM + 1;
                         Int32 szx = block2.SZX;
                         Boolean m = false;
+
                         Request block = new Request(request.Method);
-                        block.Token = response.Token;
-                        block.SetOptions(request.GetOptions());
+                        // NON could make sense over SMS or similar transports
+                        block.Type = request.Type;
                         block.Destination = request.Destination;
-
-                        block.Type = request.Type; // NON could make sense over SMS or similar transports
+                        block.SetOptions(request.GetOptions());
                         block.SetOption(new BlockOption(OptionType.Block2, num, szx, m));
-                        status.CurrentNUM = num;
-
-                        // to make it easier for Observe, we do not re-use the Token
-                        //if (!response.HasOption(OptionType.Observe))
-                        //{
-                        //    block.Token = request.Token;
-                        //}
-
+                        // we use the same token to ease traceability (GET without Observe no longer cancels relations)
+                        block.Token = response.Token;
                         // make sure not to use Observe for block retrieval
                         block.RemoveOptions(OptionType.Observe);
+
+                        status.CurrentNUM = num;
 
                         exchange.CurrentRequest = block;
                         base.SendRequest(nextLayer, exchange, block);
@@ -408,17 +424,20 @@ namespace CoAP.Stack
             if (request.HasOption(OptionType.Block2))
             {
                 BlockOption block2 = request.Block2;
-                if (log.IsDebugEnabled)
-                    log.Debug("Request demands blockwise transfer of response with option " + block2 + ". Create and set new block2 status");
                 BlockwiseStatus status2 = new BlockwiseStatus(request.ContentType, block2.NUM, block2.SZX);
+                if (log.IsDebugEnabled)
+                    log.Debug("Request with early block negotiation " + block2 + ". Create and set new Block2 status: " + status2);
                 exchange.ResponseBlockStatus = status2;
             }
         }
 
+        /// <summary>
+        /// Notice:
+        /// This method is used by SendRequest and ReceiveRequest.
+        /// Be careful, making changes to the status in here.
+        /// </summary>
         private BlockwiseStatus FindRequestBlockStatus(Exchange exchange, Request request)
         {
-            // NOTICE: This method is used by sendRequest and receiveRequest. Be
-            // careful, making changes to the status in here.
             BlockwiseStatus status = exchange.RequestBlockStatus;
             if (status == null)
             {
@@ -426,15 +445,25 @@ namespace CoAP.Stack
                 status.CurrentSZX = BlockOption.EncodeSZX(_defaultBlockSize);
                 exchange.RequestBlockStatus = status;
                 if (log.IsDebugEnabled)
-                    log.Debug("There is no assembler status yet. Create and set new block1 status: " + status);
+                    log.Debug("There is no assembler status yet. Create and set new Block1 status: " + status);
             }
+            else
+            {
+                if (log.IsDebugEnabled)
+                    log.Debug("Current Block1 status: " + status);
+            }
+            // sets a timeout to complete exchange
+            PrepareBlockCleanup(exchange);
             return status;
         }
 
+        /// <summary>
+        /// Notice:
+        /// This method is used by SendResponse and ReceiveResponse.
+        /// Be careful, making changes to the status in here.
+        /// </summary>
         private BlockwiseStatus FindResponseBlockStatus(Exchange exchange, Response response)
         {
-            // NOTICE: This method is used by sendResponse and receiveResponse. Be
-            // careful, making changes to the status in here.
             BlockwiseStatus status = exchange.ResponseBlockStatus;
             if (status == null)
             {
@@ -442,13 +471,15 @@ namespace CoAP.Stack
                 status.CurrentSZX = BlockOption.EncodeSZX(_defaultBlockSize);
                 exchange.ResponseBlockStatus = status;
                 if (log.IsDebugEnabled)
-                    log.Debug("There is no blockwise status yet. Create and set new block2 status: " + status);
+                    log.Debug("There is no blockwise status yet. Create and set new Block2 status: " + status);
             }
             else
             {
                 if (log.IsDebugEnabled)
-                    log.Debug("Current blockwise status: " + status);
+                    log.Debug("Current Block2 status: " + status);
             }
+            // sets a timeout to complete exchange
+            PrepareBlockCleanup(exchange);
             return status;
         }
 
@@ -563,6 +594,69 @@ namespace CoAP.Stack
         {
             return response.PayloadSize > _maxMessageSize
                     || exchange.ResponseBlockStatus != null;
+        }
+
+        /// <summary>
+        /// Schedules a clean-up task.
+        /// Use the <see cref="ICoapConfig.BlockwiseStatusLifetime"/> to set the timeout.
+        /// </summary>
+        protected void PrepareBlockCleanup(Exchange exchange)
+        {
+            Timer timer = new Timer();
+            timer.AutoReset = false;
+            timer.Interval = _blockTimeout;
+            timer.Elapsed += (o, e) => BlockwiseTimeout(exchange);
+
+            Timer old = exchange.Set("BlockCleanupTimer", timer) as Timer;
+            if (old != null)
+            {
+                try
+                {
+                    old.Stop();
+                    old.Dispose();
+                }
+                catch (ObjectDisposedException)
+                {
+                    // ignore
+                }
+            }
+
+            timer.Start();
+        }
+
+        /// <summary>
+        /// Clears the clean-up task.
+        /// </summary>
+        protected void ClearBlockCleanup(Exchange exchange)
+        {
+            Timer timer = exchange.Remove("BlockCleanupTimer") as Timer;
+            if (timer != null)
+            {
+                try
+                {
+                    timer.Stop();
+                    timer.Dispose();
+                }
+                catch (ObjectDisposedException)
+                {
+                    // ignore
+                }
+            }
+        }
+
+        private void BlockwiseTimeout(Exchange exchange)
+        {
+            if (exchange.Request == null)
+            {
+                if (log.IsInfoEnabled)
+                    log.Info("Block1 transfer timed out: " + exchange.CurrentRequest);
+            }
+            else
+            {
+                if (log.IsInfoEnabled)
+                    log.Info("Block2 transfer timed out: " + exchange.Request);
+            }
+            exchange.Complete = true;
         }
     }
 }

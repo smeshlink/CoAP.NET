@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2011-2014, Longxiang He <helongxiang@smeshlink.com>,
+ * Copyright (c) 2011-2015, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
  * This program is distributed in the hope that it will be useful,
@@ -15,6 +15,7 @@ using System.Collections.Generic;
 using CoAP.Deduplication;
 using CoAP.Log;
 using CoAP.Observe;
+using CoAP.Util;
 
 namespace CoAP.Net
 {
@@ -35,7 +36,7 @@ namespace CoAP.Net
         /// <summary>
         /// for blockwise
         /// </summary>
-        readonly IDictionary<Exchange.KeyUri, Exchange> _ongoingExchanges
+        readonly ConcurrentDictionary<Exchange.KeyUri, Exchange> _ongoingExchanges
             = new ConcurrentDictionary<Exchange.KeyUri, Exchange>();
         private Int32 _running;
         private Int32 _currentID;
@@ -131,18 +132,27 @@ namespace CoAP.Net
             {
                 Request request = exchange.Request;
                 Exchange.KeyUri keyUri = new Exchange.KeyUri(request.URI, response.Destination);
+                // Observe notifications only send the first block, hence do not store them as ongoing
                 if (exchange.ResponseBlockStatus != null && !response.HasOption(OptionType.Observe))
                 {
                     // Remember ongoing blockwise GET requests
-                    if (log.IsDebugEnabled)
-                        log.Debug("Ongoing Block2 started, storing " + keyUri + " for " + request);
-                    _ongoingExchanges[keyUri] = exchange;
+                    if (Utils.Put(_ongoingExchanges, keyUri, exchange) == null)
+                    {
+                        if (log.IsDebugEnabled)
+                            log.Debug("Ongoing Block2 started late, storing " + keyUri + " for " + request);
+                    }
+                    else
+                    {
+                        if (log.IsDebugEnabled)
+                            log.Debug("Ongoing Block2 continued, storing " + keyUri + " for " + request);
+                    }
                 }
                 else
                 {
                     if (log.IsDebugEnabled)
                         log.Debug("Ongoing Block2 completed, cleaning up " + keyUri + " for " + request);
-                    _ongoingExchanges.Remove(keyUri);
+                    Exchange exc;
+                    _ongoingExchanges.TryRemove(keyUri, out exc);
                 }
             }
 
@@ -426,12 +436,13 @@ namespace CoAP.Net
                 }
 
                 Request request = exchange.CurrentRequest;
-                if (response.HasOption(OptionType.Block2) && request != null)
+                if (request != null && (request.HasOption(OptionType.Block1) || response.HasOption(OptionType.Block2)))
                 {
                     Exchange.KeyUri uriKey = new Exchange.KeyUri(request.URI, request.Source);
                     //if (log.IsDebugEnabled)
                     //    log.Debug("Remote ongoing completed, cleaning up "+uriKey);
-                    _ongoingExchanges.Remove(uriKey);
+                    Exchange exc;
+                    _ongoingExchanges.TryRemove(uriKey, out exc);
                 }
 
                 // Remove all remaining NON-notifications if this exchange is an observe relation

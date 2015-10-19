@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright (c) 2011-2014, Longxiang He <helongxiang@smeshlink.com>,
+ * Copyright (c) 2011-2015, Longxiang He <helongxiang@smeshlink.com>,
  * SmeshLink Technology Co.
  * 
  * This program is distributed in the hope that it will be useful,
@@ -48,6 +48,7 @@ namespace CoAP
         private Int32 _maxRetransmit = CoapConstants.MaxRetransmit;
         private Int32 _maxMessageSize = 1024;
         private Int32 _defaultBlockSize = CoapConstants.DefaultBlockSize;
+        private Int32 _blockwiseStatusLifetime = 10 * 60 * 1000; // ms
         private Boolean _useRandomIDStart = true;
         private Boolean _useRandomTokenStart = true;
         private String _deduplicator = CoAP.Deduplication.DeduplicatorFactory.MarkAndSweepDeduplicator;
@@ -198,6 +199,20 @@ namespace CoAP
                 {
                     _defaultBlockSize = value;
                     NotifyPropertyChanged("DefaultBlockSize");
+                }
+            }
+        }
+
+        /// <inheritdoc/>
+        public Int32 BlockwiseStatusLifetime
+        {
+            get { return _blockwiseStatusLifetime; }
+            set
+            {
+                if (_blockwiseStatusLifetime != value)
+                {
+                    _blockwiseStatusLifetime = value;
+                    NotifyPropertyChanged("BlockwiseStatusLifetime");
                 }
             }
         }
