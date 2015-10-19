@@ -130,7 +130,7 @@ namespace CoAP.Net
             // Blockwise transfers are identified by URI and remote endpoint
             if (response.HasOption(OptionType.Block2))
             {
-                Request request = exchange.Request;
+                Request request = exchange.CurrentRequest;
                 Exchange.KeyUri keyUri = new Exchange.KeyUri(request.URI, response.Destination);
                 // Observe notifications only send the first block, hence do not store them as ongoing
                 if (exchange.ResponseBlockStatus != null && !response.HasOption(OptionType.Observe))
@@ -226,7 +226,7 @@ namespace CoAP.Net
                 Exchange.KeyUri keyUri = new Exchange.KeyUri(request.URI, request.Source);
 
                 if (log.IsDebugEnabled)
-                    log.Debug("Lookup ongoing exchange for " + keyUri);
+                    log.Debug("Looking up ongoing exchange for " + keyUri);
 
                 Exchange ongoing;
                 if (_ongoingExchanges.TryGetValue(keyUri, out ongoing))
@@ -245,7 +245,7 @@ namespace CoAP.Net
                         {
                             keyId = new Exchange.KeyID(ongoing.CurrentResponse.ID, null);
                             if (log.IsDebugEnabled)
-                                log.Debug("Ongoing exchange got new request: Cleaning up " + keyId);
+                                log.Debug("Ongoing exchange got new request, cleaning up " + keyId);
                             _exchangesByID.Remove(keyId);
                         }
                     }
@@ -264,10 +264,10 @@ namespace CoAP.Net
 
                     Exchange exchange = new Exchange(request, Origin.Remote);
                     Exchange previous = _deduplicator.FindPrevious(keyId, exchange);
-                    if (log.IsDebugEnabled)
-                        log.Debug("New ongoing exchange for remote Block1 request with key " + keyUri);
                     if (previous == null)
                     {
+                        if (log.IsDebugEnabled)
+                            log.Debug("New ongoing request, storing " + keyUri + " for " + request);
                         exchange.Completed += OnExchangeCompleted;
                         _ongoingExchanges[keyUri] = exchange;
                         return exchange;
@@ -439,8 +439,8 @@ namespace CoAP.Net
                 if (request != null && (request.HasOption(OptionType.Block1) || response.HasOption(OptionType.Block2)))
                 {
                     Exchange.KeyUri uriKey = new Exchange.KeyUri(request.URI, request.Source);
-                    //if (log.IsDebugEnabled)
-                    //    log.Debug("Remote ongoing completed, cleaning up "+uriKey);
+                    if (log.IsDebugEnabled)
+                        log.Debug("Remote ongoing completed, cleaning up " + uriKey);
                     Exchange exc;
                     _ongoingExchanges.TryRemove(uriKey, out exc);
                 }
