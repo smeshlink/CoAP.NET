@@ -350,7 +350,7 @@ namespace CoAP.Net
                 else
                 {
                     if (log.IsInfoEnabled)
-                        log.Info("Ignoring unmatchable piggy-backed response: " + response);
+                        log.Info("Ignoring unmatchable piggy-backed response from " + response.Source + ": " + response);
                 }
                 // ignore response
                 return null;
@@ -373,7 +373,7 @@ namespace CoAP.Net
             else
             {
                 if (log.IsInfoEnabled)
-                    log.Info("Ignoring unmatchable empty message: " + message);
+                    log.Info("Ignoring unmatchable empty message from " + message.Source + ": " + message);
                 return null;
             }
         }
