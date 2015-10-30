@@ -226,7 +226,7 @@ namespace CoAP.Channel
                 {
                     IPEndPoint ipep = (IPEndPoint)ep;
                     if (IPAddressExtensions.IsIPv4MappedToIPv6(ipep.Address))
-                        ipep.Address = IPAddressExtensions.MapToIPv4(ipep.Address);
+                        ep = new IPEndPoint(IPAddressExtensions.MapToIPv4(ipep.Address), ipep.Port);
                 }
 
                 FireDataReceived(bytes, ep);
