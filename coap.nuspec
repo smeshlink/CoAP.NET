@@ -11,7 +11,25 @@
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
         <description>CoAP.NET is an implementation in C# providing CoAP-based services to .NET applications.</description>
         <summary>.NET implementation of the Constrained Application Protocol (CoAP)</summary>
-        <releaseNotes>* 1.0.0
+        <releaseNotes>* 1.1.0
+  - Rename obsoleted events and properties in CoAP Message
+  - Mark as CLSCompliant
+  - Add clean-up mechanism for blockwise transfer state
+  - Add filter when notifying observers
+  - Add send and receive events to IEndPoint
+  - Add support for cancelling reject messages
+  - Add support for cancelling blockwise transfer
+  - Add support for blockwise transfers with NON
+  - Update lazy initializing lock in a request to avoid locks if possible
+  - Update collection classes for .NET 2.0
+  - Fix potential stack overflow in underlying UDP channel
+  - Fix Message ID conflict
+  - Fix incomplete cleanup when reregister a observation
+  - Fix race condition when cancelling retransmission
+  - Fix for parentless resources
+  - Fix RTT for blockwise transfers
+  - Fix success range for code constants
+* 1.0.0
   - Add support for RFC7252!
   - Redefine compile symbols
   - Rename events and properties in CoAP Message
@@ -62,12 +80,12 @@
         </frameworkAssemblies>
     </metadata>
     <files>
-        <file src="binary\1.0.0\NET20\CoAP.NET.dll" target="lib\net20\CoAP.NET.dll" />
-        <file src="binary\1.0.0\NET20\CoAP.NET.pdb" target="lib\net20\CoAP.NET.pdb" />
-        <file src="binary\1.0.0\NET20\CoAP.NET.XML" target="lib\net20\CoAP.NET.XML" />
-        <file src="binary\1.0.0\NET40\CoAP.NET.dll" target="lib\net40\CoAP.NET.dll" />
-        <file src="binary\1.0.0\NET40\CoAP.NET.pdb" target="lib\net40\CoAP.NET.pdb" />
-        <file src="binary\1.0.0\NET40\CoAP.NET.XML" target="lib\net40\CoAP.NET.XML" />
+        <file src="binary\1.1.0\NET20\CoAP.NET.dll" target="lib\net20\CoAP.NET.dll" />
+        <file src="binary\1.1.0\NET20\CoAP.NET.pdb" target="lib\net20\CoAP.NET.pdb" />
+        <file src="binary\1.1.0\NET20\CoAP.NET.XML" target="lib\net20\CoAP.NET.XML" />
+        <file src="binary\1.1.0\NET40\CoAP.NET.dll" target="lib\net40\CoAP.NET.dll" />
+        <file src="binary\1.1.0\NET40\CoAP.NET.pdb" target="lib\net40\CoAP.NET.pdb" />
+        <file src="binary\1.1.0\NET40\CoAP.NET.XML" target="lib\net40\CoAP.NET.XML" />
         <file src="LICENSE" target="LICENSE" />
     </files>
 </package>

@@ -1,6 +1,27 @@
 CoAP.NET Release Notes
 ======================
 
+changes in 1.1.0
+----------------
+
+* [added] clean-up mechanism for blockwise transfer state
+* [added] filter when notifying observers
+* [added] send and receive events to IEndPoint
+* [added] support for cancelling reject messages
+* [added] support for cancelling blockwise transfer
+* [added] support for blockwise transfers with NON
+* [updated] rename obsoleted events and properties in CoAP Message
+* [updated] mark as CLSCompliant
+* [updated] lazy initializing lock in a request to avoid locks if possible
+* [updated] collection classes for .NET 2.0
+* [fixed] potential stack overflow in underlying UDP channel
+* [fixed] Message ID conflict
+* [fixed] incomplete cleanup when reregister a observation
+* [fixed] race condition when cancelling retransmission
+* [fixed] for parentless resources
+* [fixed] RTT for blockwise transfers
+* [fixed] success range for code constants
+
 changes in 1.0.0
 ----------------
 
