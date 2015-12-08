@@ -1,22 +1,7 @@
-		<div class="navbar navbar-inverse navbar-fixed-top">
-			<div class="navbar-inner">
-				<div class="container">
-					<button type="button" class="btn btn-navbar" data-target=".nav-collapse" data-toggle="collapse">
-						<span class="icon-bar"></span>
-						<span class="icon-bar"></span>
-						<span class="icon-bar"></span>
-					</button>
-					<a href="http://open.smeshlink.com" class="brand">SmeshLink Open Lab</a>
-					<div class="nav-collapse collapse">
+		<nav id="nav" role="navigation">
+			<header role="banner">
+				<h1 id="logo"><a href="{{ site.url }}/" title="{{ site.name }}">{{ site.name }}</a></h1>
+			</header>
+			<div id="menu-toggle" class="menu-toggle open"></div>
 {% if page.zh %} {% include nav-zh.html %} {% else %} {% include nav.html %} {% endif %}
-					</div>
-				</div>
-			</div>
-		</div>
-{% if page.home %}{% else %}
-		<header class="jumbotron subhead" id="overview">
-			<div class="container">
-				<h1>{{ page.title }}</h1>
-				<p class="lead">{{ page.excerpt }}</p>
-			</div>
-		</header>{% endif %}
+		</nav>
