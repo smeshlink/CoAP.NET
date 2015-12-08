@@ -86,11 +86,11 @@ hr.soften {
 }
 
 .highlight,
-p > pre,
-p > code,
+p pre,
+p code,
 p > nobr > code,
 li > code,
-li> pre {
+li > pre {
 	background-color: #f5f5f5;
 	border: 1px solid #e1e1e8;
 	max-width: 100%;
@@ -180,7 +180,7 @@ li > code {
 					border-bottom: none;
 					
 					a {
-						font-weight: 700;
+						font-weight: 700 !important;
 					}
 				}
 				
