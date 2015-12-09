@@ -42,7 +42,7 @@ var response = client.Get();
 Console.WriteLine(response.PayloadString);  // Hello World!
 {% endhighlight %}
 
-[`查看示例`]({{ site.baseurl }}/examples/client/)
+[`查看示例`]({{ site.baseurl }}/zh/examples/client/)
 
 ## 使用 CoAP 服务端
 {: #using-coap-server }
@@ -83,7 +83,7 @@ server.Start();
 
 现在可以通过 `coap://SERVER_ADDRESS/helloworld` 来访问这个资源了。
 
-[`查看示例`]({{ site.baseurl }}/examples/server/)
+[`查看示例`]({{ site.baseurl }}/zh/examples/server/)
 
 ## 构建源码
 {: #building-from-source }
