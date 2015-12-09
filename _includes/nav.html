@@ -1,20 +1,20 @@
-						<ul class="nav">
-							<li class="{% if page.home %}active{% endif %}">
-								<a href="{{ site.url }}/">Home</a>
-							</li>
-							<li class="{% if page.started %}active{% endif %}">
-								<a href="{{ site.url }}/getting-started/">Getting Started</a>
-								<ul>
-									<li><a href="#installing-coapnet">Installing CoAP.NET</a></li>
-									<li><a href="#using-coap-client">Using CoAP Client</a></li>
-									<li><a href="#using-coap-server">Using CoAP Server</a></li>
-									<li><a href="#building-from-source">Building from Source</a></li>
-								</ul>
-							</li>
-							<li class="{% if page.doc %}active{% endif %}">
-								<a href="{{ site.url }}/doc/">Documentation</a>
-							</li>
-							<li>
-								<a href="{{ site.url }}/zh{{ page.url }}">中文</a>
-							</li>
-						</ul>
+				<ul class="nav">
+					<li{% if page.home %} class="active"{% endif %}>
+						<a href="{{ site.baseurl }}/">Home</a>
+					</li>
+					<li{% if page.started %} class="active"{% endif %}>
+						<a href="{{ site.baseurl }}/getting-started/">Getting Started</a>{% if page.started %}
+						<ul>
+							<li><a href="#installing-coapnet">Installing CoAP.NET</a></li>
+							<li><a href="#using-coap-client">Using CoAP Client</a></li>
+							<li><a href="#using-coap-server">Using CoAP Server</a></li>
+							<li><a href="#building-from-source">Building from Source</a></li>
+						</ul>{% endif %}
+					</li>
+					<li{% if page.doc %} class="active"{% endif %}>
+						<a href="{{ site.baseurl }}/doc/">Documentation</a>
+					</li>
+					<li>
+						<a href="{{ site.baseurl }}/zh{{ page.url }}">中文</a>
+					</li>
+				</ul>

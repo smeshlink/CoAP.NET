@@ -98,3 +98,7 @@ To enable drafts, define one or more of those compile symbols.
 
 With drafts enabled, an interface `ISpec` will be introduced, representing draft specification.
 Define `COAPXX` to enable draft XX, or `COAPALL` to enable all supported drafts.
+
+--------
+
+**Next**: [Documentation]({{ site.baseurl }}/doc/)
