@@ -1,83 +1,183 @@
 ---
-layout: example
-title: CoAP Server
-excerpt: Provide CoAP resources to remote clients.
+layout: article
+title: CoAP Server Example
+excerpt: Using CoAP server to provide CoAP resources to remote clients.
+example_server: true
 prev_section: client
 permalink: /examples/server/
 ---
 
+# {{ page.title }}
+
+{{ page.excerpt }}
+
+------------------
+
 ## Intro
---------
 
-CoAP sessions are considered as request-response pair.
-Remote CoAP resources can be accessed by issuing a <code>Request</code>
-and receive its <code>Response</code>(s).
+CoAP sessions are considered as request-response pairs.
+Available handlers for requests are defined as `Resource`s.
+Each resource can be added to a `CoapServer` and process certain types of requests.
 
-## Prepare requests
--------------------
+<hr class="soften"/>
 
-There are 4 types of request: GET, POST, PUT, DELETE, defined as
-<code>Code.GET</code>, <code>Code.POST</code>, <code>Code.PUT</code>,
-<code>Code.DELETE</code>. To create a request, pass the type code
-as a parameter to the constructor.
+## Creating Resource
 
-### GET request
+All resources must implement the `IResource` interface.
+Extending the `Resource` class is a good start point.
 
 {% highlight csharp %}
-Request request = new Request(Code.GET);
+class HelloWorldResource : Resource
+{
+	// use "helloworld" as the path of this resource
+	public HelloWorldResource() : base("helloworld")
+	{
+		// set a friendly title
+		Attributes.Title = "GET a friendly greeting!";
+	}
+	
+	// override this method to handle GET requests
+	protected override void DoGet(CoapExchange exchange)
+	{
+		// now we get a request, respond it
+		exchange.Respond("Hello World!");
+	}
+}
 {% endhighlight %}
 
-### POST request
+Now this `HelloWorldResource` will handle GET requests from clients
+and respond them with a "Hello World!" string.
+
+To handle other types of request, i.e., POST, PUT and DELETE, override
+related methods.
 
 {% highlight csharp %}
-Request request = new Request(Code.POST);
+class HelloWorldResource : Resource
+{
+	public HelloWorldResource() : base("helloworld")
+	{
+	}
+	
+	// override this method to handle GET requests
+	protected override void DoGet(CoapExchange exchange)
+	{
+	}
+	
+	// override this method to handle POST requests
+	protected override void DoPost(CoapExchange exchange)
+	{
+	}
+	
+	// override this method to handle PUT requests
+	protected override void DoPut(CoapExchange exchange)
+	{
+	}
+	
+	// override this method to handle DELETE requests
+	protected override void DoDelete(CoapExchange exchange)
+	{
+	}
+}
 {% endhighlight %}
 
-### PUT request
+If not overrided, request will be responded with a 4.05 (Method Not Allowed).
+
+<hr class="soften"/>
+
+## Creating CoAP Server
+
+### Prepare a server
 
 {% highlight csharp %}
-Request request = new Request(Code.PUT);
+// create a new server
+var server = new CoapServer();
 {% endhighlight %}
 
-### DELETE request
+Or you may specify the port(s) to listen to:
 
 {% highlight csharp %}
-Request request = new Request(Code.DELETE);
+// create a new server on these ports
+var server = new CoapServer(5683, 5684);
 {% endhighlight %}
 
-## Set resource's URI
----------------------
-
-A resource's URI is a string like <code>"coap://127.0.0.1/hello-world"</code>,
-representing the address of a remote CoAP resource.
+To override default configurations, create your own `ICoapConfig`
+and pass it to the server.
 
 {% highlight csharp %}
-request.URI = new Uri("coap://127.0.0.1/hello-world");
+// define custom configurations
+ICoapConfig config = new CoapConfig();
+// ...
+
+// create a new server with custom config
+var server = new CoapServer(config);
 {% endhighlight %}
 
-<div class="alert alert-info">
-	If you want to discover what resources the remote server has,
-	a URL of <code>"coap://127.0.0.1/.well-known/core"</code> might be used.
-</div>
-
-## Define options
------------------
-
-// TODO
-
-## Attach payload
------------------
-
-Payloads are the data sent to the remote resource along with POST or PUT
-requests. Content of strings or bytes arrays are accepted.
+### Add resources
 
 {% highlight csharp %}
-// set a string as payload
-request.SetPayload("data from client");
-
-// or set it with specified media type
-request.SetPayload("{ 'msg': 'data from client'}", MediaType.ApplicationJson);
-
-// or give a array of bytes directly
-request.Payload = new Byte[] { 0x01, 0x02, 0x03 };
+// add the resource to share
+server.Add(new HelloWorldResource());
 {% endhighlight %}
+
+### Remove a resource
+
+{% highlight csharp %}
+server.Remove(...);
+{% endhighlight %}
+
+### Start a server
+
+{% highlight csharp %}
+server.Start();
+{% endhighlight %}
+
+### Stop a server
+
+{% highlight csharp %}
+server.Stop();
+{% endhighlight %}
+
+<hr class="soften"/>
+
+## Observable Resource
+
+Resources can be enabled as observable simply by setting `Observable` to `true`.
+Call `Changed();` whenever a new notification is ready to broadcast.
+After this call, the `DoGet` will be called again for each subscriber.
+
+{% highlight csharp %}
+class TimeResource : Resource
+{
+	Timer _timer;
+	DateTime _now;
+
+	// use "time" as the path of this resource
+	public TimeResource() : base("time")
+	{
+		// set a friendly title
+		Attributes.Title = "GET the current time";
+		
+		// mark as observable
+		Observable = true;
+		
+		_timer = new Timer(Timed, null, 0, period);
+	}
+	
+	private void Timed(Object o)
+	{
+		_now = DateTime.Now;
+		
+		// notify subscribers
+		Changed();
+	}
+	
+	protected override void DoGet(CoapExchange exchange)
+	{
+		exchange.Respond(_now.ToString());
+	}
+}
+{% endhighlight %}
+
+<hr class="soften"/>
+
+See [CoAP Example Server](https://github.com/smeshlink/CoAP.NET/tree/master/CoAP.Example/CoAP.Server) for more.

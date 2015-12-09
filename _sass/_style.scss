@@ -154,6 +154,40 @@ li > code {
 	}
 }
 
+.alert, .alert-success, .alert-info, .alert-warning, .alert-danger {
+	border-width: 1px;
+	border-style: solid;
+	padding: 0.5em;
+	margin: 0.5em 0 1.5em 0;
+}
+.alert p:first-child, .alert-success p:first-child, .alert-info p:first-child, .alert-warning p:first-child, .alert-danger p:first-child {
+	margin-top: 0;
+}
+.alert p:last-child, .alert-success p:last-child, .alert-info p:last-child, .alert-warning p:last-child, .alert-danger p:last-child {
+	margin-bottom: 0;
+}
+.alert code, .alert-success code, .alert-info code, .alert-warning code, .alert-danger code {
+	border: none;
+	background: transparent;
+	padding: 0;
+}
+.alert-success {
+	border-color:#149e39;
+	background-color:#e0ffe8;
+}
+.alert-info {
+	border-color: #139CFE;
+	background-color: #DEF0FD;
+}
+.alert-warning {
+	border-color: #FFFF10;
+	background-color: #FFFFEB;
+}
+.alert-danger {
+	border-color: #D5001B;
+	background-color: #FEE1E2;
+}
+
 #nav {
 	background: #FAFAFA;
 	border-right: 1px solid $nav-border-color;
@@ -164,6 +198,14 @@ li > code {
 	left: 0;
 	top: 0;
 	bottom: 0;
+	
+	h2 {
+		color: #999;
+		font-size: 0.75em;
+		text-transform: lowercase;
+		font-variant: small-caps;
+		padding-bottom: 0.5em;
+	}
 	
 	ul {
 		list-style: none;
@@ -385,7 +427,7 @@ main {
 		padding: 0;
 		position: static;
 		
-		ul {
+		h2, ul {
 			display: none;
 		}
 	}

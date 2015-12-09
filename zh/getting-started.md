@@ -59,7 +59,7 @@ class HelloWorldResource : Resource
 		Attributes.Title = "GET a friendly greeting!";
 	}
 	
-	// 重写 DoGet 方法来处理GET请求
+	// 重写 DoGet 方法来处理 GET 请求
 	protected override void DoGet(CoapExchange exchange)
 	{
 		// 收到一次请求，回复 "Hello World!"

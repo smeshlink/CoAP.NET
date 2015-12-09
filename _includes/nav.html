@@ -1,4 +1,4 @@
-				<ul class="nav">
+				<ul>
 					<li{% if page.home %} class="active"{% endif %}>
 						<a href="{{ site.baseurl }}/">Home</a>
 					</li>
@@ -16,5 +16,25 @@
 					</li>
 					<li>
 						<a href="{{ site.baseurl }}/zh{{ page.url }}">中文</a>
+					</li>
+				</ul>
+				<h2>Examples</h2>
+				<ul>
+					<li{% if page.example_client %} class="active"{% endif %}>
+						<a href="{{ site.baseurl }}/examples/client/">CoAP Client</a>{% if page.example_client %}
+						<ul>
+							<li><a href="#using-coapclient">Using CoapClient</a></li>
+							<li><a href="#using-coap-request">Using CoAP Request</a></li>
+							<li><a href="#discover">Discover</a></li>
+							<li><a href="#observe">Observe</a></li>
+						</ul>{% endif %}
+					</li>
+					<li{% if page.example_server %} class="active"{% endif %}>
+						<a href="{{ site.baseurl }}/examples/server/">CoAP Server</a>{% if page.example_server %}
+						<ul>
+							<li><a href="#creating-resource">Creating Resource</a></li>
+							<li><a href="#creating-coap-server">Creating CoAP Server</a></li>
+							<li><a href="#observable-resource">Observable Resource</a></li>
+						</ul>{% endif %}
 					</li>
 				</ul>

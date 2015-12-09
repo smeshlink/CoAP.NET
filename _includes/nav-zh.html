@@ -1,4 +1,4 @@
-				<ul class="nav">
+				<ul>
 					<li{% if page.home %} class="active"{% endif %}>
 						<a href="{{ site.baseurl }}/zh/">首页</a>
 					</li>
@@ -16,5 +16,25 @@
 					</li>
 					<li>
 						<a href="{{ site.baseurl }}/">English</a>
+					</li>
+				</ul>
+				<h2>示例</h2>
+				<ul>
+					<li{% if page.example_client %} class="active"{% endif %}>
+						<a href="{{ site.baseurl }}/zh/examples/client/">CoAP 客户端</a>{% if page.example_client %}
+						<ul>
+							<li><a href="#using-coapclient">使用 CoapClient</a></li>
+							<li><a href="#using-coap-request">使用 CoAP Request</a></li>
+							<li><a href="#discover">资源发现</a></li>
+							<li><a href="#observe">资源订阅</a></li>
+						</ul>{% endif %}
+					</li>
+					<li{% if page.example_server %} class="active"{% endif %}>
+						<a href="{{ site.baseurl }}/zh/examples/server/">CoAP 服务端</a>{% if page.example_server %}
+						<ul>
+							<li><a href="#creating-resource">创建 CoAP 资源</a></li>
+							<li><a href="#creating-coap-server">创建 CoAP 服务端</a></li>
+							<li><a href="#observable-resource">资源发现</a></li>
+						</ul>{% endif %}
 					</li>
 				</ul>
