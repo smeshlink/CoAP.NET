@@ -3,7 +3,6 @@ layout: article
 title: 快速开始
 excerpt: CoAP.NET简介、下载与使用。
 started: true
-permalink: /zh/getting-started/
 zh: true
 ---
 
@@ -16,7 +15,7 @@ zh: true
 ## 下载 CoAP.NET
 {: #installing-coapnet }
 
-通过 [NuGet](https://www.nuget.org/packages/CoAP/) 安装CoAP.NET。
+通过 [NuGet](https://www.nuget.org/packages/CoAP/) 安装 CoAP.NET。
 
 {% highlight powershell %}
 PM> Install-Package CoAP
@@ -42,7 +41,7 @@ var response = client.Get();
 Console.WriteLine(response.PayloadString);  // Hello World!
 {% endhighlight %}
 
-[`view example`]({{ site.baseurl }}/examples/client/)
+[`查看示例`]({{ site.baseurl }}/examples/client/)
 
 ## 使用 CoAP 服务端
 {: #using-coap-server }
@@ -83,12 +82,12 @@ server.Start();
 
 现在可以通过 `coap://SERVER_ADDRESS/helloworld` 来访问这个资源了。
 
-[`view example`]({{ site.baseurl }}/examples/server/)
+[`查看示例`]({{ site.baseurl }}/examples/server/)
 
 ## 构建源码
 {: #building-from-source }
 
-CoAP.NET工程定义了一些条件编译符号来构建不同的CoAP版本，支持的版本如下：
+CoAP.NET 工程定义了一些条件编译符号来构建不同版本的 CoAP 草案，支持的版本如下：
 
 * `COAP03` -- [draft-ietf-core-coap-03](http://tools.ietf.org/html/draft-ietf-core-coap-03)
 * `COAP08` -- [draft-ietf-core-coap-08](http://tools.ietf.org/html/draft-ietf-core-coap-08)
@@ -96,11 +95,11 @@ CoAP.NET工程定义了一些条件编译符号来构建不同的CoAP版本，�
 * `COAP13` -- [draft-ietf-core-coap-13](http://tools.ietf.org/html/draft-ietf-core-coap-13)
 * `COAP18` -- [draft-ietf-core-coap-18](http://tools.ietf.org/html/draft-ietf-core-coap-18)
 * `RFC7252` -- [RFC7252](http://tools.ietf.org/html/rfc7252)
-* `COAPALL` -- 以上所有的支持版本
+* `COAPALL` -- 以上所有的支持草案
 
-默认条件下（不定义任何条件编译符号），CoAP.NET将构建为最新的CoAP版本。
-如果需要启用特定版本的CoAP协议，定义相应的条件编译符号即可。
-例如，定义`COAP03`将启用CoAP Draft 03。定义`COAPALL`启用所有支持的CoAP版本。
+默认条件下（不定义任何条件编译符号），CoAP.NET 将构建为最新的 CoAP 草案。
+如果需要启用特定版本的 CoAP 协议草案，定义相应的条件编译符号即可。
+例如，定义 `COAP03` 将启用 CoAP Draft 03。定义 `COAPALL` 将启用所有支持的 CoAP 草案。
 
 --------
 

@@ -3,7 +3,6 @@ layout: article
 title: Getting Started
 excerpt: An overview of CoAP.NET, how to install and use.
 started: true
-permalink: /getting-started/
 ---
 
 # {{ page.title }}
