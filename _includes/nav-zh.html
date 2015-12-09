@@ -1,11 +1,20 @@
-						<ul class="nav">
-							<li class="{% if page.home %}active{% endif %}">
-								<a href="{{ site.baseurl }}/zh/">首页</a>
-							</li>
-							<li class="{% if page.started %}active{% endif %}">
-								<a href="{{ site.baseurl }}/zh/getting-started/">开始</a>
-							</li>
-							<li>
-								<a href="{{ site.baseurl }}/">English</a>
-							</li>
-						</ul>
+				<ul class="nav">
+					<li{% if page.home %} class="active"{% endif %}>
+						<a href="{{ site.baseurl }}/zh/">首页</a>
+					</li>
+					<li{% if page.started %} class="active"{% endif %}>
+						<a href="{{ site.baseurl }}/zh/getting-started/">快速开始</a>{% if page.started %}
+						<ul>
+							<li><a href="#installing-coapnet">下载 CoAP.NET</a></li>
+							<li><a href="#using-coap-client">使用 CoAP 客户端</a></li>
+							<li><a href="#using-coap-server">使用 CoAP 服务端</a></li>
+							<li><a href="#building-from-source">构建源码</a></li>
+						</ul>{% endif %}
+					</li>
+					<li{% if page.doc %} class="active"{% endif %}>
+						<a href="{{ site.baseurl }}/zh/doc/">帮助文档</a>
+					</li>
+					<li>
+						<a href="{{ site.baseurl }}/">English</a>
+					</li>
+				</ul>

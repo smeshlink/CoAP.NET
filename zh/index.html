@@ -1,19 +1,36 @@
 ---
 layout: default
 title: CoAP.NET
+excerpt: .NET上的CoAP客户端与服务端库。
 home: true
 zh: true
 ---
-
-		<header class="jumbotron masthead">
-			<div class="container">
-				<h1>CoAP.NET</h1>
-				<p>.NET上的CoAP客户端与服务端库。</p>
-				<p><a href="{{ site.baseurl }}/zh/getting-started/#download" class="btn btn-primary btn-large">下载 CoAP.NET</a></p>
-				<ul class="unstyled inline">
-					<li><a href="https://github.com/smeshlink/CoAP.NET">GitHub项目</a></li>
-					<li><a href="{{ site.baseurl }}/zh/getting-started/#examples">示例代码</a></li>
-					<li class="muted">Version {{ site.version }}</li>
-				</ul>
-			</div>
-		</header>
+			<article>
+				<h1>欢迎使用CoAP.NET</h1>
+				<p>CoAP.NET是.NET上的CoAP客户端与服务端库。</p>
+				<p>当前版本： {{ site.version }}</p>
+				<hr class="soften"/>
+				<h2>CoAP.NET 简介</h2>
+				<h3>什么是CoAP？</h3>
+				<p>CoAP (Constrained Application Protocol) 是IETF CoRE工作组为物联网提出的一种REST风格的应用层协议。CoAP的交互方式类似于HTTP，但更适合于资源受限的物联网设备。</p>
+				<p><a href="http://tools.ietf.org/html/rfc7252">了解更多</a></p>
+				<h3>什么是CoAP.NET？</h3>
+				<p>CoAP.NET是使用C#实现的CoAP库，包含客户端与服务端，方便在.NET上开发基于CoAP的应用程序。</p>
+				<p>CoAP.NET源自 <a href="https://github.com/eclipse/californium.core"><strong>Californium</strong></a>。</p>
+				<hr class="soften"/>
+				<h2>支持特性</h2>
+				<h3>CoAP RFC7252</h3>
+				<p>最新的IETF CoAP协议规范。</p>
+				<p><a href="http://tools.ietf.org/html/rfc7252">了解更多</a></p>
+				<h3>Block-wise 传输</h3>
+				<p>对大型资源进行分块传输。</p>
+				<p><a href="http://tools.ietf.org/html/draft-ietf-core-block">了解更多</a></p>
+				<h3>Observe 订阅</h3>
+				<p>CoAP资源的发布/订阅模式，允许客户端订阅服务端资源，持续获取服务端资源的更新状态。</p>
+				<p><a href="http://tools.ietf.org/html/rfc7641">了解更多</a></p>
+				<hr class="soften"/>
+				<h2>开始构建物联网应用</h2>
+				<h3><a href="{{ site.baseurl }}/zh/getting-started/">快速开始</a></h3>
+				<h3><a href="{{ site.baseurl }}/zh/doc/">帮助文档</a></h3>
+				<h3><a href="https://github.com/smeshlink/CoAP.NET/issues">报告问题</a></h3>
+			</article>
