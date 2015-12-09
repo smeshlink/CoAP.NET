@@ -4,6 +4,7 @@ title: 快速开始
 excerpt: CoAP.NET简介、下载与使用。
 started: true
 zh: true
+permalink: /zh/getting-started/
 ---
 
 # {{ page.title }}
