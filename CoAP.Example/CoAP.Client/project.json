@@ -5,19 +5,10 @@
   "tags": [ "" ],
   "projectUrl": "",
   "licenseUrl": "",
-
-  "dependencies": {
-    "CoAP.NET": "1.0.0-*"
+  "runtimes": {
+    "win": { }
   },
-
-  "commands": {
-    "CoAP.Client.DNX": "run"
-  },
-
   "frameworks": {
-    "dnx451": {
-      "dependencies": {
-      }
-    }
+    ".NETFramework,Version=v4.0": { }
   }
 }
