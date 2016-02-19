@@ -59,7 +59,7 @@ the event <code>request.Respond</code> before executing.
   IEnumerable<WebLink> links = LinkFormat.Parse(response.PayloadString);
   ```
 
-See [CoAP Example Client] (CoAP.Client) for more.
+See [CoAP Example Client] (CoAP.Example/CoAP.Client) for more.
 
 ### CoAP Server
 
@@ -79,7 +79,7 @@ A new CoAP server can be easily built with help of the class
   }
 ```
 
-See [CoAP Example Server] (CoAP.Server) for more.
+See [CoAP Example Server] (CoAP.Example/CoAP.Server) for more.
 
 ### CoAP Resource
 
