@@ -919,7 +919,7 @@ namespace CoAP
         {
             get
             {
-                Option opt = GetFirstOption(OptionType.Accept);
+                Option opt = GetFirstOption(OptionType.ProxyUri);
                 if (opt == null)
                     return null;
 
@@ -944,7 +944,7 @@ namespace CoAP
         {
             get
             {
-                Option opt = GetFirstOption(OptionType.Accept);
+                Option opt = GetFirstOption(OptionType.ProxyScheme);
                 return opt == null ? null : opt.StringValue;
             }
             set
