@@ -116,18 +116,21 @@ namespace CoAP
                         && !host.Equals("localhost", StringComparison.OrdinalIgnoreCase))
                         UriHost = host;
 
-                    if (port >= 0)
-                    {
-                        if (port != CoapConstants.DefaultPort)
-                            UriPort = port;
-                    }
-                    else
+                    if (port < 0)
                     {
                         if (String.IsNullOrEmpty(value.Scheme) ||
                             String.Equals(value.Scheme, CoapConstants.UriScheme))
                             port = CoapConstants.DefaultPort;
                         else if (String.Equals(value.Scheme, CoapConstants.SecureUriScheme))
                             port = CoapConstants.DefaultSecurePort;
+                    }
+
+                    if (UriPort != port)
+                    {
+                        if (port != CoapConstants.DefaultPort)
+                            UriPort = port;
+                        else
+                            UriPort = 0;
                     }
 
                     Destination = new IPEndPoint(Dns.GetHostAddresses(host)[0], port);
