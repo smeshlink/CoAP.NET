@@ -296,7 +296,14 @@ namespace CoAP.Channel
 
             // do not throw SocketError.ConnectionReset by ignoring ICMP Port Unreachable
             const Int32 SIO_UDP_CONNRESET = -1744830452;
-            socket.Socket.IOControl(SIO_UDP_CONNRESET, new Byte[] { 0 }, null);
+            try
+            {
+                socket.Socket.IOControl(SIO_UDP_CONNRESET, new Byte[] { 0 }, null);
+            }
+            catch (Exception e)
+            {
+                // ignore
+            }
             return socket;
         }
 
