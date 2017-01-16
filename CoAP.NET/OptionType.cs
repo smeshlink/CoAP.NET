@@ -142,7 +142,12 @@ namespace CoAP
         /// <remarks>draft-ietf-core-block</remarks>
         /// </summary>
         Size2 = 28,
-
+#if INCLUDE_OSCOAP
+        /// <summary>
+        /// <remarks>draft-ietf-core-oscoap</remarks>
+        /// </summary>
+        Oscoap = 999,
+#endif
         /// <summary>
         /// no-op for fenceposting
         /// <remarks>draft-bormann-coap-misc-04</remarks>

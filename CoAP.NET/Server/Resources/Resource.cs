@@ -40,6 +40,10 @@ namespace CoAP.Server.Resources
             = new ConcurrentDictionary<String, ObserveRelation>();
         private ObserveNotificationOrderer _notificationOrderer
             = new ObserveNotificationOrderer();
+#if INCLUDE_OSCOAP
+        private Boolean _requireSecurity = false;
+        private String _requireSecurityErrorText = null;
+#endif
 
         /// <summary>
         /// Constructs a new resource with the specified name.
@@ -159,6 +163,26 @@ namespace CoAP.Server.Resources
                 _observeType = value;
             }
         }
+
+#if INCLUDE_OSCOAP
+        /// <summary>
+        /// Does the resource require that security be on in order to process.
+        /// Security can be in the form of either OSCOAP or DTLS.
+        /// </summary>
+        public Boolean RequireSecurity {
+            get { return _requireSecurity; }
+            set { _requireSecurity = value; }
+        }
+
+        /// <summary>
+        /// Get or Set the text that is returned in the event that security is requiried
+        /// but is not provided.
+        /// </summary>
+        public String RequireSecurityErrorText {
+            get { return _requireSecurityErrorText; }
+            set { _requireSecurityErrorText = value; }
+        }
+#endif
 
         /// <inheritdoc/>
         public ResourceAttributes Attributes
@@ -330,6 +354,16 @@ namespace CoAP.Server.Resources
         public virtual void HandleRequest(Exchange exchange)
         {
             CoapExchange ce = new CoapExchange(exchange, this);
+#if INCLUDE_OSCOAP
+            if (RequireSecurity)
+            {
+                if (exchange.OscoapContext == null)
+                {
+                    ce.Respond(CoAP.StatusCode.Unauthorized, RequireSecurityErrorText);
+                    return;
+                }
+            }
+#endif
             switch (exchange.Request.Method)
             {
                 case Method.GET:

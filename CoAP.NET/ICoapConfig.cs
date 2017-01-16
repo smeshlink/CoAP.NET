@@ -63,6 +63,12 @@ namespace CoAP
         Int32 ChannelSendBufferSize { get; }
         Int32 ChannelReceivePacketSize { get; }
 
+#if INCLUDE_OSCOAP
+        Int32 OSCOAP_MaxMessageSize { get; }
+        Int32 OSCOAP_DefaultBlockSize { get; }
+        Int32 OSCOAP_BlockwiseStatusLifetime { get; }
+#endif
+
         /// <summary>
         /// Loads configuration from a config properties file.
         /// </summary>

@@ -14,6 +14,7 @@ using System.Collections.Concurrent;
 using CoAP.Observe;
 using CoAP.Stack;
 using CoAP.Util;
+using CoAP.OSCOAP;
 
 namespace CoAP.Net
 {
@@ -43,6 +44,12 @@ namespace CoAP.Net
         private IEndPoint _endpoint;
         private IOutbox _outbox;
         private IMessageDeliverer _deliverer;
+#if INCLUDE_OSCOAP
+        private BlockwiseStatus _oscoap_requestBlockStatus;
+        private BlockwiseStatus _oscoap_responseBlockStatus;
+        private SecurityContext _oscoap_securityContext;
+        private byte[] _oscoap_sequenceNumber;
+#endif
 
         public event EventHandler Completed;
 
@@ -137,6 +144,45 @@ namespace CoAP.Net
             get { return _block1ToAck; }
             set { _block1ToAck = value; }
         }
+
+#if INCLUDE_OSCOAP
+        /// <summary>
+        /// Gets or sets the status of the security blockwise transfer of the request,
+        /// or null in case of a normal transfer,
+        /// </summary>
+        public BlockwiseStatus OSCOAP_RequestBlockStatus
+        {
+            get { return _oscoap_requestBlockStatus; }
+            set { _oscoap_requestBlockStatus = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets the status of the security blockwise transfer of the response,
+        /// or null in case of a normal transfer,
+        /// </summary>
+        public BlockwiseStatus OSCOAP_ResponseBlockStatus
+        {
+            get { return _oscoap_responseBlockStatus; }
+            set { _oscoap_responseBlockStatus = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets the OSCOAP security context for the exchange
+        /// </summary>
+        public SecurityContext OscoapContext {
+            get { return _oscoap_securityContext; }
+            set { _oscoap_securityContext = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets the sequence number used to link requests and responses
+        /// in OSCOAP authentication
+        /// </summary>
+        public byte[] OscoapSequenceNumber {
+            get { return _oscoap_sequenceNumber; }
+            set { _oscoap_sequenceNumber = value; }
+        }
+#endif
 
         /// <summary>
         /// Gets the time when this exchange was created.

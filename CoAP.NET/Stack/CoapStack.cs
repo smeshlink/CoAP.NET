@@ -26,6 +26,10 @@ namespace CoAP.Stack
         public CoapStack(ICoapConfig config)
         {
             this.AddLast("Observe", new ObserveLayer(config));
+#if INCLUDE_OSCOAP
+            this.AddLast("SecureBlockwise", new OSCOAP.SecureBlockwiseLayer(config));
+            this.AddLast("OSCOAP", new OSCOAP.OscoapLayer(config));
+#endif
             this.AddLast("Blockwise", new BlockwiseLayer(config));
             this.AddLast("Token", new TokenLayer(config));
             this.AddLast("Reliability", new ReliabilityLayer(config));

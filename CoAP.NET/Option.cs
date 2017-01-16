@@ -219,6 +219,10 @@ namespace CoAP
                 case OptionType.Block1:
                 case OptionType.Block2:
                     return new BlockOption(type);
+#if INCLUDE_OSCOAP                    
+                case OptionType.Oscoap:
+                    return new OSCOAP.OscoapOption();
+#endif
                 default:
                     return new Option(type);
             }

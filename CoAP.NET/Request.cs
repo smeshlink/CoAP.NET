@@ -15,6 +15,7 @@ using System.Text.RegularExpressions;
 using CoAP.Log;
 using CoAP.Net;
 using CoAP.Observe;
+using CoAP.OSCOAP;
 
 namespace CoAP
 {
@@ -32,6 +33,9 @@ namespace CoAP
         private Response _currentResponse;
         private IEndPoint _endPoint;
         private Object _sync;
+#if INCLUDE_OSCOAP
+        private SecurityContext _oscoapContext;
+#endif
 
         /// <summary>
         /// Fired when a response arrives.
@@ -386,5 +390,12 @@ namespace CoAP
         {
             return new Request(CoAP.Method.DELETE);
         }
+#if INCLUDE_OSCOAP
+        public SecurityContext OscoapContext
+        {
+            get { return _oscoapContext;}
+            set { _oscoapContext = value; }
+        }
+#endif
     }
 }
