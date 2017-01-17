@@ -20,12 +20,42 @@ namespace CoAP.OSCOAP
         public class replayWindow
         {
             BitArray _hits;
-            int _baseValue;
+            Int64 _baseValue;
 
             public replayWindow(int baseValue, int arraySize)
             {
                 _baseValue = baseValue;
                 _hits = new BitArray(arraySize);
+            }
+
+            public bool HitTest(Int64 index)
+            {
+                index -= _baseValue;
+                if (index < 0) return true;
+                if (index > _hits.Length) return false;
+                return _hits.Get((int)index);
+            }
+
+            public void SetHit(Int64 index)
+            {
+                index -= _baseValue;
+                if (index < 0) return;
+                if (index > _hits.Length) {
+                    if (index > _hits.Length * 3 / 2) {
+                        int v = _hits.Length / 2;
+                        _baseValue += v;
+                        BitArray t = new BitArray(_hits.Length);
+                        for (int i = 0; i < v; i++) t[i] = _hits[i + v];
+                        _hits = t;
+                        index -= v;
+                    }
+                    else {
+                        _baseValue = index;
+                        _hits.SetAll(false);
+                        index = 0;
+                    }
+                }
+                _hits.Set((int)index, true);
             }
         }
 
@@ -87,7 +117,6 @@ namespace CoAP.OSCOAP
 
         byte[] _Cid;
         public byte[] Cid { get { return _Cid; } set { _Cid = value; } }
-
 
         public static SecurityContext DeriveContext(byte[] Cid, byte[] MasterSecret, byte[] SenderId, byte[] RecipientId, CBORObject AEADAlg = null)
         {

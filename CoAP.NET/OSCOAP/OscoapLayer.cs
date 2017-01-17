@@ -130,14 +130,16 @@ namespace CoAP.OSCOAP
                         msg = (Encrypt0Message) Com.AugustCellars.COSE.Message.DecodeFromBytes(op.RawValue, Tags.Encrypted);
                     }
 
-                    OSCOAP.SecurityContext ctx = exchange.OscoapContext;
-                    if (ctx == null)
-                    {
+                    List<SecurityContext> contexts = new List<SecurityContext>();
+                    SecurityContext ctx = null;
+
+                    if (exchange.OscoapContext != null) {
+                        contexts.Add(exchange.OscoapContext);
+                    }
+                    else {
                         CBORObject kid = msg.FindAttribute(HeaderKeys.KeyId);
-                        ctx = OSCOAP.SecurityContextSet.AllContexts.FindByKid(kid.GetByteString());
-                        if (ctx == null) return;  // Ignore messages that have no known security context.
-                        exchange.OscoapContext = ctx;  // So we know it on the way back.
-                        request.OscoapContext = ctx;
+                        contexts = OSCOAP.SecurityContextSet.AllContexts.FindByKid(kid.GetByteString());
+                        if (contexts.Count == 0) return;  // Ignore messages that have no known security context.
                     }
 
                     String partialURI = request.URI.AbsoluteUri; // M00BUG?
@@ -146,15 +148,44 @@ namespace CoAP.OSCOAP
                     CBORObject aad = CBORObject.NewArray();
                     aad.Add(CBORObject.FromObject(1)); // M00BUG
                     aad.Add(CBORObject.FromObject(request.Code));
-                    aad.Add(CBORObject.FromObject(ctx.Recipient.Algorithm));
+                    aad.Add(CBORObject.FromObject(0));
                     aad.Add(CBORObject.FromObjectAndTag(partialURI, 32));
-                    msg.SetExternalData(aad.EncodeToBytes());
 
-                    msg.AddAttribute(HeaderKeys.Algorithm, ctx.Recipient.Algorithm, Attributes.DO_NOT_SEND);
-                    msg.AddAttribute(HeaderKeys.IV, ctx.Recipient.GetIV(msg.FindAttribute(HeaderKeys.PartialIV)), Attributes.DO_NOT_SEND);
-                    exchange.OscoapSequenceNumber = msg.FindAttribute(HeaderKeys.PartialIV).GetByteString();
+                    byte[] payload = null;
+                    byte[] partialIV = msg.FindAttribute(HeaderKeys.PartialIV).GetByteString();
+                    byte[] seqNoArray = new byte[8];
+                    Array.Copy(partialIV, 0, seqNoArray, 8 - partialIV.Length, partialIV.Length);
+                    if (BitConverter.IsLittleEndian) Array.Reverse(seqNoArray);
+                    Int64 seqNo = BitConverter.ToInt64(seqNoArray, 0);
 
-                    byte[] payload = msg.Decrypt(ctx.Recipient.Key);
+                    foreach (SecurityContext context in contexts) {
+                        if (context.Recipient.ReplayWindow.HitTest(seqNo)) continue;
+
+                        aad[2] = context.Recipient.Algorithm;
+
+                        msg.SetExternalData(aad.EncodeToBytes());
+
+                        msg.AddAttribute(HeaderKeys.Algorithm, context.Recipient.Algorithm, Attributes.DO_NOT_SEND);
+                        msg.AddAttribute(HeaderKeys.IV, context.Recipient.GetIV(partialIV), Attributes.DO_NOT_SEND);
+ 
+                        try {
+                            ctx = context;
+                            payload = msg.Decrypt(context.Recipient.Key);
+                            context.Recipient.ReplayWindow.SetHit(seqNo);
+                        }
+                        catch (Exception) {
+                            ctx = null;
+                        }
+
+                        if (ctx != null) {
+                            break;
+                        }
+                    }
+
+                    exchange.OscoapContext = ctx;  // So we know it on the way back.
+                    request.OscoapContext = ctx;
+                    exchange.OscoapSequenceNumber = partialIV;
+
                     byte[] newRequestData = new byte[payload.Length + fixedHeader.Length];
                     Array.Copy(fixedHeader, newRequestData, fixedHeader.Length);
                     Array.Copy(payload, 0, newRequestData, fixedHeader.Length, payload.Length);

@@ -14,7 +14,9 @@ using System.Collections.Concurrent;
 using CoAP.Observe;
 using CoAP.Stack;
 using CoAP.Util;
+#if INCLUDE_OSCOAP
 using CoAP.OSCOAP;
+#endif
 
 namespace CoAP.Net
 {

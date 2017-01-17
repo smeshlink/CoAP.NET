@@ -15,7 +15,9 @@ using System.Text.RegularExpressions;
 using CoAP.Log;
 using CoAP.Net;
 using CoAP.Observe;
+#if INCLUDE_OSCOAP
 using CoAP.OSCOAP;
+#endif
 
 namespace CoAP
 {

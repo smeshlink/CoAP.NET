@@ -17,10 +17,20 @@ namespace CoAP.OSCOAP
             _allContexts.Add(ctx);
         }
 
-        public SecurityContext FindByKid(byte[] kid)
+        public List<SecurityContext> FindByKid(byte[] kid)
         {
-            if (_allContexts.Count > 0) return _allContexts[0];
-            return null;
+            List<SecurityContext> contexts = new List<SecurityContext>();
+            foreach (SecurityContext ctx in _allContexts) {
+                if (kid.Length == ctx.Cid.Length) {
+                    bool match = true;
+                    for (int i=0; i<kid.Length;i++) if (kid[i] != ctx.Cid[i]) {
+                            match = false;
+                            break;
+                        }
+                    if (match) contexts.Add(ctx);
+                }
+            }
+            return contexts;
         }
     }
 }
