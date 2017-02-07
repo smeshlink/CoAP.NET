@@ -14,6 +14,9 @@ using System.Collections.Concurrent;
 using CoAP.Observe;
 using CoAP.Stack;
 using CoAP.Util;
+#if INCLUDE_OSCOAP
+using CoAP.OSCOAP;
+#endif
 
 namespace CoAP.Net
 {
@@ -43,6 +46,12 @@ namespace CoAP.Net
         private IEndPoint _endpoint;
         private IOutbox _outbox;
         private IMessageDeliverer _deliverer;
+#if INCLUDE_OSCOAP
+        private BlockwiseStatus _oscoap_requestBlockStatus;
+        private BlockwiseStatus _oscoap_responseBlockStatus;
+        private SecurityContext _oscoap_securityContext;
+        private byte[] _oscoap_sequenceNumber;
+#endif
 
         public event EventHandler Completed;
 
@@ -137,6 +146,45 @@ namespace CoAP.Net
             get { return _block1ToAck; }
             set { _block1ToAck = value; }
         }
+
+#if INCLUDE_OSCOAP
+        /// <summary>
+        /// Gets or sets the status of the security blockwise transfer of the request,
+        /// or null in case of a normal transfer,
+        /// </summary>
+        public BlockwiseStatus OSCOAP_RequestBlockStatus
+        {
+            get { return _oscoap_requestBlockStatus; }
+            set { _oscoap_requestBlockStatus = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets the status of the security blockwise transfer of the response,
+        /// or null in case of a normal transfer,
+        /// </summary>
+        public BlockwiseStatus OSCOAP_ResponseBlockStatus
+        {
+            get { return _oscoap_responseBlockStatus; }
+            set { _oscoap_responseBlockStatus = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets the OSCOAP security context for the exchange
+        /// </summary>
+        public SecurityContext OscoapContext {
+            get { return _oscoap_securityContext; }
+            set { _oscoap_securityContext = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets the sequence number used to link requests and responses
+        /// in OSCOAP authentication
+        /// </summary>
+        public byte[] OscoapSequenceNumber {
+            get { return _oscoap_sequenceNumber; }
+            set { _oscoap_sequenceNumber = value; }
+        }
+#endif
 
         /// <summary>
         /// Gets the time when this exchange was created.
@@ -337,13 +385,32 @@ namespace CoAP.Net
             private readonly Uri _uri;
             private readonly System.Net.EndPoint _endpoint;
             private readonly Int32 _hash;
+#if INCLUDE_OSCOAP
+            private readonly byte[] _oscoap;
+#endif
 
+#if INCLUDE_OSCOAP
+            public KeyUri(Uri uri, byte[] oscoap, System.Net.EndPoint ep)
+            {
+                _uri = uri;
+                _endpoint = ep;
+                _oscoap = oscoap;
+                _hash = _uri.GetHashCode() * 31 + ep.GetHashCode();
+
+                if (oscoap != null) {
+                    Int32 hash2 = 0;
+                    for (int i = 0; i < oscoap.Length; i++) hash2 = hash2 * 7 + oscoap[i];
+                    _hash += hash2 * 71;
+                }
+            }
+#else
             public KeyUri(Uri uri, System.Net.EndPoint ep)
             {
                 _uri = uri;
                 _endpoint = ep;
                 _hash = _uri.GetHashCode() * 31 + ep.GetHashCode();
             }
+#endif
 
             /// <inheritdoc/>
             public override Int32 GetHashCode()
@@ -357,13 +424,32 @@ namespace CoAP.Net
                 KeyUri other = obj as KeyUri;
                 if (other == null)
                     return false;
+#if INCLUDE_OSCOAP
+                if (Object.Equals(_uri, other._uri) && Object.Equals(_endpoint, other._endpoint)) {
+                    if (_oscoap != null) {
+                        if (other._oscoap == null) return false;
+                        if (_oscoap.Length != other._oscoap.Length) return false;
+                        for (int i = 0; i < _oscoap.Length; i++) if (_oscoap[i] != other._oscoap[i]) return false;
+                        return true;
+                    }
+                    return other._oscoap == null;
+                }
+                return false;
+#else
                 return Object.Equals(_uri, other._uri) && Object.Equals(_endpoint, other._endpoint);
+#endif
             }
 
             /// <inheritdoc/>
             public override String ToString()
             {
+#if INCLUDE_OSCOAP
+                if (_oscoap == null) return "KeyUri[" + _uri + " for " + _endpoint + "]";
+                
+                return "KeyUri[" + _uri + "for " + _endpoint + " encryption is " + BitConverter.ToString(_oscoap) + "]";
+#else
                 return "KeyUri[" + _uri + " for " + _endpoint + "]";
+#endif
             }
         }
     }

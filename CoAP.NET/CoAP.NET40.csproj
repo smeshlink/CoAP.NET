@@ -19,7 +19,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\NET40\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;COAPALL</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;COAPALL;INCLUDE_OSCOAP</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -27,24 +27,18 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\NET40\</OutputPath>
-    <DefineConstants>TRACE;COAPALL</DefineConstants>
+    <DefineConstants>TRACE;COAPALL;INCLUDE_OSCOAP</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>bin\Release\NET40\CoAP.NET.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup>
-    <SignAssembly>true</SignAssembly>
+    <SignAssembly>false</SignAssembly>
   </PropertyGroup>
   <PropertyGroup>
     <AssemblyOriginatorKeyFile>coapnet.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Common.Logging">
-      <HintPath>..\packages\Common.Logging.3.0.0\lib\net40\Common.Logging.dll</HintPath>
-    </Reference>
-    <Reference Include="Common.Logging.Core">
-      <HintPath>..\packages\Common.Logging.Core.3.0.0\lib\net40\Common.Logging.Core.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
@@ -102,6 +96,12 @@
     <Compile Include="Observe\ReregisterEventArgs.cs" />
     <Compile Include="Option.cs" />
     <Compile Include="OptionType.cs" />
+    <Compile Include="OSCOAP\HKDF.cs" />
+    <Compile Include="OSCOAP\OscoapLayer.cs" />
+    <Compile Include="OSCOAP\OscoapOption.cs" />
+    <Compile Include="OSCOAP\SecureBlockwiseLayer.cs" />
+    <Compile Include="OSCOAP\SecurityContext.cs" />
+    <Compile Include="OSCOAP\SecurityContextSet.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Request.cs" />
     <Compile Include="Response.cs" />
@@ -145,6 +145,16 @@
     <None Include="coapnet.snk" />
     <None Include="packages.config" />
     <None Include="README" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Bouncy-Castle\bc-csharp\crypto\BouncyCastle.csproj">
+      <Project>{4c235092-820c-4deb-9074-d356fb797d8b}</Project>
+      <Name>BouncyCastle</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\COSE\COSE-csharp\COSE\COSE.Net40.csproj">
+      <Project>{d02f476f-bc2c-4d01-bede-eb8e79dd050e}</Project>
+      <Name>COSE.Net40</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

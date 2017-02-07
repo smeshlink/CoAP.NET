@@ -1049,6 +1049,18 @@ namespace CoAP
             SetOption(new BlockOption(OptionType.Block2, num, szx, m));
         }
 
+#if INCLUDE_OSCOAP
+        public OSCOAP.OscoapOption Oscoap
+        {
+            get { return GetFirstOption(OptionType.Oscoap) as OSCOAP.OscoapOption; }
+            set
+            {
+                if (value == null) RemoveOptions(OptionType.Oscoap);
+                else SetOption(value);
+            }
+        }
+#endif
+
         private IEnumerable<T> SelectOptions<T>(OptionType optionType, Func<Option, T> func)
         {
             IEnumerable<Option> opts = GetOptions(optionType);

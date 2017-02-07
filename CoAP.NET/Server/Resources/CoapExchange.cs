@@ -173,7 +173,7 @@ namespace CoAP.Server.Resources
                 response.MaxAge = _maxAge;
             if (_eTag != null)
                 response.SetOption(Option.Create(OptionType.ETag, _eTag));
-
+ 
             _resource.CheckObserveRelation(_exchange, response);
 
             _exchange.SendResponse(response);

@@ -62,6 +62,12 @@ namespace CoAP
         private Int32 _channelReceiveBufferSize;
         private Int32 _channelSendBufferSize;
         private Int32 _channelReceivePacketSize = 2048;
+#if INCLUDE_OSCOAP
+        private Int32 _oscoap_maxMessageSize = 1024;
+        private Int32 _oscoap_defaultBlockSize = CoapConstants.DefaultBlockSize;
+        private Int32 _oscoap_blockwiseStatusLifetime = 10 *60 * 1000; // ms
+        private bool _oscoap_ReplayWindow = true;
+#endif
 
         /// <summary>
         /// Instantiate.
@@ -399,6 +405,60 @@ namespace CoAP
             }
         }
 
+#if INCLUDE_OSCOAP
+        /// <inheritdoc/>
+        public Int32 OSCOAP_MaxMessageSize
+        {
+            get { return _oscoap_maxMessageSize; }
+            set
+            {
+                if (_oscoap_maxMessageSize != value)
+                {
+                    _oscoap_maxMessageSize = value;
+                    NotifyPropertyChanged("OSCOAP_MaxMessageSize");
+                }
+            }
+        }
+
+        /// <inheritdoc/>
+        public Int32 OSCOAP_DefaultBlockSize
+        {
+            get { return _oscoap_defaultBlockSize; }
+            set
+            {
+                if (_oscoap_defaultBlockSize != value)
+                {
+                    _oscoap_defaultBlockSize = value;
+                    NotifyPropertyChanged("OSCOAP_DefaultBlockSize");
+                }
+            }
+        }
+
+        /// <inheritdoc/>
+        public Int32 OSCOAP_BlockwiseStatusLifetime
+        {
+            get { return _oscoap_blockwiseStatusLifetime; }
+            set
+            {
+                if (_oscoap_blockwiseStatusLifetime != value)
+                {
+                    _oscoap_blockwiseStatusLifetime = value;
+                    NotifyPropertyChanged("OSCOAP_BlockwiseStatusLifetime");
+                }
+            }
+        }
+
+        public bool OSCOAP_ReplayWindow {
+            get { return _oscoap_ReplayWindow; }
+            set {
+                if (_oscoap_ReplayWindow != value) {
+                    _oscoap_ReplayWindow = value;
+                    NotifyPropertyChanged("OSCOAP_ReplayWindow");
+                }
+            }
+        }
+#endif
+
         /// <inheritdoc/>
         public void Load(String configFile)
         {
@@ -433,6 +493,11 @@ namespace CoAP
             ChannelReceiveBufferSize = GetInt32(nvc, "ChannelReceiveBufferSize", "UDP_CONNECTOR_RECEIVE_BUFFER", ChannelReceiveBufferSize);
             ChannelSendBufferSize = GetInt32(nvc, "ChannelSendBufferSize", "UDP_CONNECTOR_SEND_BUFFER", ChannelSendBufferSize);
             ChannelReceivePacketSize = GetInt32(nvc, "ChannelReceivePacketSize", "UDP_CONNECTOR_DATAGRAM_SIZE", ChannelReceivePacketSize);
+#if INCLUDE_OSCOAP
+            OSCOAP_MaxMessageSize = GetInt32(nvc, "OSCOAP_MaxMessageSize", "MAX_MESSAGE_SIZE", OSCOAP_MaxMessageSize);
+            OSCOAP_DefaultBlockSize = GetInt32(nvc, "OSCOAP_DefaultBlockSize", "DEFAULT_BLOCK_SIZE", OSCOAP_DefaultBlockSize);
+            OSCOAP_ReplayWindow = GetBoolean(nvc, "OSCOAP_ReplayWindow", "REPLAY_WINDOW", OSCOAP_ReplayWindow);
+#endif
         }
 
         /// <inheritdoc/>
@@ -462,6 +527,11 @@ namespace CoAP
                 w.Write("ChannelReceiveBufferSize="); w.WriteLine(ChannelReceiveBufferSize);
                 w.Write("ChannelSendBufferSize="); w.WriteLine(ChannelSendBufferSize);
                 w.Write("ChannelReceivePacketSize="); w.WriteLine(ChannelReceivePacketSize);
+#if INCLUDE_OSCOAP
+                w.Write("OSCOAP_MaxMessageSize="); w.WriteLine(OSCOAP_MaxMessageSize);
+                w.Write("OSCOAP_DefaultBlockSize="); w.WriteLine(OSCOAP_DefaultBlockSize);
+                w.Write("OSCOAP_ReplayWindow="); w.WriteLine(OSCOAP_ReplayWindow);
+#endif
             }
         }
 

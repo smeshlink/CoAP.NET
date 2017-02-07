@@ -215,6 +215,10 @@ namespace CoAP.Util
                 appendIfNotNullOrEmpty(sb, "Block2", msg.Block2.ToString());
             if (msg.Observe.HasValue)
                 appendIfNotNullOrEmpty(sb, "Observe", msg.Observe.ToString());
+#if INCLUDE_OSCOAP                
+            if (msg.Oscoap != null)
+                appendIfNotNullOrEmpty(sb, "OSCOAP", msg.Oscoap.ToString());
+#endif
             return sb.ToString();
         }
 
