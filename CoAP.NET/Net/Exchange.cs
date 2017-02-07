@@ -385,13 +385,32 @@ namespace CoAP.Net
             private readonly Uri _uri;
             private readonly System.Net.EndPoint _endpoint;
             private readonly Int32 _hash;
+#if INCLUDE_OSCOAP
+            private readonly byte[] _oscoap;
+#endif
 
+#if INCLUDE_OSCOAP
+            public KeyUri(Uri uri, byte[] oscoap, System.Net.EndPoint ep)
+            {
+                _uri = uri;
+                _endpoint = ep;
+                _oscoap = oscoap;
+                _hash = _uri.GetHashCode() * 31 + ep.GetHashCode();
+
+                if (oscoap != null) {
+                    Int32 hash2 = 0;
+                    for (int i = 0; i < oscoap.Length; i++) hash2 = hash2 * 7 + oscoap[i];
+                    _hash += hash2 * 71;
+                }
+            }
+#else
             public KeyUri(Uri uri, System.Net.EndPoint ep)
             {
                 _uri = uri;
                 _endpoint = ep;
                 _hash = _uri.GetHashCode() * 31 + ep.GetHashCode();
             }
+#endif
 
             /// <inheritdoc/>
             public override Int32 GetHashCode()
@@ -405,13 +424,32 @@ namespace CoAP.Net
                 KeyUri other = obj as KeyUri;
                 if (other == null)
                     return false;
+#if INCLUDE_OSCOAP
+                if (Object.Equals(_uri, other._uri) && Object.Equals(_endpoint, other._endpoint)) {
+                    if (_oscoap != null) {
+                        if (other._oscoap == null) return false;
+                        if (_oscoap.Length != other._oscoap.Length) return false;
+                        for (int i = 0; i < _oscoap.Length; i++) if (_oscoap[i] != other._oscoap[i]) return false;
+                        return true;
+                    }
+                    return other._oscoap == null;
+                }
+                return false;
+#else
                 return Object.Equals(_uri, other._uri) && Object.Equals(_endpoint, other._endpoint);
+#endif
             }
 
             /// <inheritdoc/>
             public override String ToString()
             {
+#if INCLUDE_OSCOAP
+                if (_oscoap == null) return "KeyUri[" + _uri + " for " + _endpoint + "]";
+                
+                return "KeyUri[" + _uri + "for " + _endpoint + " encryption is " + BitConverter.ToString(_oscoap) + "]";
+#else
                 return "KeyUri[" + _uri + " for " + _endpoint + "]";
+#endif
             }
         }
     }

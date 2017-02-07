@@ -146,7 +146,7 @@ namespace CoAP
         /// <summary>
         /// <remarks>draft-ietf-core-oscoap</remarks>
         /// </summary>
-        Oscoap = 999,
+        Oscoap = 65025,
 #endif
         /// <summary>
         /// no-op for fenceposting

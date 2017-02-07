@@ -121,7 +121,7 @@ namespace CoAP.Observe
         public void Cancel()
         {
             if (log.IsDebugEnabled)
-                log.Debug("Cancel observe relation from " + _key + " with " + _resource.Path);
+                log.Debug("Cancel observe relation from " + _key + " with " + _resource.Uri);
             // stop ongoing retransmissions
             if (_exchange.Response != null)
                 _exchange.Response.Cancel();

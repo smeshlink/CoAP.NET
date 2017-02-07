@@ -67,6 +67,8 @@ namespace CoAP
         Int32 OSCOAP_MaxMessageSize { get; }
         Int32 OSCOAP_DefaultBlockSize { get; }
         Int32 OSCOAP_BlockwiseStatusLifetime { get; }
+
+        bool OSCOAP_ReplayWindow { get; }
 #endif
 
         /// <summary>

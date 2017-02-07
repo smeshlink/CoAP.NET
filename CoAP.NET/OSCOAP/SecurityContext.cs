@@ -109,6 +109,10 @@ namespace CoAP.OSCOAP
             public void IncrementSequenceNumber() { _sequenceNumber += 1; }
         }
 
+        static int ContextNumber = 0;
+        int _contextNo;
+        public int ContextNo { get { return _contextNo; } }
+
         EntityContext _sender = new EntityContext();
         public EntityContext Sender { get { return _sender; } }
 
@@ -160,6 +164,9 @@ namespace CoAP.OSCOAP
             hkdf.Init(new HkdfParameters(MasterSecret, null, info.EncodeToBytes()));
             ctx.Sender.BaseIV = new byte[56/8];
             hkdf.GenerateBytes(ctx.Sender.BaseIV, 0, ctx.Sender.BaseIV.Length);
+
+            ctx._contextNo = SecurityContext.ContextNumber;
+            SecurityContext.ContextNumber += 1;
 
             return ctx;
         }

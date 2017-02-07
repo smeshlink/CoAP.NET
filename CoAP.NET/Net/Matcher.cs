@@ -131,7 +131,15 @@ namespace CoAP.Net
             if (response.HasOption(OptionType.Block2))
             {
                 Request request = exchange.CurrentRequest;
+#if INCLUDE_OSCOAP
+                byte[] oscoapKey = null;
+                if (request.HasOption(OptionType.Oscoap)) {
+                    oscoapKey = request.Oscoap.RawValue;
+                }
+                Exchange.KeyUri keyUri = new Exchange.KeyUri(request.URI, oscoapKey, response.Destination);
+#else // !INCLUDE_OSCOAP
                 Exchange.KeyUri keyUri = new Exchange.KeyUri(request.URI, response.Destination);
+#endif
                 // Observe notifications only send the first block, hence do not store them as ongoing
                 if (exchange.ResponseBlockStatus != null && !response.HasOption(OptionType.Observe))
                 {
@@ -223,7 +231,15 @@ namespace CoAP.Net
             }
             else
             {
+#if INCLUDE_OSCOAP
+                byte[] oscoapValue = null;
+                if (request.HasOption(OptionType.Oscoap)) {
+                    oscoapValue = request.Oscoap.RawValue;
+                }
+                Exchange.KeyUri keyUri = new Exchange.KeyUri(request.URI, oscoapValue, request.Source);
+#else
                 Exchange.KeyUri keyUri = new Exchange.KeyUri(request.URI, request.Source);
+#endif
 
                 if (log.IsDebugEnabled)
                     log.Debug("Looking up ongoing exchange for " + keyUri);
@@ -438,7 +454,15 @@ namespace CoAP.Net
                 Request request = exchange.CurrentRequest;
                 if (request != null && (request.HasOption(OptionType.Block1) || response.HasOption(OptionType.Block2)))
                 {
+#if INCLUDE_OSCOAP
+                    byte[] oscoapValue = null;
+                    if (request.HasOption(OptionType.Oscoap)) {
+                        oscoapValue = request.Oscoap.RawValue;
+                    }
+                    Exchange.KeyUri uriKey = new Exchange.KeyUri(request.URI, oscoapValue, request.Source);
+#else
                     Exchange.KeyUri uriKey = new Exchange.KeyUri(request.URI, request.Source);
+#endif
                     if (log.IsDebugEnabled)
                         log.Debug("Remote ongoing completed, cleaning up " + uriKey);
                     Exchange exc;

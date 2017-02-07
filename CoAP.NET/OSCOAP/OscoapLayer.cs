@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Text;
 
@@ -16,6 +17,29 @@ namespace CoAP.OSCOAP
     {
         static readonly ILogger log = LogManager.GetLogger(typeof(OscoapLayer));
         static byte[] fixedHeader = new byte[] { 0x40, 0x01, 0xff, 0xff };
+        Boolean _replayWindow = true;
+        readonly ConcurrentDictionary<Exchange.KeyUri, BlockHolder> _ongoingExchanges = new ConcurrentDictionary<Exchange.KeyUri, BlockHolder>();
+
+        class BlockHolder
+        {
+            BlockwiseStatus _requestStatus;
+            BlockwiseStatus _responseStatus;
+            Response _response;
+
+            public BlockHolder(Exchange exchange)
+            {
+                _requestStatus = exchange.OSCOAP_RequestBlockStatus;
+                _responseStatus = exchange.OSCOAP_ResponseBlockStatus;
+                _response = exchange.Response;
+            }
+
+            public void RestoreTo(Exchange exchange)
+            {
+                exchange.OSCOAP_RequestBlockStatus = _requestStatus;
+                exchange.OSCOAP_ResponseBlockStatus = _responseStatus;
+                exchange.Response = _response;
+            }
+        }
 
 
         /// <summary>
@@ -28,8 +52,9 @@ namespace CoAP.OSCOAP
             _defaultBlockSize = config.DefaultBlockSize;
             _blockTimeout = config.BlockwiseStatusLifetime;
             */
+            _replayWindow = config.OSCOAP_ReplayWindow;
             if (log.IsDebugEnabled)
-                log.Debug("OscoapLayer");  // Print out config if any
+                log.Debug("OscoapLayer - replay=" + _replayWindow.ToString());  // Print out config if any
 
             config.PropertyChanged += ConfigChanged;
         }
@@ -37,14 +62,7 @@ namespace CoAP.OSCOAP
         void ConfigChanged(Object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             ICoapConfig config = (ICoapConfig)sender;
-            /*
-            if (String.Equals(e.PropertyName, "MaxMessageSize"))
-                _maxMessageSize = config.MaxMessageSize;
-            else if (String.Equals(e.PropertyName, "DefaultBlockSize"))
-                _defaultBlockSize = config.DefaultBlockSize;
-            else if (String.Equals(e.PropertyName, "BlockwiseStatusLifetime"))
-                _blockTimeout = config.BlockwiseStatusLifetime;
-                */
+            if (String.Equals(e.PropertyName, "OSCOAP_ReplayWindow")) _replayWindow = config.OSCOAP_ReplayWindow;
         }
 
         public override void SendRequest(INextLayer nextLayer, Exchange exchange, Request request)
@@ -72,6 +90,8 @@ namespace CoAP.OSCOAP
                     log.Debug("New inner response message");
                     log.Debug(encryptedRequest.ToString());
                 }
+
+                ctx.Sender.IncrementSequenceNumber();
 
                 Encrypt0Message enc = new Encrypt0Message(false);
                 byte[] msg = me.Encode(encryptedRequest);
@@ -107,27 +127,24 @@ namespace CoAP.OSCOAP
                     o.Set(enc.EncodeToBytes());
                     request.AddOption(o);
                 }
+
             }
             base.SendRequest(nextLayer, exchange, request);
         }
 
         public override void ReceiveRequest(INextLayer nextLayer, Exchange exchange, Request request)
         {
-            if (request.HasOption(OptionType.Oscoap))
-            {
-                try
-                {
+            if (request.HasOption(OptionType.Oscoap)) {
+                try {
                     CoAP.Option op = request.GetFirstOption(OptionType.Oscoap);
                     request.RemoveOptions(OptionType.Oscoap);
 
                     Encrypt0Message msg;
-                    if (op.RawValue.Length == 0)
-                    {
-                        msg = (Encrypt0Message) Com.AugustCellars.COSE.Message.DecodeFromBytes(request.Payload, Tags.Encrypted);
+                    if (op.RawValue.Length == 0) {
+                        msg = (Encrypt0Message)Com.AugustCellars.COSE.Message.DecodeFromBytes(request.Payload, Tags.Encrypt0);
                     }
-                    else
-                    {
-                        msg = (Encrypt0Message) Com.AugustCellars.COSE.Message.DecodeFromBytes(op.RawValue, Tags.Encrypted);
+                    else {
+                        msg = (Encrypt0Message)Com.AugustCellars.COSE.Message.DecodeFromBytes(op.RawValue, Tags.Encrypt0);
                     }
 
                     List<SecurityContext> contexts = new List<SecurityContext>();
@@ -159,7 +176,12 @@ namespace CoAP.OSCOAP
                     Int64 seqNo = BitConverter.ToInt64(seqNoArray, 0);
 
                     foreach (SecurityContext context in contexts) {
-                        if (context.Recipient.ReplayWindow.HitTest(seqNo)) continue;
+                        if (_replayWindow && context.Recipient.ReplayWindow.HitTest(seqNo)) {
+                            if (log.IsDebugEnabled) {
+                                log.Debug(String.Format("Hit test on {0} failed", seqNo));
+                            }
+                            continue;
+                        }
 
                         aad[2] = context.Recipient.Algorithm;
 
@@ -167,7 +189,7 @@ namespace CoAP.OSCOAP
 
                         msg.AddAttribute(HeaderKeys.Algorithm, context.Recipient.Algorithm, Attributes.DO_NOT_SEND);
                         msg.AddAttribute(HeaderKeys.IV, context.Recipient.GetIV(partialIV), Attributes.DO_NOT_SEND);
- 
+
                         try {
                             ctx = context;
                             payload = msg.Decrypt(context.Recipient.Key);
@@ -197,10 +219,25 @@ namespace CoAP.OSCOAP
 
                     RestoreOptions(request, newRequest);
 
+                    if (log.IsInfoEnabled) {
+                        log.Info(String.Format("Secure message post = " + Util.Utils.ToString(request)));
+                    }
+
+                    //  We may want a new exchange at this point if it relates to a new message for blockwise.
+
+                    if (request.HasOption(OptionType.Block2)) {
+                        Exchange.KeyUri keyUri = new Exchange.KeyUri(request.URI, null, request.Source);
+                        BlockHolder block = null;
+                        _ongoingExchanges.TryGetValue(keyUri, out block);
+
+                        if (block != null) {
+                            block.RestoreTo(exchange);
+                        }
+                    }
+
                     request.Payload = newRequest.Payload;
                 }
-                catch (Exception e)
-                {
+                catch (Exception e) {
                     log.Error("OSCOAP Layer: reject message because " + e.ToString());
                     exchange.OscoapContext = null;
                     //  Ignore messages that we cannot decrypt.
@@ -213,16 +250,14 @@ namespace CoAP.OSCOAP
 
         public override void SendResponse(INextLayer nextLayer, Exchange exchange, Response response)
         {
-            if (exchange.OscoapContext != null)
-            {
+            if (exchange.OscoapContext != null) {
                 OSCOAP.SecurityContext ctx = exchange.OscoapContext;
 
                 Codec.IMessageEncoder me = Spec.Default.NewMessageEncoder();
-                Response encryptedResponse = new Response((CoAP.StatusCode) response.Code);
+                Response encryptedResponse = new Response((CoAP.StatusCode)response.Code);
 
                 bool hasPayload = false;
-                if (response.Payload != null)
-                {
+                if (response.Payload != null) {
                     hasPayload = true;
                     encryptedResponse.Payload = response.Payload;
                 }
@@ -256,17 +291,43 @@ namespace CoAP.OSCOAP
                 enc.AddAttribute(HeaderKeys.Algorithm, ctx.Sender.Algorithm, Attributes.DO_NOT_SEND);
                 enc.Encrypt(ctx.Sender.Key);
 
-                if (hasPayload)
-                {
+                if (hasPayload) {
                     response.Payload = enc.EncodeToBytes();
                     response.AddOption(new OSCOAP.OscoapOption());
                 }
-                else
-                {
+                else {
                     OSCOAP.OscoapOption o = new OSCOAP.OscoapOption();
                     o.Set(enc.EncodeToBytes());
                     response.AddOption(o);
                 }
+
+                ctx.Sender.IncrementSequenceNumber();
+
+                //  Need to be able to retrieve this again undersome cirumstances.
+
+                if (encryptedResponse.HasOption(OptionType.Block2)) {
+                    Request request = exchange.CurrentRequest;
+                    Exchange.KeyUri keyUri = new Exchange.KeyUri(request.URI, null, response.Destination);
+
+                    //  Observe notification only send the first block, hence do not store them as ongoing
+                    if (exchange.OSCOAP_ResponseBlockStatus != null && !encryptedResponse.HasOption(OptionType.Observe)) {
+                        //  Remember ongoing blockwise GET requests
+                        BlockHolder blockInfo = new BlockHolder(exchange);
+                        if (Util.Utils.Put(_ongoingExchanges, keyUri, blockInfo) == null) {
+                            if (log.IsDebugEnabled) log.Debug("Ongoing Block2 started late, storing " + keyUri + " for " + request);
+
+                        }
+                        else {
+                            if (log.IsDebugEnabled) log.Debug("Ongoing Block2 continued, storing " + keyUri + " for " + request);
+                        }
+                    }
+                    else {
+                        if (log.IsDebugEnabled) log.Debug("Ongoing Block2 completed, cleaning up " + keyUri + " for " + request);
+                        BlockHolder exc;
+                        _ongoingExchanges.TryRemove(keyUri, out exc);
+                    }
+                }
+
             }
 
             base.SendResponse(nextLayer, exchange, response);
@@ -274,30 +335,34 @@ namespace CoAP.OSCOAP
 
         public override void ReceiveResponse(INextLayer nextLayer, Exchange exchange, Response response)
         {
-            if (response.HasOption(OptionType.Oscoap))
-            {
+            if (response.HasOption(OptionType.Oscoap)) {
                 Encrypt0Message msg;
                 OSCOAP.SecurityContext ctx;
                 Option op = response.GetFirstOption(OptionType.Oscoap);
 
-                if (op.RawValue.Length > 0)
-                {
-                    msg = (Encrypt0Message) Com.AugustCellars.COSE.Message.DecodeFromBytes(op.RawValue, Tags.Encrypted);
+                if (op.RawValue.Length > 0) {
+                    msg = (Encrypt0Message)Com.AugustCellars.COSE.Message.DecodeFromBytes(op.RawValue, Tags.Encrypt0);
                 }
-                else
-                {
-                    msg = (Encrypt0Message) Com.AugustCellars.COSE.Message.DecodeFromBytes(response.Payload, Tags.Encrypted);
+                else {
+                    msg = (Encrypt0Message)Com.AugustCellars.COSE.Message.DecodeFromBytes(response.Payload, Tags.Encrypt0);
                 }
 
 
-                if (exchange.OscoapContext == null)
-                {
+                if (exchange.OscoapContext == null) {
                     return;
                 }
                 else ctx = exchange.OscoapContext;
 
+                byte[] partialIV = msg.FindAttribute(HeaderKeys.PartialIV).GetByteString();
+                byte[] seqNoArray = new byte[8];
+                Array.Copy(partialIV, 0, seqNoArray, 8 - partialIV.Length, partialIV.Length);
+                if (BitConverter.IsLittleEndian) Array.Reverse(seqNoArray);
+                Int64 seqNo = BitConverter.ToInt64(seqNoArray, 0);
+
+                if (_replayWindow && ctx.Recipient.ReplayWindow.HitTest(seqNo)) return;
+
                 msg.AddAttribute(HeaderKeys.Algorithm, ctx.Recipient.Algorithm, Attributes.DO_NOT_SEND);
-                msg.AddAttribute(HeaderKeys.IV, ctx.Recipient.GetIV(msg.FindAttribute(HeaderKeys.PartialIV)), Attributes.DO_NOT_SEND);
+                msg.AddAttribute(HeaderKeys.IV, ctx.Recipient.GetIV(partialIV), Attributes.DO_NOT_SEND);
 
                 //  build aad
                 CBORObject aad = CBORObject.NewArray();
@@ -309,10 +374,14 @@ namespace CoAP.OSCOAP
                 aad.Add(ctx.Sender.PartialIV);
                 msg.SetExternalData(aad.EncodeToBytes());
 
+
                 byte[] payload = msg.Decrypt(ctx.Recipient.Key);
+
+                ctx.Recipient.ReplayWindow.SetHit(seqNo);
+
                 byte[] rgb = new byte[payload.Length + fixedHeader.Length];
                 Array.Copy(fixedHeader, rgb, fixedHeader.Length);
-                Array.Copy(payload,0, rgb, fixedHeader.Length, payload.Length);
+                Array.Copy(payload, 0, rgb, fixedHeader.Length, payload.Length);
                 rgb[1] = 0x45;
                 Codec.IMessageDecoder me = CoAP.Spec.Default.NewMessageDecoder(rgb);
                 Response decryptedReq = me.DecodeResponse();
@@ -335,15 +404,15 @@ namespace CoAP.OSCOAP
                 if (unprotected.ProxyUri.Fragment != null) throw new Exception("Fragments not allowed in ProxyUri");
                 switch (unprotected.ProxyUri.Scheme) {
                     case "coap":
-                    port = 5683;
-                    break;
+                        port = 5683;
+                        break;
 
                     case "coaps":
-                    port = 5684;
-                    break;
+                        port = 5684;
+                        break;
 
                     default:
-                    throw new Exception("Unsupported schema");
+                        throw new Exception("Unsupported schema");
                 }
 
                 if (unprotected.ProxyUri.Query != null) {
@@ -424,7 +493,7 @@ namespace CoAP.OSCOAP
             foreach (Option op in toDelete) unprotected.RemoveOptions(op.Type);
         }
 
- void                        RestoreOptions(Message response, Message decryptedReq)
+        void RestoreOptions(Message response, Message decryptedReq)
         {
             foreach (Option op in response.GetOptions()) {
                 switch (op.Type) {
@@ -447,7 +516,6 @@ namespace CoAP.OSCOAP
                 }
             }
         }
-
     }
 #endif
 }

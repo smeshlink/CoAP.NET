@@ -66,6 +66,7 @@ namespace CoAP
         private Int32 _oscoap_maxMessageSize = 1024;
         private Int32 _oscoap_defaultBlockSize = CoapConstants.DefaultBlockSize;
         private Int32 _oscoap_blockwiseStatusLifetime = 10 *60 * 1000; // ms
+        private bool _oscoap_ReplayWindow = true;
 #endif
 
         /// <summary>
@@ -446,6 +447,16 @@ namespace CoAP
                 }
             }
         }
+
+        public bool OSCOAP_ReplayWindow {
+            get { return _oscoap_ReplayWindow; }
+            set {
+                if (_oscoap_ReplayWindow != value) {
+                    _oscoap_ReplayWindow = value;
+                    NotifyPropertyChanged("OSCOAP_ReplayWindow");
+                }
+            }
+        }
 #endif
 
         /// <inheritdoc/>
@@ -485,6 +496,7 @@ namespace CoAP
 #if INCLUDE_OSCOAP
             OSCOAP_MaxMessageSize = GetInt32(nvc, "OSCOAP_MaxMessageSize", "MAX_MESSAGE_SIZE", OSCOAP_MaxMessageSize);
             OSCOAP_DefaultBlockSize = GetInt32(nvc, "OSCOAP_DefaultBlockSize", "DEFAULT_BLOCK_SIZE", OSCOAP_DefaultBlockSize);
+            OSCOAP_ReplayWindow = GetBoolean(nvc, "OSCOAP_ReplayWindow", "REPLAY_WINDOW", OSCOAP_ReplayWindow);
 #endif
         }
 
@@ -518,6 +530,7 @@ namespace CoAP
 #if INCLUDE_OSCOAP
                 w.Write("OSCOAP_MaxMessageSize="); w.WriteLine(OSCOAP_MaxMessageSize);
                 w.Write("OSCOAP_DefaultBlockSize="); w.WriteLine(OSCOAP_DefaultBlockSize);
+                w.Write("OSCOAP_ReplayWindow="); w.WriteLine(OSCOAP_ReplayWindow);
 #endif
             }
         }
